@@ -150,11 +150,8 @@ script.on_event({
     defines.events.on_space_platform_built_entity,  -- event.entity
     defines.events.script_raised_built,             -- event.entity
     defines.events.script_raised_revive,            -- event.entity
-    defines.events.on_entity_cloned,                -- event.destination (not a normal event) *
-    defines.events.register_on_object_destroyed     -- event.entity #
+    defines.events.on_entity_cloned                 -- event.destination (not a normal event) *
     -- * Event is raised for every single entity created from cloned area as well.
-    -- # Allows later detection of entity being destroyed through script by mods that don't
-    --   raise an event for it.
 },  function(event)
     register_entity(LIST_thermal_panels, storage.tspl_thermal_panel_table, event)
 end)
@@ -165,10 +162,8 @@ script.on_event({
     defines.events.on_robot_pre_mined,          -- *
     defines.events.on_space_platform_pre_mined, -- *
     defines.events.on_entity_died,
-    defines.events.script_raised_destroy,
-    defines.events.on_object_destroyed          -- #
+    defines.events.script_raised_destroy
     -- * Pre-stage needed to unregister entity from storage table before it is removed.
-    -- # Depends on register_on_object_destroyed above.
 },  function(event)
     unregister_entity(LIST_thermal_panels, storage.tspl_thermal_panel_table, event)
 end) 

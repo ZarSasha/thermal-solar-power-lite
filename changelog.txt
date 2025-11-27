@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.18
+Date: 2025-11-27
+  Bugfixes:
+    - Thermal Solar Panels: Now registers entities so they can be removed from the storage table if
+      other mods destroy or replace them through a script without raising an event. Prevents bloat.
+---------------------------------------------------------------------------------------------------
 Version: 2.1.17
 Date: 2025-11-15
   Graphics:

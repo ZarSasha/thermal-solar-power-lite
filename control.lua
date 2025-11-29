@@ -76,7 +76,7 @@ if script.active_mods["more-quality-scaling"] then
             table.insert(LIST_thermal_panels, panel_clone)
         end
     end
-    quality_scaling_factor = -0.04 -- accounts for increased heat capacity (30% pr. level)
+    quality_scaling_factor = 0 -- accounts for increased heat capacity (30% pr. level)
 end
 
 -- PARAMETERS --

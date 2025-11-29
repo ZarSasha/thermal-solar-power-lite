@@ -67,7 +67,7 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
 end
 
 -- COMPATIBILITY: MORE QUALITY SCALING --
-local quality_scaling_factor = 0.19 -- finetuned to match Solar Panels at expected scale
+local quality_scaling_factor = 0.16 -- finetuned to match Solar Panels at expected scale
 if script.active_mods["more-quality-scaling"] then
     if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
     local thermal_panels = LIST_thermal_panels

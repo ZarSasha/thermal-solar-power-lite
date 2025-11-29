@@ -1,9 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.19
+Date: 2025-11-29
+  Balancing:
+    - Thermal Solar Panels: Decreased scaling of heat generation again.
+  Info:
+    - Corrected error in changelog for v2.1.18.
+---------------------------------------------------------------------------------------------------
 Version: 2.1.18
 Date: 2025-11-29
   Balancing:
     - Thermal Solar Panels: Slightly increased scaling of heat generation according to quality.
-      The thermal solar complex will better match output of solar + accu at expected scale.
   Changes:
     - Thermal Solar Panels:
       - Compatibility: Added the property "fast_replaceable_group" for the sake of mods that clone 

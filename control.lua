@@ -52,8 +52,8 @@ local function unregister_surface_entities(entity_types, storage_table, event)
     end
 end
 
--- v2.1.6 note: Won't check for presence of storage table, since that may simply hide bugs.
--- Anyway, the code seems robust and the reset command can still be used as a backup solution.
+-- v2.1.6: Won't check for presence of storage table, since that may simply hide bugs. Anyway, the
+-- code seems robust and the reset command can still be used as a backup solution.
 
 ---------------------------------------------------------------------------------------------------
 -- MAIN SCRIPT FUNCTIONS
@@ -64,6 +64,19 @@ local correction, temp_target = 1, 165
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     correction  = 2   -- compensates for halved efficiency of steam engines
     temp_target = 250 -- matches higher boiler temp need, without changing panel output setting
+end
+
+-- COMPATIBILITY: MORE QUALITY SCALING --
+local quality_scaling_factor = 0.19 -- finetuned to match Solar Panels at expected scale
+if script.active_mods["more-quality-scaling"] then
+    if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
+    local thermal_panels = LIST_thermal_panels
+    for _, panel in pairs(thermal_panels) do
+        for _, panel_clone in pairs(prototypes.mod_data["entity-clones"].data[panel] or {}) do
+            table.insert(LIST_thermal_panels, panel_clone)
+        end
+    end
+    quality_scaling_factor = 0 -- factor redundant when heat capacity itself gets scaled (by 30%).
 end
 
 -- PARAMETERS --
@@ -79,7 +92,7 @@ local function update_quality_panel_temperature()
     if storage.tspl_thermal_panel_table == nil then return end -- makes troubleshooting not tedious
     for _, panel in pairs(storage.tspl_thermal_panel_table) do
         if not panel.valid then goto continue end
-        local q_factor    = 1 + (panel.quality.level * 0.15) -- finetuned to match Solar Panels
+        local q_factor    = 1 + (panel.quality.level * quality_scaling_factor)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
         local temp_loss   = (panel.temperature-ambient_temp) * PANEL.heat_loss_factor

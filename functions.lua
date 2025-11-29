@@ -49,4 +49,13 @@ function round_number(num, decimals)
     return num / decimals
 end
 
+-- Checks if a table address exists. Seems to return table value or nil.
+function address_not_nil(t, ...)
+    for i = 1, select("#", ...) do
+        if t == nil then return nil end
+        t = t[select(i, ...)]
+    end
+    return t
+end
+
 ---------------------------------------------------------------------------------------------------

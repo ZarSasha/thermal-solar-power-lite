@@ -19,7 +19,7 @@ local subgroup_thermal = {
 }
 
 -- Thermal Solar Panel --
-local panel = { 
+local panel = {
     type = "item",
     name = "tspl-thermal-solar-panel",
     icon = GRAPHICS_ICONS.."thermal-solar-panel.png",
@@ -34,7 +34,7 @@ local panel = {
     stack_size = 50
 }
 -- Thermal Solar Panel (Large) --
-local panel_l = { 
+local panel_l = {
     type = "item",
     name = "tspl-thermal-solar-panel-large",
     icon = GRAPHICS_ICONS.."thermal-solar-panel-large.png",
@@ -49,7 +49,7 @@ local panel_l = {
     stack_size = 10
 }
 -- Basic Heat Exchanger --
-local exchanger = { 
+local exchanger = {
     type = "item",
     name = "tspl-basic-heat-exchanger",
     icon = GRAPHICS_ICONS.."basic-heat-exchanger.png",
@@ -65,7 +65,7 @@ local exchanger = {
     random_tint_color = item_tints.iron_rust
 }
 -- Basic Heat Pipe --
-local heat_pipe = { 
+local heat_pipe = {
     type = "item",
     name = "tspl-basic-heat-pipe",
     icon = GRAPHICS_ICONS.."basic-heat-pipe.png",

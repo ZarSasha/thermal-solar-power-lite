@@ -43,6 +43,7 @@ local hr_panel_disconnection_sprites = {
 local ThermalPanel = {
 	type = "reactor",
 	name = "tspl-thermal-solar-panel",
+    fast_replaceable_group = "tspl-thermal-solar-panel", -- for mod compat
     factoriopedia_description = {"factoriopedia-description.tspl-thermal-solar-panel"},
 	icon = GRAPHICS_ICONS.."thermal-solar-panel.png",
 	icon_size = 32,
@@ -129,6 +130,7 @@ local hr_panel_l_disconnection_sprites = {
 -- PROPERTIES -------------------------------------------------------------------------------------
 local ThermalPanelLarge = table.deepcopy(ThermalPanel)
 ThermalPanelLarge.name = "tspl-thermal-solar-panel-large"
+ThermalPanelLarge.fast_replaceable_group = "tspl-thermal-solar-panel-large"
 ThermalPanelLarge.factoriopedia_description =
     {"factoriopedia-description.tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.icon = GRAPHICS_ICONS.."thermal-solar-panel-large.png"

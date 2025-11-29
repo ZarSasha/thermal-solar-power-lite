@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.18
+Date: 2025-11-29
+  Balancing:
+    - Thermal Solar Panels: Slightly increased scaling of heat generation according to quality.
+      The thermal solar complex will better match output of solar + accu at expected scale.
+  Changes:
+    - Thermal Solar Panels:
+      - Compatibility: Added the property "fast_replaceable_group" for the sake of mods that clone 
+        and replace the panels for whatever purpose.
+      - Compatibility for "More Quality Scaling": The heat-generating script now applies to all
+        the quality clones as well, and with correct heat output scaling.
+---------------------------------------------------------------------------------------------------
 Version: 2.1.17
 Date: 2025-11-15
   Graphics:

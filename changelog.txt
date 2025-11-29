@@ -2,7 +2,8 @@
 Version: 2.1.19
 Date: 2025-11-29
   Balancing:
-    - Thermal Solar Panels: Decreased scaling of heat generation again.
+    - Thermal Solar Panels: Decreased scaling of heat generation again, forgot why I had chosen the
+      scaling factor. Lowered for clones from "More Quality Scaling" instead, to ensure parity.
   Info:
     - Corrected error in changelog for v2.1.18.
 ---------------------------------------------------------------------------------------------------

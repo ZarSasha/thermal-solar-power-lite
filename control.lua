@@ -65,9 +65,10 @@ end
     -- HEAT GENERATION
 ---------------------------------------------------------------------------------------------------
 
+-- Pre-calculated variables that will be accessed by on-tick script. Default values set.
 local cache = {
-    temp_gain = 2.1,
-    q_scaling = 0.15
+    temp_gain = 2.1, -- Default nominal output divided by heat capacity.
+    q_scaling = 0.15 -- Tuned to roughly match scaling of vanilla solar panels.
 }
 
 -- Precalculates and caches results for variables used later in the on-tick heat generating script.
@@ -87,7 +88,7 @@ local function cache_variables_for_on_tick_script()
                 table.insert(LIST_thermal_panels, panel_clone)
             end
         end
-        quality_X = 0 -- accounts for increased heat capacity (30% pr. level)
+        quality_X = 0 -- accounts for increased heat capacity (30% pr. quality level)
     end
     -- Copies values to cache (it works since they are simple number values).
     cache.temp_gain = ((PANEL.heat_output_kW * (60/60)) / PANEL.heat_capacity_kJ) * efficiency_X
@@ -96,7 +97,7 @@ end
 
 local ambient_temp = 15     -- Default ambient temperature.
 local light_const  = 0.85   -- Highest level of "surface darkness" (default range: 0-0.85).
-local heat_loss_X  = 0.0025 -- Determines rate of heat loss proportional to temperature.
+local heat_loss_X  = 0.005  -- Determines rate of heat loss proportional to temperature.
 
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.

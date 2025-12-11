@@ -153,7 +153,7 @@ end
 
 -- Function to rebuild contents of a storage table. Also resets makeshift sunlight indicator
 -- (in case gui is left open for some reason, but it's a trivial problem).
-local function rebuild_storage_table(entity_types, storage_table)
+local function rebuild_list_of_panel_IDs(entity_types, storage_table)
     table_clear_content(storage_table)
     local found_entities = search_for_entities(entity_types)
     for _, found_entity in pairs(found_entities) do
@@ -219,7 +219,7 @@ end)
 script.on_init(function()
     create_storage_table_keys()
     create_cached_results_for_storage_table()
-    rebuild_storage_table(LIST_thermal_panels, storage.panels) -- *
+    rebuild_list_of_panel_IDs(LIST_thermal_panels, storage.panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
@@ -322,7 +322,7 @@ end
 -- DEBUG "reset": Rebuilds thermal panel storage table, resets make-shift sunlight indicator.
 COMMAND_parameters.reset = function(pl)
     create_storage_table_keys()
-    rebuild_storage_table(LIST_thermal_panels, storage.panels)
+    rebuild_list_of_panel_IDs(LIST_thermal_panels, storage.panels)
     mPrint(pl, {
         "The Thermal Panel storage table was reset and rebuild.",
         "Any solar-fluid remaining in thermal panels was removed as well."

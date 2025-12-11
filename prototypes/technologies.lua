@@ -21,9 +21,8 @@ local solarTech =
 		{type = "unlock-recipe", recipe = "tspl-basic-heat-exchanger"},
 		{type = "unlock-recipe", recipe = "tspl-basic-heat-pipe"}
 	},
-	prerequisites = nil,	-- assigned below
-	unit = nil,				-- assigned below
-    order = nil             -- assigned below
+	prerequisites = nil,    -- assigned below
+	unit = nil              -- assigned below
 }
 
 -- MOD DEPENDENT PROPERTIES: ----------------------------------------------------------------------
@@ -49,7 +48,6 @@ if mods["aai-industry"] then
         count = 100,
         time = 20
     }
-    solarTech.order = "a" -- same as Steam power
 end
 
 -- FINAL DATA WRITE -------------------------------------------------------------------------------

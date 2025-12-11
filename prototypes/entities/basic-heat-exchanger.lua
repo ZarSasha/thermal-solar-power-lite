@@ -8,6 +8,7 @@ require "shared.all-stages"
 -- BASIC HEAT EXCHANGER
 ---------------------------------------------------------------------------------------------------
 -- Produces steam at 165°C at a rate of 60 units/s from water and heat.
+---@diagnostic disable-next-line: undefined-field
 local BasicHeatEx = table.deepcopy(data.raw["boiler"]["heat-exchanger"])
 -- GRAPHICS --
 local path = GRAPHICS_ENTITIES.."basic-heat-exchanger/"

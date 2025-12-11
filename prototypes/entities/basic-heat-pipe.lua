@@ -8,6 +8,7 @@ require "shared.all-stages"
 -- BASIC HEAT PIPE
 ---------------------------------------------------------------------------------------------------
 -- Cheaper than the vanilla variant, available much earlier.
+---@diagnostic disable-next-line: undefined-field
 local BasicHeatPipe = table.deepcopy(data.raw["heat-pipe"]["heat-pipe"])
 -- PROPERTIES --
 BasicHeatPipe.name = "tspl-basic-heat-pipe"

@@ -6,6 +6,11 @@
         "game",
         "prototypes",
         "util",
-        "mods"
+        "mods",
+        "settings",
+        "data",
+        "kg",
+        "commands",
+        "log"
     ]
 }

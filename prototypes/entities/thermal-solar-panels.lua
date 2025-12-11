@@ -138,6 +138,7 @@ local hr_panel_l_disconnection_sprites = {
     shift = util.by_pixel(0, 5)}
 
 -- PROPERTIES -------------------------------------------------------------------------------------
+---@diagnostic disable-next-line: undefined-field
 local ThermalPanelLarge = table.deepcopy(ThermalPanel)
 ThermalPanelLarge.name = "tspl-thermal-solar-panel-large"
 ThermalPanelLarge.fast_replaceable_group = "tspl-thermal-solar-panel-large"

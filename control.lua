@@ -13,9 +13,9 @@ require "functions" require "shared"
 
 -- Creates a storage table that will contain with ID's of all thermal solar panels.
 local function create_storage_tables_and_values()
-    if storage.thermal_panels  == nil then storage.thermal_panels = {} end
+    if storage.thermal_panels  == nil then storage.thermal_panels = {}   end
     if storage.temp_gain       == nil then storage.temp_gain      = 2.1  end
-    if storage.q_scaling       == nil then storage.q_scaling      = 0.15  end
+    if storage.q_scaling       == nil then storage.q_scaling      = 0.15 end
 end
 
 -- Names of entities that should be registered into the storage table upon creation.
@@ -271,13 +271,15 @@ end
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
     local sun_level = pl.surface.get_property("solar-power")
-    local max_temp  = ambient_temp + ((temp_gain_adj * (sun_level/100)) / PANEL.heat_loss_factor)
+    --local max_temp  = ambient_temp + ((temp_gain_adj * (sun_level/100)) / PANEL.heat_loss_factor)
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
+      --[[
         "Thermal Panel temperature limit at constant sunlight is "
       ..clr(round_number(max_temp, 1),2).."°C due to heat loss, capped at "
       ..clr(PANEL.max_temp,2).."°C!"
+      ]]
     })
 end
 

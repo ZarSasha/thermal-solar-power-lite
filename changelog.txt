@@ -2,16 +2,18 @@
 Version: 2.2.0
 Date: 2025-12-11
   Changes:
-    - NB: Thermal Solar Panel heat output is defined by a new setting: It shows nominal output at
-      the lowest temperature, instead of net output at 165°C on Nauvis. The default value has
-      therefore been changed from 67.5kW to 105kW. It is easier to work with and probably also less
-      confusing overall. Remember that a lower value also reduces the efficiency of electricity
-      production, even to the point of it becoming impossible!
+    - NB: Thermal Solar Panel heat output is defined by a new setting: It shows nominal output
+      rather than net output at 165°C on Nauvis. The default value has therefore been changed from
+      67.5kW to 105kW. It is easier to work with and probably also less confusing overall. Remember
+      that a lower value also reduces the efficiency of power production, even to the point of it
+      becoming impossible!
   Scripting:
     - Now properly pre-calculates some variables and caches the results ahead of their use in the
       on-tick heat-generating script, thus improving performance a bit.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
       sure to properly migrate contents with lua.
+    - Now also rebuilds table of thermal panel IDs if mod configuration is changed, just in case
+      any clones (like from More Quality Scaling) are removed.
   Internal:
     - Tidied up a bit.
 ---------------------------------------------------------------------------------------------------

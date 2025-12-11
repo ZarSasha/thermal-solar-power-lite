@@ -237,11 +237,6 @@ script.on_configuration_changed(function()
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)
 
--- Function set to run on load of save game. Very restrictive.
---script.on_load(function()
---    cache_variables_for_on_tick_script()
---end)
-
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS
 ---------------------------------------------------------------------------------------------------
@@ -279,16 +274,15 @@ local COMMAND_parameters = {}
 -- "help": Describes the most important console commands or groups thereof.
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
-        clr("info",1)..": Provides info relevant to the thermal panels and their power "
-      .."production.",
-        clr("debug",1)..": Provides info on debug functions which are available through commands."
+        clr("info",1)..": Provides very basic info for now.",
+        clr("debug",1)..": Provides info on available debug functions."
     })
 end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
     local sun_level = pl.surface.get_property("solar-power")
-    --local max_temp  = ambient_temp + ((temp_gain_adj * (sun_level/100)) / PANEL.heat_loss_factor)
+    --local max_temp  = ambient_temp + (((temp_gain - 0.75) * (sun_level/100)) / PANEL.heat_loss_factor)
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
@@ -303,14 +297,13 @@ end
 -- DEBUG "debug": Describes the function of command parameters used for debugging.
 COMMAND_parameters.debug = function(pl)
     mPrint(pl, {
-        clr("check",1)..": Checks for existence of storage table; counts all thermal panels on "
-      .."all surfaces and in the storage table.",
-        clr("reset",1)..": Rebuilds the thermal panel storage table. Resets sunlight indicator as "
-      .."well.",
-        clr("clear",1)..": Clears the thermal panel storage table of its content.",
-        clr("delete",1)..": Entirely deletes the thermal panel storage table.",
-        clr("unlock",1)..": Forcefully unlocks all content from this mod without requiring any "
-      .."tech to be researched."
+        clr("check",1)..": Checks for existence of thermal panel ID list within storage and makes "
+        .."a count.",
+        clr("reset",1)..": Rebuilds the thermal panel ID list within storage. Resets the sunlight "
+        .."indicator as well.",
+        clr("clear",1)..": Clears the thermal panel ID list within storage of its content.",
+        clr("delete",1)..": Entirely deletes the thermal panel ID list within storage.",
+        clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
 
@@ -319,16 +312,15 @@ COMMAND_parameters.check = function(pl)
     local count1 = search_and_count_entities(LIST_thermal_panels)
     if storage.thermal_panels ~= nil then
         local count2 = table_length(storage.thermal_panels)
-        local panels =
         mPrint(pl, {
-            "Thermal Panel storage table exists.",
-            "Thermal Panel all surfaces / storage table entity count: "
+            "The thermal panel ID list exists.",
+            "Thermal panel entity count on all surfaces / registered within storage table: "
           ..clr(count1,2).." / "..clr(count2,2)..".",
         })
     else
         mPrint(pl, {
-            "Thermal Panel storage table does not exist.",
-            "Thermal Panel all surfaces entity count: "..clr(count1,2).."."
+            "The thermal panel ID list does not exist within the storage table.",
+            "Thermal panel entity count on all surfaces: "..clr(count1,2).."."
         })
     end
 end
@@ -338,7 +330,7 @@ COMMAND_parameters.reset = function(pl)
     create_storage_table_key()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels)
     mPrint(pl, {
-        "The Thermal Panel storage table was reset and rebuild.",
+        "The thermal panel ID list within storage was reset and rebuild.",
         "Any solar-fluid remaining in thermal panels was removed as well."
     })
 end
@@ -347,9 +339,11 @@ end
 COMMAND_parameters.clear = function(pl)
     if storage.thermal_panels ~= nil then
         table_clear_content(storage.thermal_panels)
-        mPrint(pl, {"Thermal Panel storage table was cleared of its content!"})
+        mPrint(pl, {
+            "The thermal panel ID list within storage was cleared!"})
     else
-        mPrint(pl, {"There was no Thermal Panel storage table to clear of its content!"})
+        mPrint(pl, {
+            "There was no thermal panel ID list within storage to clear!"})
     end
 end
 
@@ -358,9 +352,11 @@ end
 COMMAND_parameters.delete = function(pl)
     if storage.thermal_panels ~= nil then
         storage.thermal_panels = nil
-        mPrint(pl, {"Thermal Panel storage table was entirely deleted!"})
+        mPrint(pl, {
+            "The thermal panel ID list within storage was deleted! Crash incoming!"})
     else
-        mPrint(pl, {"Thermal Panel storage table already does not exist!"})
+        mPrint(pl, {
+            "The thermal panel ID list within storage already does not exist!"})
     end
 end
 

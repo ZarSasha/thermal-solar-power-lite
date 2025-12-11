@@ -80,7 +80,7 @@ local function create_cached_results_for_storage_table()
                 table.insert(LIST_thermal_panels, panel_clone)
             end
         end
-        quality_X = 0
+        quality_X = 0 -- accounts for increased heat capacity (30% pr. level)
     end
     -- Writes values to keys in storage table:
     storage.temp_gain = (PANEL.heat_output_kW / PANEL.heat_capacity_kJ) * efficiency_X
@@ -98,8 +98,8 @@ local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to tempe
 
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
-local function update_quality_panel_temperature()
-    --if storage.panel_ID_table == nil then return end -- for easier troubleshooting
+local function update_panel_temperature()
+    --if storage.panel_ID_table == nil then return end -- for easier testing
     for _, panel in pairs(storage.panel_ID_table) do
         if not panel.valid then goto continue end
         local q_factor    = 1 + (panel.quality.level * storage.q_scaling)
@@ -202,7 +202,7 @@ end)
 
 -- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % 60 == 0 then update_quality_panel_temperature() end
+    if event.tick % 60 == 0 then update_panel_temperature() end
 end)
 
 -- Function set to run when a GUI is opened.

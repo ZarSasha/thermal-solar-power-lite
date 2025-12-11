@@ -1,11 +1,15 @@
--- Check if the old key exists in the storage table
+---------------------------------------------------------------------------------------------------
+-- MIGRATIONS FOR V2.2.0
+---------------------------------------------------------------------------------------------------
+
+-- Change to name of storage table key, that contain thermal solar panel IDs:
 if storage.tspl_thermal_panel_table ~= nil then
-    -- Transfer the data to the new key
-    storage.panels = storage.tspl_thermal_panel_table
-
-    -- Optional: Clean up the old key
+    -- Transfers data from old to new key:
+    storage.panel_ID_table = storage.tspl_thermal_panel_table
+    -- Cleans up the old key:
     storage.tspl_thermal_panel_table = nil
-
-    -- Log a message to the console for debugging/confirmation
-    log("Migrated data from 'tspl_thermal_panel_table' to 'tspl_thermal_panel_table'.")
+    -- Logs a message to the console for debugging/confirmation:
+    log("Migrated data from 'tspl_thermal_panel_table' to 'panels'.")
 end
+
+---------------------------------------------------------------------------------------------------

@@ -65,14 +65,12 @@ end
     -- HEAT GENERATION
 ---------------------------------------------------------------------------------------------------
 
-local cache = {}
-
--- Pre-calculates and caches variables on event trigger. Uses data from settings stage. Data may
--- be further overwritten below for compatibility.
-local function precalculate_and_cache_variables()
-    cache.temp_gain    = ((SETTING.panel_output_kW *(60 / 60)) / 50) -- default heat capacity: 50kJ
-    cache.q_scaling    = 0.15   -- Tuned to roughly match scaling of vanilla solar panels.*
-end
+-- Parameters.
+local temp_gain    = (SETTING.panel_output_kW / 50)
+local ambient_temp = 15    -- Default ambient temperature.
+local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
+local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to temperature.
+local q_scaling    = 0.15
 
 -- COMPATIBILITY: More Quality Scaling --
 local function provide_compat_for_more_quality_scaling()
@@ -84,14 +82,9 @@ local function provide_compat_for_more_quality_scaling()
                 table.insert(LIST_thermal_panels, panel_clone)
             end
         end
-        cache.q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
+        q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
     end
 end
-
--- Other parameters.
-local ambient_temp = 15    -- Default ambient temperature.
-local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
-local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to temperature.
 
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
@@ -99,12 +92,12 @@ local function update_panel_temperature()
     --if storage.thermal_panels == nil then return end -- for easier testing
     for _, panel in pairs(storage.thermal_panels) do
         if not panel.valid then goto continue end
-        local q_factor    = 1 + (panel.quality.level * cache.q_scaling)
+        local q_factor    = 1 + (panel.quality.level * q_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
         local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
         panel.temperature =
-            panel.temperature + cache.temp_gain * light_corr * sun_mult * q_factor - temp_loss
+            panel.temperature + temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::
     end
 end
@@ -219,7 +212,6 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_key()
-    precalculate_and_cache_variables()
     provide_compat_for_more_quality_scaling()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -230,10 +222,6 @@ script.on_configuration_changed(function()
     provide_compat_for_more_quality_scaling()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
-end)
-
-script.on_load(function()
-    precalculate_and_cache_variables()
 end)
 
 ---------------------------------------------------------------------------------------------------

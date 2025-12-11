@@ -17,10 +17,10 @@ data:extend({
     },
     {-- 2. Configure thermal solar panel max. heat energy output within certain limits.
 		type = "double-setting",
-		name = "custom-panel-heat-output-kW",
+		name = "custom-panel-nominal-heat-generation-kW",
 		setting_type = "startup",
-		default_value = 67.5,	-- [n1]
-        minimum_value = 37.5, 	-- Too low to work, actually.
+		default_value = 105,
+        minimum_value =   0,
         maximum_value = 250, 	-- Max. output from original mod, already OP.
 		order = "b"
 	},
@@ -60,7 +60,7 @@ data:extend({
 -- [n1]	Thermal Solar Panels are currently balanced such that 3x9=27 panels are more than enough to
 --		keep 1 Basic Heat Exchanger and 1 Steam Engine with Steam Storage running around the clock,
 --		producing at least 900 kW of electric energy.
---		While nominally producing more power than Solar Panels (67.5kW > 60kW), they are typically
---		active for a much shorter time (52.5% < 70%). This is because the panels constantly lose
---      heat in proportion to their temperature above 15°C, and it takes a while for the panels to
---      rise above the productive threshold of 165°C again in the morning.
+--		While nominally producing more power than Solar Panels (105kW > 60kW), they dissipate heat
+--      in proportion to their temperature above 15°C. As a result, they don't easily break the
+--      temperature threshold required for electricty producion, which under full load happens
+--      within a much narrower time frame (~52.5% < 70%).

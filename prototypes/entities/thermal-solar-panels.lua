@@ -49,7 +49,7 @@ if MOD.PY_COAL_PROCESSING and not SETTING.select_mod == "Pyanodon" then
     heat_capacity_kJ = 50 * 1.122
 elseif MOD.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Also adjusts for higher exchanger temperature (250°C):
-    heat_capacity_kJ = 50 * 1.122 --
+    heat_capacity_kJ = 50 * 1.9 --
 end
 
 local ThermalPanel = {

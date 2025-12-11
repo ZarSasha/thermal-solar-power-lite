@@ -65,7 +65,10 @@ end
     -- HEAT GENERATION
 ---------------------------------------------------------------------------------------------------
 
-local cache = {}
+local cache = {
+    temp_gain = 2.1,
+    q_scaling = 0.15
+}
 
 -- Precalculates and caches results for variables used later in the on-tick heat generating script.
 local function cache_variables_for_on_tick_script()
@@ -87,7 +90,7 @@ local function cache_variables_for_on_tick_script()
         quality_X = 0 -- accounts for increased heat capacity (30% pr. level)
     end
     -- Copies values to cache (it works since they are simple number values).
-    cache.temp_gain = ((PANEL.heat_output_kW * (30/60)) / PANEL.heat_capacity_kJ) * efficiency_X
+    cache.temp_gain = ((PANEL.heat_output_kW * (60/60)) / PANEL.heat_capacity_kJ) * efficiency_X
     cache.q_scaling = quality_X
 end
 
@@ -205,7 +208,7 @@ end)
 
 -- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % 30 == 0 then update_panel_temperature() end
+    if event.tick % 60 == 0 then update_panel_temperature() end
 end)
 
 -- Function set to run when a GUI is opened.

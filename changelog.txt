@@ -3,10 +3,11 @@ Version: 2.1.20
 Date: 2025-12-11
   Balancing:
     - AAI Industry: Moved technology next to Steam Power and increased the cost of researching it
-      (it now also requires Logistic Science Packs). As before, Steam Power must be researched to
+      (it now also requires logistic science packs). As before, Steam Power must be researched to
       produce electricity from the steam.
   Internal:
     - Deleted an unused low-res asset.
+    - Removed hidden .git folder, thus decreasing size of mod from ~4.6MB to ~2.0MB.
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.19
 Date: 2025-11-29

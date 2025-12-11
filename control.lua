@@ -13,9 +13,9 @@ require "functions" require "shared"
 
 -- Creates keys for storage table that will be needed by scripts.
 local function create_storage_table_keys()
-    if storage.panels    == nil then storage.panels    = {} end -- to be filled with entity IDs
-    if storage.temp_gain == nil then storage.temp_gain = {} end -- to be replaced with number
-    if storage.q_scaling == nil then storage.q_scaling = {} end -- to be replaced with number
+    if storage.panels    == nil then storage.panels    = {}   end -- to be filled with entity IDs
+    if storage.temp_gain == nil then storage.temp_gain = 2.1  end
+    if storage.q_scaling == nil then storage.q_scaling = 0.15 end
 end
 
 -- Names of entities that should be registered into storage.panels upon creation.

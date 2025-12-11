@@ -70,7 +70,7 @@ local temp_gain    = (SETTING.panel_output_kW / 50)
 local ambient_temp = 15    -- Default ambient temperature.
 local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
 local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to temperature.
-local q_scaling    = 0.15
+local q_scaling    = 0.15  -- fine-tuned to match scaling of solar panels.
 
 -- COMPATIBILITY: More Quality Scaling --
 local function provide_compat_for_more_quality_scaling()

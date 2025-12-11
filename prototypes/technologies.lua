@@ -21,19 +21,33 @@ local solarTech =
 		{type = "unlock-recipe", recipe = "tspl-basic-heat-exchanger"},
 		{type = "unlock-recipe", recipe = "tspl-basic-heat-pipe"}
 	},
-	prerequisites = nil,	-- assigned below
-	unit = nil				-- assigned below
+	prerequisites = nil,    -- assigned below
+	unit = nil              -- assigned below
 }
 
 -- MOD DEPENDENT PROPERTIES: ----------------------------------------------------------------------
 
 -- DEFAULT (VANILLA + UNLISTED MODS) --
     solarTech.prerequisites = {"automation-science-pack"}
-    solarTech.unit = {ingredients = {{"automation-science-pack", 1}}, count = 30, time = 15}
- 
+    solarTech.unit = {
+        ingredients = {
+            {"automation-science-pack", 1}
+        },
+        count = 30,
+        time = 15
+    }
+
 -- AAI INDUSTRIES --
 if mods["aai-industry"] then
-    solarTech.prerequisites = {"basic-fluid-handling"}
+    solarTech.prerequisites = {"fluid-handling"}
+    solarTech.unit = {
+        ingredients = {
+            {"automation-science-pack", 1},
+            {"logistic-science-pack",   1}
+        },
+        count = 100,
+        time = 20
+    }
 end
 
 -- FINAL DATA WRITE -------------------------------------------------------------------------------

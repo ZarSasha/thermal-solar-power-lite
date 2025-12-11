@@ -3,7 +3,7 @@
 --  ┃ ┃ ┣ ┃┃┃┗┓
 --  ┻ ┻ ┗┛┛ ┗┗┛
 ---------------------------------------------------------------------------------------------------
-require "shared"
+require "shared.all-stages"
 local item_sounds = require "__base__.prototypes.item_sounds"
 local item_tints = require("__base__.prototypes.item-tints")
 ---------------------------------------------------------------------------------------------------

@@ -3,7 +3,8 @@
 --  ┣ ┃┃ ┃ ┃ ┃ ┃┣ ┗┓
 --  ┗┛┛┗ ┻ ┻ ┻ ┻┗┛┗┛
 ---------------------------------------------------------------------------------------------------
-require "shared"
+require "shared.all-stages"
+require "shared.first-stages"
 local hit_effects = require "__base__.prototypes.entity.hit-effects"
 local sounds = require("__base__.prototypes.entity.sounds")
 ---------------------------------------------------------------------------------------------------
@@ -40,10 +41,16 @@ local hr_panel_disconnection_sprites = {
 
 -- PROPERTIES -------------------------------------------------------------------------------------
 
--- Shared Parameters:
+-- COMPATIBILITY for Pyanodon Coal Processing --
+-- Increasing heat capacity increases heat energy output from runtime script.
 local heat_capacity_kJ = 50
-if mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then heat_capacity_kJ = 100 end
-
+if MOD.PY_COAL_PROCESSING and not SETTING.select_mod == "Pyanodon" then
+    -- Adjusts for steam heat capacity:
+    heat_capacity_kJ = 50 * 1.122
+elseif MOD.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+    -- Also adjusts for higher exchanger temperature (250°C):
+    heat_capacity_kJ = 50 * 1.122 --
+end
 
 local ThermalPanel = {
 	type = "reactor",

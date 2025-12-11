@@ -3,6 +3,7 @@
 --  ┣┫┣ ┃ ┃┃┃┣ ┗┓
 --  ┛┗┗┛┗┛┻┣┛┗┛┗┛
 ---------------------------------------------------------------------------------------------------
+require "mod-check"
 ---------------------------------------------------------------------------------------------------
 -- RECIPES
 ---------------------------------------------------------------------------------------------------
@@ -54,7 +55,7 @@ local heat_pipe = recipe_base "tspl-basic-heat-pipe"
     heat_pipe.energy_required = 1
 
 -- PYANODON (COAL PROCESSING) or EARLY HEATING or CHEESE'S CONCENTRATED SOLAR --
-if mods["pycoalprocessing"] or mods["EarlyHeating"] or mods["ch-concentrated-solar"] then
+if MOD.PY_COAL_PROCESSING or MOD.EARLY_HEATING or MOD.CHEESE_SOLAR then
     -- Basic Heat Exchanger
     exchanger.ingredients = {
         {type = "item", name = "copper-plate", amount = 15},

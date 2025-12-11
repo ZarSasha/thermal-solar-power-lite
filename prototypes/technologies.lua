@@ -3,7 +3,8 @@
 --   ┃ ┣ ┃ ┣┫┃┃┃┃┃ ┃┃┃┓┃┣ ┗┓
 --   ┻ ┗┛┗┛┛┗┛┗┗┛┗┛┗┛┗┛┻┗┛┗┛
 ---------------------------------------------------------------------------------------------------
-require "shared"
+require "shared.all-stages"
+require "shared.first-stages"
 ---------------------------------------------------------------------------------------------------
 -- TECHNOLOGY: THERMAL SOLAR POWER
 ---------------------------------------------------------------------------------------------------
@@ -38,14 +39,14 @@ local solarTech =
     }
 
 -- AAI INDUSTRIES --
-if mods["aai-industry"] then
+if MOD.AAI_INDUSTRY then
     solarTech.prerequisites = {"fluid-handling"}
     solarTech.unit = {
         ingredients = {
             {"automation-science-pack", 1},
             {"logistic-science-pack",   1}
         },
-        count = 100,
+        count = 75,
         time = 20
     }
 end

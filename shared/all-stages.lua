@@ -3,9 +3,8 @@
 --  ┗┓┣┫┣┫┣┫┣ ┃┃
 --  ┗┛┛┗┛┗┛┗┗┛┻┛
 ---------------------------------------------------------------------------------------------------
--- This code contains variables used across several lua-documents within the mod. Does not contain
--- any code that creates conflict between mod load stages.
-
+-- Entirely shared document for all mod load stages. Contains no code that could cause conflict
+-- between them.
 ---------------------------------------------------------------------------------------------------
 -- INFO
 ---------------------------------------------------------------------------------------------------

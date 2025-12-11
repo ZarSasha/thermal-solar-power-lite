@@ -7,6 +7,8 @@ Date: 2025-12-11
       67.5kW to 105kW. It is easier to work with and probably also less confusing overall. Remember
       that a lower value also reduces the efficiency of power production, even to the point of it
       becoming impossible!
+  Balancing:
+    - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
     - Now properly pre-calculates some variables and caches the results ahead of their use in the
       on-tick heat-generating script, thus improving performance a bit.
@@ -16,7 +18,9 @@ Date: 2025-12-11
       any clones (like from More Quality Scaling) are removed.
   Bugfixes:
     - TODO: Thermal Solar Panels: Fixed an issue that prevented them from being flipped.
-    - Pyanodon Coal Processing: Fixed an issue with heat generation that was far too low.
+    - Pyanodon Coal Processing: Probably fixed an inaccuracy in adaptation. CHECK IT.
+  Debug:
+    - Removed some info from info command, was not very helpful.
   Internal:
     - Tidied up a fair bit.
 ---------------------------------------------------------------------------------------------------

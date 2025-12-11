@@ -6,7 +6,9 @@
 -- This code provides scripts for heat generation from sunlight + a makeshift sunlight indicator
 -- for the Thermal Solar Panels. Contains various command functions as well.
 ---------------------------------------------------------------------------------------------------
-require "util" require "functions" require "shared"
+require "util"
+require "functions"
+require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------
@@ -70,7 +72,7 @@ local temp_gain    = (SETTING.panel_output_kW / 50)
 local ambient_temp = 15    -- Default ambient temperature.
 local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
 local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to temperature.
-local q_scaling    = 0.15  -- fine-tuned to match scaling of solar panels.
+local q_scaling    = 0.15  -- fine-tuned to match scaling of solar panels. [n1]
 
 -- COMPATIBILITY: More Quality Scaling --
 local function provide_compat_for_more_quality_scaling()
@@ -377,3 +379,8 @@ end
 commands.add_command("tspl", nil, new_commands) -- no help text, provided above instead
 
 ---------------------------------------------------------------------------------------------------
+-- END NOTES
+---------------------------------------------------------------------------------------------------
+
+-- [n1] No need to check for presence of Quality mod (from Space Age). Game handles quality
+--      property just fine, even if DLC is not installed.

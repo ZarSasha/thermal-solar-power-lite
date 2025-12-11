@@ -4,7 +4,8 @@
 --  ┻┛┛┗ ┻ ┛┗
 ---------------------------------------------------------------------------------------------------
 require "functions"
-require "shared"
+require "shared.all-stages"
+require "shared.first-stages"
 require "prototypes.items"
 require "prototypes.recipes"
 require "prototypes.technologies"

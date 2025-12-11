@@ -5,6 +5,7 @@
         "storage",
         "game",
         "prototypes",
-        "util"
+        "util",
+        "mods"
     ]
 }

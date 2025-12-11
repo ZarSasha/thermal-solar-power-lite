@@ -5,6 +5,8 @@ Date: 2025-12-11
     - AAI Industry: Moved technology next to Steam Power and increased the cost of researching it
       (it now also requires Logistic Science Packs). As before, Steam Power must be researched to
       actually produce electricity from the steam.
+  Internal:
+    - Deleted an unused low-res asset.
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.19
 Date: 2025-11-29

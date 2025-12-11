@@ -49,8 +49,8 @@ local ThermalPanel = {
 	icon_size = 32,
     flags = {"placeable-neutral", "player-creation"},
 	max_health = 200,
-	selection_box = {{-1.5,	-1.5},{1.5,1.5},},
-	collision_box = {{-1.2,-1.2},{1.2,1.2},},
+	selection_box = {{-1.5,	-1.5},{ 1.5, 1.5}},
+	collision_box = {{-1.2, -1.2},{ 1.2, 1.2}},
 	minable = {mining_time = 0.1, result = "tspl-thermal-solar-panel"},
 	resistances = {{type = "fire", percent = 90}},
 	corpse = "medium-remnants",
@@ -134,8 +134,8 @@ ThermalPanelLarge.fast_replaceable_group = "tspl-thermal-solar-panel-large"
 ThermalPanelLarge.factoriopedia_description =
     {"factoriopedia-description.tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.icon = GRAPHICS_ICONS.."thermal-solar-panel-large.png"
-ThermalPanelLarge.selection_box = {{-4.5,-4.5},{4.5,4.5},}
-ThermalPanelLarge.collision_box = {{-4.2,-4.2},{4.2,4.2},}
+ThermalPanelLarge.selection_box = {{-4.5, -4.5},{ 4.5, 4.5}}
+ThermalPanelLarge.collision_box = {{-4.2, -4.2},{ 4.2, 4.2}}
 ThermalPanelLarge.max_health = ThermalPanel.max_health * 9
 ThermalPanelLarge.minable = {mining_time = 0.25, result = "tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.corpse = "large-panel-remnants" -- custom remnants
@@ -146,17 +146,17 @@ ThermalPanelLarge.picture.layers[2] = panel_l_shadow_sprite
 ThermalPanelLarge.heat_buffer.specific_heat = (PANEL.heat_capacity_kJ * 9 .. "kJ")
 ThermalPanelLarge.heat_buffer.connections = {
 	{position = {-3, -4}, direction = defines.direction.north},
-	{position = {0, -4},  direction = defines.direction.north},
-	{position = {3, -4},  direction = defines.direction.north},
-	{position = {4, -3},  direction = defines.direction.east },
-	{position = {4, 0},   direction = defines.direction.east },
-	{position = {4, 3},   direction = defines.direction.east },
-	{position = {-3, 4},  direction = defines.direction.south},
-	{position = {0, 4},   direction = defines.direction.south},
-	{position = {3, 4},   direction = defines.direction.south},
+	{position = { 0, -4}, direction = defines.direction.north},
+	{position = { 3, -4}, direction = defines.direction.north},
+	{position = { 4, -3}, direction = defines.direction.east },
+	{position = { 4,  0}, direction = defines.direction.east },
+	{position = { 4,  3}, direction = defines.direction.east },
+	{position = {-3,  4}, direction = defines.direction.south},
+	{position = { 0,  4}, direction = defines.direction.south},
+	{position = { 3,  4}, direction = defines.direction.south},
 	{position = {-4, -3}, direction = defines.direction.west },
-	{position = {-4, 0},  direction = defines.direction.west },
-	{position = {-4, 3},  direction = defines.direction.west }
+	{position = {-4,  0}, direction = defines.direction.west },
+	{position = {-4,  3}, direction = defines.direction.west }
 }
 ThermalPanelLarge.connection_patches_connected    = {sheet = hr_panel_l_connection_sprites}
 ThermalPanelLarge.connection_patches_disconnected = {sheet = hr_panel_l_disconnection_sprites}

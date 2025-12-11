@@ -63,9 +63,7 @@ local ThermalPanel = {
 		fluid_box = {
             volume              = 100.01,
 			pipe_connections    = {},
-			production_type     = "input",
-			minimum_temperature = 0,
-			maximum_temperature = 100,
+			production_type     = "none",
 			filter              = "tspl-solar-fluid" -- used by make-shift sunlight indicator
 		},
 		scale_fluid_usage = false,
@@ -73,7 +71,7 @@ local ThermalPanel = {
 		maximum_temperature = 100,
 		render_no_power_icon = false -- removes flashing 'No Power' icon
 	},
-  	neighbour_bonus = 0, -- optional, but it corrects tooltip and Factoriopedia info.
+  	neighbour_bonus = 0, -- optional, but declaring it corrects tooltip and Factoriopedia info.
     picture = {layers = {hr_panel_sprite, panel_shadow_sprite}},
     heat_buffer = { -- mandatory property
 		max_temperature = PANEL.max_temp,
@@ -81,10 +79,10 @@ local ThermalPanel = {
 		max_transfer = "36MW",
 		min_temperature_gradient = 0, -- heat loss from script instead
 		connections = {
-			{position = {0, -1}, direction = defines.direction.north},
-			{position = {1, 0},  direction = defines.direction.east },
-			{position = {0, 1},  direction = defines.direction.south},
-			{position = {-1, 0}, direction = defines.direction.west }
+			{position = { 0, -1}, direction = defines.direction.north},
+			{position = { 1,  0}, direction = defines.direction.east },
+			{position = { 0,  1}, direction = defines.direction.south},
+			{position = {-1,  0}, direction = defines.direction.west }
 		}
     },
 	connection_patches_connected    = {sheet = hr_panel_connection_sprites},

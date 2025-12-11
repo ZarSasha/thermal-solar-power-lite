@@ -8,11 +8,11 @@
 ---------------------------------------------------------------------------------------------------
 require "functions" require "shared"
 ---------------------------------------------------------------------------------------------------
--- THERMAL SOLAR PANEL ID STORAGE TABLE CREATION
+-- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------
 
 -- Creates a storage table that will contain with ID's of all thermal solar panels.
-local function create_storage_tables_and_values()
+local function create_storage_table()
     if storage.thermal_panels  == nil then storage.thermal_panels = {}   end
     if storage.temp_gain       == nil then storage.temp_gain      = 2.1  end
     if storage.q_scaling       == nil then storage.q_scaling      = 0.15 end
@@ -27,7 +27,7 @@ local LIST_thermal_panels = {"tspl-thermal-solar-panel", "tspl-thermal-solar-pan
 
 -- Function to add entity to storage table when it is created.
 local function register_entity(entity_types, storage_table, event)
-    --create_storage_tables_and_values()
+    --create_storage_table()
     local entity = event.entity or event.destination
     if not table_contains_value(entity_types, entity.name) then return end
     storage_table[entity.unit_number] = entity
@@ -215,7 +215,7 @@ end)
 
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
-    create_storage_tables_and_values()
+    create_storage_table()
     rebuild_storage_table(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
@@ -318,7 +318,7 @@ end
 
 -- DEBUG "reset": Rebuilds thermal panel storage table, resets make-shift sunlight indicator.
 COMMAND_parameters.reset = function(pl)
-    create_storage_tables_and_values()
+    create_storage_table()
     rebuild_storage_table(LIST_thermal_panels, storage.thermal_panels)
     mPrint(pl, {
         "The Thermal Panel storage table was reset and rebuild.",

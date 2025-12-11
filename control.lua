@@ -67,7 +67,7 @@ end
 
 local cache = {}
 
--- Pre-calculates and caches variables on event trigger. Uses data from prototype stage. Data may
+-- Pre-calculates and caches variables on event trigger. Uses data from settings stage. Data may
 -- be further overwritten below for compatibility.
 local function precalculate_and_cache_variables()
     cache.temp_gain    = ((SETTING.panel_output_kW *(60 / 60)) / 50) -- default heat capacity: 50kJ
@@ -227,10 +227,13 @@ end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    precalculate_and_cache_variables()
     provide_compat_for_more_quality_scaling()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
+end)
+
+script.on_load(function()
+    precalculate_and_cache_variables()
 end)
 
 ---------------------------------------------------------------------------------------------------

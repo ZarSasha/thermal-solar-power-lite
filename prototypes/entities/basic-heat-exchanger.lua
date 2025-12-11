@@ -28,7 +28,7 @@ BasicHeatEx.target_temperature = SETTING.exchanger_temp
 BasicHeatEx.energy_source.min_working_temperature = SETTING.exchanger_temp
 BasicHeatEx.energy_source.specific_heat = "250kJ" -- vanilla: 1MJ
 BasicHeatEx.energy_source.max_transfer  = "500MW" -- vanilla: 2GW
-BasicHeatEx.energy_consumption = EXCHANGER.max_output_kW .. "kW" -- default: "1800kW"
+BasicHeatEx.energy_consumption = SETTING.exchanger_output_kW .. "kW" -- default: "1800kW"
 
 -- FINAL DATA WRITE -------------------------------------------------------------------------------
 data:extend({BasicHeatEx})

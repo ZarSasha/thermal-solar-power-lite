@@ -10,6 +10,8 @@ Date: 2025-12-11
   Scripting:
     - Now properly pre-calculates some variables and caches the results on load ahead of their use
       in the on-tick heat-generating script, thus improving performance a bit.
+    - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
+      sure to properly migrate contents with lua.
   Internal:
     - Tidied up a bit.
 ---------------------------------------------------------------------------------------------------

@@ -222,6 +222,12 @@ script.on_init(function()
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
+-- Function set to run on any change to settings or mods installed.
+script.on_configuration_changed(function()
+    create_storage_table_keys()
+    rebuild_storage_table(LIST_thermal_panels, storage.panels)
+end)
+
 -- Function set to run on load.
 script.on_load(function()
     create_cached_results_for_storage_table()

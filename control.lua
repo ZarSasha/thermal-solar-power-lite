@@ -92,9 +92,9 @@ end
 ---------------------------------------------------------------------------------------------------
 
 -- PARAMETERS --
-local ambient_temp     = 15    -- Default ambient temperature.
-local light_const      = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
-local heat_loss_factor = 0.005 -- Determines rate of heat loss proportional to temperature.
+local ambient_temp = 15    -- Default ambient temperature.
+local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
+local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to temperature.
 
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
@@ -105,7 +105,7 @@ local function update_quality_panel_temperature()
         local q_factor    = 1 + (panel.quality.level * storage.q_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
-        local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_factor
+        local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
         panel.temperature =
             panel.temperature + storage.temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::
@@ -218,12 +218,13 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
+    create_cached_results_for_storage_table()
     rebuild_storage_table(LIST_thermal_panels, storage.panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
--- Function set to run on load.
-script.on_load(function()
+-- Function set to run on any change to settings or mods installed.
+script.on_configuration_changed(function()
     create_cached_results_for_storage_table()
 end)
 

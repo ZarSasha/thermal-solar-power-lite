@@ -8,8 +8,8 @@ Date: 2025-12-11
       confusing overall. Remember that a lower value also reduces the efficiency of electricity
       production, even to the point of it becoming impossible!
   Scripting:
-    - Now properly pre-calculates some variables and caches the results on load ahead of their use
-      in the on-tick heat-generating script, thus improving performance a bit.
+    - Now properly pre-calculates some variables and caches the results ahead of their use in the
+      on-tick heat-generating script, thus improving performance a bit.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
       sure to properly migrate contents with lua.
   Internal:

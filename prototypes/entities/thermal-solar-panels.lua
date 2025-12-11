@@ -40,6 +40,11 @@ local hr_panel_disconnection_sprites = {
 
 -- PROPERTIES -------------------------------------------------------------------------------------
 
+-- Shared Parameters:
+local heat_capacity_kJ = 50
+if mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then heat_capacity_kJ = 100 end
+
+
 local ThermalPanel = {
 	type = "reactor",
 	name = "tspl-thermal-solar-panel",
@@ -57,7 +62,7 @@ local ThermalPanel = {
 	dying_explosion = "solar-panel-explosion",
     damaged_trigger_effect = hit_effects.entity(),
     impact_category = "metal",
-    consumption = (PANEL.heat_output_kW .. "kW"), -- mandatory property, must be greater than 0. 
+    consumption = (SETTING.panel_output_kW .. "kW"), -- mandatory property, must be greater than 0. 
     energy_source = { -- mandatory property
 		type = "fluid",
 		fluid_box = {
@@ -68,14 +73,13 @@ local ThermalPanel = {
 		},
 		scale_fluid_usage = false,
 		fluid_usage_per_tick = 0.000001, -- consumes "solar-fluid" very slowly.
-		maximum_temperature = 100,
 		render_no_power_icon = false -- removes flashing 'No Power' icon
 	},
   	neighbour_bonus = 0, -- optional, but declaring it corrects tooltip and Factoriopedia info.
     picture = {layers = {hr_panel_sprite, panel_shadow_sprite}},
     heat_buffer = { -- mandatory property
-		max_temperature = PANEL.max_temp,
-		specific_heat = (PANEL.heat_capacity_kJ .. "kJ"),
+		max_temperature = 1000,
+		specific_heat = (heat_capacity_kJ .. "kJ"),
 		max_transfer = "36MW",
 		min_temperature_gradient = 0, -- heat loss from script instead
 		connections = {
@@ -87,6 +91,7 @@ local ThermalPanel = {
     },
 	connection_patches_connected    = {sheet = hr_panel_connection_sprites},
 	connection_patches_disconnected = {sheet = hr_panel_disconnection_sprites},
+    --no heat connection patches, because they actually make the panels look worse.
     open_sound = sounds.metal_small_open,
     close_sound = sounds.metal_small_close
 }
@@ -138,10 +143,10 @@ ThermalPanelLarge.max_health = ThermalPanel.max_health * 9
 ThermalPanelLarge.minable = {mining_time = 0.25, result = "tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.corpse = "large-panel-remnants" -- custom remnants
 ThermalPanelLarge.dying_explosion = "large-panel-explosion" -- custom explosion
-ThermalPanelLarge.consumption = (PANEL.heat_output_kW * 9 .. "kW")
+ThermalPanelLarge.consumption = (SETTING.panel_output_kW * 9 .. "kW")
 ThermalPanelLarge.picture.layers[1] = hr_panel_l_sprite
 ThermalPanelLarge.picture.layers[2] = panel_l_shadow_sprite
-ThermalPanelLarge.heat_buffer.specific_heat = (PANEL.heat_capacity_kJ * 9 .. "kJ")
+ThermalPanelLarge.heat_buffer.specific_heat = (heat_capacity_kJ * 9 .. "kJ")
 ThermalPanelLarge.heat_buffer.connections = {
 	{position = {-3, -4}, direction = defines.direction.north},
 	{position = { 0, -4}, direction = defines.direction.north},

@@ -6,7 +6,7 @@
 -- This code provides scripts for heat generation from sunlight + a makeshift sunlight indicator
 -- for the Thermal Solar Panels. Contains various command functions as well.
 ---------------------------------------------------------------------------------------------------
-require "functions" require "shared"
+require "util" require "functions" require "shared"
 ---------------------------------------------------------------------------------------------------
 -- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------
@@ -65,21 +65,17 @@ end
     -- HEAT GENERATION
 ---------------------------------------------------------------------------------------------------
 
--- Pre-calculated variables that will be accessed by on-tick script. Default values set.
-local cache = {
-    temp_gain = 2.1, -- Default nominal output divided by heat capacity.
-    q_scaling = 0.15 -- Tuned to roughly match scaling of vanilla solar panels.
-}
+local cache = {}
 
--- Precalculates and caches results for variables used later in the on-tick heat generating script.
-local function cache_variables_for_on_tick_script()
-    local efficiency_X = 1      -- efficiency of the turbines that generate electricity.
-    local quality_X    = 0.15   -- determines how the heat output scales with quality.
-    -- COMPATIBILITY: Pyanodons Coal Processing --
-    if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-        efficiency_X = 2   -- compensates for halved efficiency of steam engines
-    end
-    -- COMPATIBILITY: More Quality Scaling --
+-- Pre-calculates and caches variables on event trigger. Uses data from prototype stage. Data may
+-- be further overwritten below for compatibility.
+local function precalculate_and_cache_variables()
+    cache.temp_gain    = ((SETTING.panel_output_kW *(60 / 60)) / 50) -- default heat capacity: 50kJ
+    cache.q_scaling    = 0.15   -- Tuned to roughly match scaling of vanilla solar panels.*
+end
+
+-- COMPATIBILITY: More Quality Scaling --
+local function provide_compat_for_more_quality_scaling()
     if script.active_mods["more-quality-scaling"] then
         if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
         local thermal_panels = LIST_thermal_panels
@@ -88,16 +84,14 @@ local function cache_variables_for_on_tick_script()
                 table.insert(LIST_thermal_panels, panel_clone)
             end
         end
-        quality_X = 0 -- accounts for increased heat capacity (30% pr. quality level)
+        cache.q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
     end
-    -- Copies values to cache (it works since they are simple number values).
-    cache.temp_gain = ((PANEL.heat_output_kW * (60/60)) / PANEL.heat_capacity_kJ) * efficiency_X
-    cache.q_scaling = quality_X
 end
 
-local ambient_temp = 15     -- Default ambient temperature.
-local light_const  = 0.85   -- Highest level of "surface darkness" (default range: 0-0.85).
-local heat_loss_X  = 0.005  -- Determines rate of heat loss proportional to temperature.
+-- Other parameters.
+local ambient_temp = 15    -- Default ambient temperature.
+local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
+local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to temperature.
 
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
@@ -225,14 +219,16 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_key()
-    cache_variables_for_on_tick_script()
+    precalculate_and_cache_variables()
+    provide_compat_for_more_quality_scaling()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    cache_variables_for_on_tick_script()
+    precalculate_and_cache_variables()
+    provide_compat_for_more_quality_scaling()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)

@@ -29,20 +29,3 @@ SETTING = {
 }
 
 ---------------------------------------------------------------------------------------------------
--- KEY GLOBAL VARIABLES
----------------------------------------------------------------------------------------------------
-
--- PROTOTYPE PROPERTIES ---------------------------------------------------------------------------
-
-PANEL = {           -- Thermal Solar Panel
-    heat_output_kW   = SETTING.panel_output_kW,
-    heat_capacity_kJ = 50,
-    max_temp         = 1000
-}
-
-EXCHANGER = {       -- Basic Heat Exchanger
-    max_output_kW    = SETTING.exchanger_output_kW,
-    target_temp      = SETTING.exchanger_temp
-}
-
----------------------------------------------------------------------------------------------------

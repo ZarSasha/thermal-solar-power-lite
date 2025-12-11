@@ -4,6 +4,7 @@
         "defines",
         "storage",
         "game",
-        "prototypes"
+        "prototypes",
+        "util"
     ]
 }

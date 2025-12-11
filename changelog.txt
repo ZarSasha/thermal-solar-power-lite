@@ -15,9 +15,10 @@ Date: 2025-12-11
     - Now also rebuilds table of thermal panel IDs if mod configuration is changed, just in case
       any clones (like from More Quality Scaling) are removed.
   Bugfixes:
-    - Thermal Solar Panels: Fixed an issue that prevented them from being flipped.
+    - TODO: Thermal Solar Panels: Fixed an issue that prevented them from being flipped.
+    - Pyanodon Coal Processing: Fixed an issue with heat generation that was far too low.
   Internal:
-    - Tidied up a bit.
+    - Tidied up a fair bit.
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.20
 Date: 2025-12-11

@@ -77,8 +77,7 @@ local light_const  = 0.85  -- Highest level of "surface darkness" (default range
 -- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
 local function precalculate_and_cache_results_for_on_tick_script()
     -- Calculates temperature increase pr. second:
-    local temp_gain    = (SETTING.panel_output_kW * (60/60)) / 50 -- Default heat capacity: 50kJ
-    storage.temp_gain  = temp_gain
+    storage.temp_gain  = (SETTING.panel_output_kW * (60/60)) / 50 -- Default heat capacity: 50kJ
     -- COMPATIBILITY: Pyanodon Coal Processing --
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Lowers heat loss factor to allow same steam energy production but at 250°C:
@@ -282,7 +281,7 @@ local COMMAND_parameters = {}
 -- "help": Describes the most important console commands or groups thereof.
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
-        clr("info",1)..": Provides very basic info for now.",
+        clr("info",1)..": Provides very basic info.",
         clr("debug",1)..": Provides info on available debug functions."
     })
 end
@@ -332,22 +331,22 @@ COMMAND_parameters.check = function(pl)
     end
 end
 
--- DEBUG "reset": Rebuilds thermal panel ID list, recalculates cached values, resets make-shift
--- sunlight indicator.
+-- DEBUG "reset": Rebuilds contents of storage table, recalculates cached values, resets the
+-- make-shift sunlight indicator.
 COMMAND_parameters.reset = function(pl)
     table_clear_content(storage)
     create_storage_table_keys()
     precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels)
     mPrint(pl, {
-        "The thermal panel ID list within storage was reset and rebuild.",
+        "The contents of the storage table were reset and rebuild.",
         "Any solar-fluid remaining in thermal panels was removed as well."
     })
 end
 
--- DEBUG "clear": Clears storage table of all of its contents, if it exists. May cause crash.
+-- DEBUG "clear": Clears storage table of all of its contents, if it exists.
 COMMAND_parameters.clear = function(pl)
-    if storage == nil then return end
+    if storage == nil or storage == {} then return end
     table_clear_content(storage)
     mPrint(pl, {
         "Storage table was entirely cleared!"

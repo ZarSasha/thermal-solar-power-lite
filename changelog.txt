@@ -9,6 +9,7 @@ Date: 2025-12-11
       becoming impossible!
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
+    - Pyanodon Coal Processing: Improved accuraracy of adaptation.
   Scripting:
     - Now properly pre-calculates some variables and caches the results ahead of their use in the
       on-tick heat-generating script, thus improving performance a bit.

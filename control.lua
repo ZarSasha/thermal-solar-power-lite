@@ -289,23 +289,17 @@ end
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
     local sun_level = pl.surface.get_property("solar-power")
-    --local max_temp  = ambient_temp + (((temp_gain - 0.75) * (sun_level/100)) / PANEL.heat_loss_factor)
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
-      --[[
-        "Thermal Panel temperature limit at constant sunlight is "
-      ..clr(round_number(max_temp, 1),2).."°C due to heat loss, capped at "
-      ..clr(PANEL.max_temp,2).."°C!"
-      ]]
     })
 end
 
 -- DEBUG "debug": Describes the function of command parameters used for debugging.
 COMMAND_parameters.debug = function(pl)
     mPrint(pl, {
-        clr("check",1)..": Checks for existence of thermal panel ID list within storage and makes "
-        .."a count.",
+        clr("check",1)..": Checks for existence of thermal panel ID list within the storage table "
+        .."and makes a count.",
         clr("reset",1)..": Rebuilds all variables within the storage table. Resets the sunlight "
         .."indicator as well.",
         clr("clear",1)..": Clears the storage table entirely.",
@@ -344,7 +338,8 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears storage table of all of its contents, if it exists.
+-- DEBUG "clear": Clears storage table of all of its contents, if it exists. Likely to cause crash
+-- unless certain nilchecks are enabled in code above (particularly the on-tick script).
 COMMAND_parameters.clear = function(pl)
     if storage == nil or storage == {} then return end
     table_clear_content(storage)

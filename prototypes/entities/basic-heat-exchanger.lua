@@ -25,7 +25,7 @@ end
 BasicHeatEx.name = "tspl-basic-heat-exchanger"
 BasicHeatEx.icon = GRAPHICS_ICONS.."basic-heat-exchanger.png"
 BasicHeatEx.localised_description = {
-    "entity-description.tspl-basic-heat-exchanger", SETTING.exchanger_temp
+    "entity-description.tspl-basic-heat-exchanger", tostring(SETTING.exchanger_temp)
 }
 BasicHeatEx.minable.result = "tspl-basic-heat-exchanger"
 BasicHeatEx.target_temperature = SETTING.exchanger_temp

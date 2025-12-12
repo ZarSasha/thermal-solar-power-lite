@@ -22,6 +22,8 @@ Date: 2025-12-11
   Info:
     - Improved descriptions. Heat exchanger now displays the actual temperature target in its
       description, and the panel heat output setting receives further explanation.
+  Translation:
+    - Updated German and Chinese locales with DeepL.
   Debug:
     - Removed some info from info command, was not very helpful.
     - Removed "delete" command, function essentially already provided by "clear" command.

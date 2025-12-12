@@ -77,11 +77,11 @@ local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to tempe
 -- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
 local function precalculate_and_cache_results_for_on_tick_script()
     -- COMPATIBILITY: Pyanodon Coal Processing --
-    local temp_gain_base = SETTING.panel_output_kW / 50
-    local heat_loss_165C = (165 - ambient_temp) * heat_loss_X
-    local heat_loss_250C = (250 - ambient_temp) * heat_loss_X
+    local temp_gain_base = SETTING.panel_output_kW / 50 -- Default heat capacity: 50kJ
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C:
+        local heat_loss_165C = (165 - ambient_temp) * heat_loss_X
+        local heat_loss_250C = (250 - ambient_temp) * heat_loss_X
         storage.temp_gain = temp_gain_base + (heat_loss_250C - heat_loss_165C)
     else
         storage.temp_gain = temp_gain_base
@@ -98,11 +98,10 @@ local function precalculate_and_cache_results_for_on_tick_script()
                 table.insert(LIST_thermal_panels, panel_clone)
             end
         end
-        storage.q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
+        storage.q_scaling = 0    -- accounts for increased heat capacity (30% pr. quality level)
     else
-        storage.q_scaling = 0.15
+        storage.q_scaling = 0.15 -- tuned to roughly match scaling of solar panels.
     end
-    -- Note: Quality scaling is tuned to roughly match scaling of solar panels.
     -- Note: No need to check for presence of Quality from Space Age DLC. Game handles quality
     -- property just fine, even if DLC is not installed.
 end

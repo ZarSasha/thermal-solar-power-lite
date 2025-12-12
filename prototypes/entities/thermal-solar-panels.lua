@@ -44,7 +44,7 @@ local hr_panel_disconnection_sprites = {
 -- COMPATIBILITY for Pyanodon Coal Processing --
 local heat_capacity_kJ = 50
 if MOD.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
-    heat_capacity_kJ = 100 -- Accounts for halved steam conversion efficiency
+    heat_capacity_kJ = 100 -- compensates for halved steam conversion efficiency.
 end
 
 local ThermalPanel = {
@@ -71,11 +71,11 @@ local ThermalPanel = {
             volume              = 100.01,
 			pipe_connections    = {},
 			production_type     = "none",
-			filter              = "tspl-solar-fluid" -- used by make-shift sunlight indicator
+			filter              = "tspl-solar-fluid" -- used by make-shift sunlight indicator.
 		},
 		scale_fluid_usage = false,
 		fluid_usage_per_tick = 0.000001, -- consumes "solar-fluid" very slowly.
-		render_no_power_icon = false -- removes flashing 'No Power' icon
+		render_no_power_icon = false -- removes flashing 'No Power' icon.
 	},
   	neighbour_bonus = 0, -- optional, but declaring it corrects tooltip and Factoriopedia info.
     picture = {layers = {hr_panel_sprite, panel_shadow_sprite}},
@@ -83,7 +83,7 @@ local ThermalPanel = {
 		max_temperature = 1000,
 		specific_heat = (heat_capacity_kJ .. "kJ"),
 		max_transfer = "36MW",
-		min_temperature_gradient = 0, -- heat loss from script instead
+		min_temperature_gradient = 0, -- heat loss from script instead.
 		connections = {
 			{position = { 0, -1}, direction = defines.direction.north},
 			{position = { 1,  0}, direction = defines.direction.east },

@@ -13,12 +13,14 @@ require "shared.all-stages"
 -- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------
 
--- Creates key for storage table that will be needed by scripts.
-local function create_storage_table_key()
-    if storage.thermal_panels == nil then storage.thermal_panels = {} end
+-- Creates keys for storage table that will be needed by scripts.
+local function create_storage_table_keys()
+    if storage.thermal_panels == nil then storage.thermal_panels = {}   end -- added to later
+    if storage.temp_gain      == nil then storage.temp_gain      = 2.1  end -- value changed later
+    if storage.q_scaling      == nil then storage.q_scaling      = 0.15 end -- value changed later
 end
 
--- Names of entities that should be registered into storage.thermal_panels upon creation.
+-- Names of entities that should be registered into storage.thermal_panels when they are created.
 local LIST_thermal_panels = {
     "tspl-thermal-solar-panel",
     "tspl-thermal-solar-panel-large"
@@ -30,7 +32,7 @@ local LIST_thermal_panels = {
 
 -- Function to add entity to storage table when it is created.
 local function register_entity(entity_types, storage_table, event)
-    --create_storage_table_key()
+    --create_storage_table_keys()
     local entity = event.entity or event.destination
     if not table_contains_value(entity_types, entity.name) then return end
     storage_table[entity.unit_number] = entity
@@ -38,7 +40,7 @@ end
 
 -- Function to remove entity from storage table when it is mined or destroyed.
 local function unregister_entity(entity_types, storage_table, event)
-    --if storage table == nil then return end
+    --if storage.thermal_panels == nil then return end
     local entity = event.entity
     if not table_contains_value(entity_types, entity.name) then return end
     storage_table[entity.unit_number] = nil
@@ -46,7 +48,7 @@ end
 
 -- Function to remove entities from storage table, when their surface is cleared/deleted.
 local function unregister_surface_entities(entity_types, storage_table, event)
-    --if storage table == nil then return end
+    --if storage.thermal_panels == nil then return end
     local surface = game.surfaces[event.surface_index]
     local found_entities = {}
     for _, searched_entity in pairs(surface.find_entities_filtered{name = entity_types}) do
@@ -67,15 +69,27 @@ end
     -- HEAT GENERATION
 ---------------------------------------------------------------------------------------------------
 
--- Parameters.
-local temp_gain    = (SETTING.panel_output_kW / 50)
+-- Unchanging parameters.
 local ambient_temp = 15    -- Default ambient temperature.
 local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
 local heat_loss_X  = 0.005 -- Determines rate of heat loss proportional to temperature.
-local q_scaling    = 0.15  -- fine-tuned to match scaling of solar panels. [n1]
 
--- COMPATIBILITY: More Quality Scaling --
-local function provide_compat_for_more_quality_scaling()
+-- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
+local function precalculate_and_cache_results_for_on_tick_script()
+    -- COMPATIBILITY: Pyanodon Coal Processing --
+    local temp_gain_base = SETTING.panel_output_kW / 50
+    local heat_loss_165C = (165 - ambient_temp) * heat_loss_X
+    local heat_loss_250C = (250 - ambient_temp) * heat_loss_X
+    if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+        -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C:
+        storage.temp_gain = temp_gain_base + (heat_loss_250C - heat_loss_165C)
+    else
+        storage.temp_gain = temp_gain_base
+    end
+    -- Note: Heat capacity is also doubled at the prototype stage to compensate for halved
+    -- efficiency of steam energy conversion.
+
+    -- COMPATIBILITY: More Quality Scaling --
     if script.active_mods["more-quality-scaling"] then
         if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
         local thermal_panels = LIST_thermal_panels
@@ -84,8 +98,13 @@ local function provide_compat_for_more_quality_scaling()
                 table.insert(LIST_thermal_panels, panel_clone)
             end
         end
-        q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
+        storage.q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
+    else
+        storage.q_scaling = 0.15
     end
+    -- Note: Quality scaling is tuned to roughly match scaling of solar panels.
+    -- Note: No need to check for presence of Quality from Space Age DLC. Game handles quality
+    -- property just fine, even if DLC is not installed.
 end
 
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
@@ -94,12 +113,12 @@ local function update_panel_temperature()
     --if storage.thermal_panels == nil then return end -- for easier testing
     for _, panel in pairs(storage.thermal_panels) do
         if not panel.valid then goto continue end
-        local q_factor    = 1 + (panel.quality.level * q_scaling)
+        local q_factor    = 1 + (panel.quality.level * storage.q_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
         local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
         panel.temperature =
-            panel.temperature + temp_gain * light_corr * sun_mult * q_factor - temp_loss
+            panel.temperature + storage.temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::
     end
 end
@@ -213,15 +232,15 @@ end)
 
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
-    create_storage_table_key()
-    provide_compat_for_more_quality_scaling()
+    create_storage_table_keys()
+    precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    provide_compat_for_more_quality_scaling()
+    precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)
@@ -296,7 +315,7 @@ COMMAND_parameters.debug = function(pl)
     })
 end
 
--- DEBUG "check": Checks if thermal panel storage table exists, provides entity count.
+-- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
     local count1 = search_and_count_entities(LIST_thermal_panels)
     if storage.thermal_panels ~= nil then
@@ -314,9 +333,11 @@ COMMAND_parameters.check = function(pl)
     end
 end
 
--- DEBUG "reset": Rebuilds thermal panel storage table, resets make-shift sunlight indicator.
+-- DEBUG "reset": Rebuilds thermal panel ID list, recalculates cached values, resets make-shift
+-- sunlight indicator.
 COMMAND_parameters.reset = function(pl)
-    create_storage_table_key()
+    create_storage_table_keys()
+    precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels)
     mPrint(pl, {
         "The thermal panel ID list within storage was reset and rebuild.",
@@ -324,7 +345,7 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears thermal panel storage table of its content, if it exists.
+-- DEBUG "clear": Clears thermal panel ID list of its content, if it exists.
 COMMAND_parameters.clear = function(pl)
     if storage.thermal_panels ~= nil then
         table_clear_content(storage.thermal_panels)
@@ -336,7 +357,7 @@ COMMAND_parameters.clear = function(pl)
     end
 end
 
--- DEBUG "delete": Deletes thermal panel storage table, if it exists. Crashes the game unless
+-- DEBUG "delete": Deletes thermal panel ID list, if it exists. Crashes the game unless
 -- nil checks are added to various script functions above (they are commented out).
 COMMAND_parameters.delete = function(pl)
     if storage.thermal_panels ~= nil then
@@ -355,6 +376,7 @@ COMMAND_parameters.unlock = function(pl)
         "tspl-basic-heat-exchanger", "tspl-basic-heat-pipe"}, {}
     for _,item in pairs(items) do
         pl.force.recipes[item].enabled=true
+        pl.force.recipes[item].hidden=false
         table.insert(icons, "[img=item."..item.."]")
     end
     mPrint(pl, {
@@ -381,6 +403,3 @@ commands.add_command("tspl", nil, new_commands) -- no help text, provided above 
 ---------------------------------------------------------------------------------------------------
 -- END NOTES
 ---------------------------------------------------------------------------------------------------
-
--- [n1] No need to check for presence of Quality mod (from Space Age). Game handles quality
---      property just fine, even if DLC is not installed.

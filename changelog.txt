@@ -19,7 +19,8 @@ Date: 2025-12-11
       any clones (like from More Quality Scaling) are removed.
   Bugfixes:
     - TODO: Thermal Solar Panels: Fixed an issue that prevented them from being flipped.
-    - Pyanodon Coal Processing: Probably fixed an inaccuracy in adaptation. CHECK IT.
+    - Pyanodon Coal Processing: Updated method for correcting heat generation. Probably fixed an
+      inaccuracy in doing so.
   Debug:
     - Removed some info from info command, was not very helpful.
     - Improved reset and unlock commands.

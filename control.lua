@@ -76,17 +76,18 @@ local light_const  = 0.85  -- Highest level of "surface darkness" (default range
 
 -- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
 local function precalculate_and_cache_results_for_on_tick_script()
+    -- Calculates temperature increase pr. second:
+    local temp_gain    = (SETTING.panel_output_kW * (60/60)) / 50 -- Default heat capacity: 50kJ
+    storage.temp_gain  = temp_gain
     -- COMPATIBILITY: Pyanodon Coal Processing --
-    local temp_gain_base = SETTING.panel_output_kW / 50 -- Default heat capacity: 50kJ
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-        -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C:
-        storage.temp_gain   = temp_gain_base
-        storage.heat_loss_X = 0.005 / 1.566
+        -- Lowers temperature loss rate to account for difference between 250°C and 165°C:
+        storage.heat_loss_X = round_number(0.005 / (235/150), 4)
     else
-        storage.temp_gain   = temp_gain_base
         storage.heat_loss_X = 0.005
     end
-    -- Note: Heat capacity is also increased at the prototype stage.
+    -- Note: Heat capacity is also doubled at the prototype stage to compensate for halved steam
+    -- conversion efficiency.
 
     -- COMPATIBILITY: More Quality Scaling --
     if script.active_mods["more-quality-scaling"] then
@@ -116,7 +117,7 @@ local function update_panel_temperature()
         local sun_mult    = panel.surface.get_property("solar-power")/100
         local temp_loss   = (panel.temperature - ambient_temp) * storage.heat_loss_X
         panel.temperature =
-            panel.temperature + storage.temp_gain * light_corr * sun_mult * q_factor - temp_loss
+            panel.temperature + temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::
     end
 end

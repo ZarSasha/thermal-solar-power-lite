@@ -46,6 +46,7 @@ local heat_capacity_kJ = 50
 if MOD.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Compensates for halved steam conversion efficiency, and with an additional factor:
     heat_capacity_kJ = 50 * 2
+    -- Note: Rate of heat loss also lowered for runtime script.
 end
 
 local ThermalPanel = {

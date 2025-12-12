@@ -17,7 +17,6 @@ require "shared.all-stages"
 local function create_storage_table_keys()
     if storage.thermal_panels == nil then storage.thermal_panels = {}    end
     if storage.temp_gain      == nil then storage.temp_gain      = 2.1   end
-    if storage.heat_loss_X    == nil then storage.heat_loss_X    = 0.005 end
     if storage.q_scaling      == nil then storage.q_scaling      = 0.15  end
 end
 
@@ -73,6 +72,7 @@ end
 -- Unchanging parameters.
 local ambient_temp = 15    -- Default ambient temperature.
 local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
+local heat_loss_X    = 0.005 -- Factor that determines rate at which heat is lost.
 
 -- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
 local function precalculate_and_cache_results_for_on_tick_script()
@@ -81,11 +81,8 @@ local function precalculate_and_cache_results_for_on_tick_script()
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C:
         storage.temp_gain = temp_gain_base + 0.425
-        -- Also decreases heat loss rate by roughly the same factor:
-        storage.heat_loss_X = 0.005 - 0.0018
     else
         storage.temp_gain = temp_gain_base
-        storage.heat_loss_X = 0.005
     end
     -- Note: Heat capacity is also increased at the prototype stage.
 
@@ -115,7 +112,7 @@ local function update_panel_temperature()
         local q_factor    = 1 + (panel.quality.level * storage.q_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
-        local temp_loss   = (panel.temperature - ambient_temp) * storage.heat_loss_X
+        local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
         panel.temperature =
             panel.temperature + storage.temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::

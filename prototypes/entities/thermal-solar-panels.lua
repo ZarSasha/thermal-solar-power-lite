@@ -45,7 +45,7 @@ local hr_panel_disconnection_sprites = {
 local heat_capacity_kJ = 50
 if MOD.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Compensates for halved steam conversion efficiency, and with an additional factor:
-    heat_capacity_kJ = 50 * 2 * 1.5
+    heat_capacity_kJ = 50 * 2 * 1.67
 end
 
 local ThermalPanel = {

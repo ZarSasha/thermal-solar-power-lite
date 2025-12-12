@@ -17,6 +17,7 @@ require "shared.all-stages"
 local function create_storage_table_keys()
     if storage.thermal_panels == nil then storage.thermal_panels = {}    end
     if storage.temp_gain      == nil then storage.temp_gain      = 2.1   end
+    if storage.heat_loss_X    == nil then storage.heat_loss_X    = 0.005 end
     if storage.q_scaling      == nil then storage.q_scaling      = 0.15  end
 end
 
@@ -81,6 +82,8 @@ local function precalculate_and_cache_results_for_on_tick_script()
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C:
         storage.temp_gain = temp_gain_base + 0.425
+        -- Decreases heat loss rate by a similar factor.
+        storage.heat_loss_X = 0.0032
     else
         storage.temp_gain = temp_gain_base
     end

@@ -22,7 +22,7 @@ Date: 2025-12-11
       any clones (like from More Quality Scaling) are removed.
   Debug:
     - Removed some info from info command, was not very helpful.
-    - Improved reset and unlock commands.
+    - Improved debug commands.
   Internal:
     - Tidied up a fair bit.
   Todo:

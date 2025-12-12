@@ -64,6 +64,9 @@ local function unregister_surface_entities(entity_types, storage_table, event)
     end
 end
 
+-- v2.1.6: Won't check for presence of storage table, since that may simply hide bugs. Anyway, the
+-- code seems robust and the reset command can still be used as a backup solution.
+
 ---------------------------------------------------------------------------------------------------
 -- PRECALCULATION & CACHING OF VARIABLES FOR MAIN ON-TICK SCRIPT
 ---------------------------------------------------------------------------------------------------
@@ -111,7 +114,7 @@ local light_const  = 0.85  -- Highest level of "surface darkness" (default range
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
 local function update_panel_temperature()
-    --if storage.thermal_panels == nil then return end -- for easier testing
+    if storage.thermal_panels == nil then return end -- for easier testing and troubleshooting
     for _, panel in pairs(storage.thermal_panels) do
         if not panel.valid then goto continue end
         local q_factor    = 1 + (panel.quality.level * storage.q_scaling)
@@ -132,9 +135,9 @@ end
 local function activate_sunlight_indicator(entity)
     if entity == nil then return end -- checks that GUI is associated with an entity!
     if not table_contains_value(LIST_thermal_panels, entity.name) then return end
-    --removes solar-fluid, if any:
+    -- Removes solar-fluid, if any:
     entity.clear_fluid_inside()
-    --inputs solar-fluid:
+    -- Inputs solar-fluid:
     local light_corr = (light_const - entity.surface.darkness) / light_const
     if light_corr <= 0 then return end
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
@@ -319,7 +322,7 @@ COMMAND_parameters.check = function(pl)
     if storage.thermal_panels ~= nil then
         local count2 = table_length(storage.thermal_panels)
         mPrint(pl, {
-            "The thermal panel ID list exists.",
+            "The thermal panel ID list within the storage table exists.",
             "Thermal panel entity count on all surfaces / within storage table: "
           ..clr(count1,2).." / "..clr(count2,2)..".",
         })
@@ -343,7 +346,7 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears storage table of its contents, if it exists. Likely to cause crash unless
+-- DEBUG "clear": Clears storage table of its contents, if it exists. May cause crash unless
 -- certain nilchecks are enabled in code above (particularly the on-tick script).
 COMMAND_parameters.clear = function(pl)
     if storage == nil or storage == {} then return end

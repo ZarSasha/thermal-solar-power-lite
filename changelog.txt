@@ -12,15 +12,15 @@ Date: 2025-12-12
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
-    - Now properly pre-calculates some variables on_init and on_configuration_changed before their
-      use in the on_tick heat-generating script, thus improving performance.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
       sure to properly migrate contents with lua.
+    - Now properly pre-calculates some variables on_init and on_configuration_changed before their
+      use in the on_tick heat-generating script, thus improving performance.
     - Now also rebuilds table of thermal panel IDs on_configuration_changed, just in case
       any clones (like from More Quality Scaling) are removed.
   Info:
     - Improved descriptions. Heat exchanger now displays the actual temperature target in its
-      description, and the panel heat output setting receives further explanation.
+      description, and the panel heat output setting has received further explanation.
   Translation:
     - Updated German and Chinese locales with DeepL.
   Debug:

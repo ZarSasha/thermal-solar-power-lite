@@ -81,7 +81,7 @@ local function precalculate_and_cache_results_for_on_tick_script()
     storage.temp_gain  = temp_gain
     -- COMPATIBILITY: Pyanodon Coal Processing --
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-        -- Lowers temperature loss rate to account for difference between 250°C and 165°C:
+        -- Lowers heat loss factor to allow same steam energy production but at 250°C:
         storage.heat_loss_X = round_number(0.005 / (235/150), 4)
     else
         storage.heat_loss_X = 0.005
@@ -307,10 +307,9 @@ COMMAND_parameters.debug = function(pl)
     mPrint(pl, {
         clr("check",1)..": Checks for existence of thermal panel ID list within storage and makes "
         .."a count.",
-        clr("reset",1)..": Rebuilds the thermal panel ID list within storage. Resets the sunlight "
+        clr("reset",1)..": Rebuilds all variables within the storage table. Resets the sunlight "
         .."indicator as well.",
-        clr("clear",1)..": Clears the thermal panel ID list within storage of its content.",
-        clr("delete",1)..": Entirely deletes the thermal panel ID list within storage.",
+        clr("clear",1)..": Clears the storage table entirely.",
         clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
@@ -336,6 +335,7 @@ end
 -- DEBUG "reset": Rebuilds thermal panel ID list, recalculates cached values, resets make-shift
 -- sunlight indicator.
 COMMAND_parameters.reset = function(pl)
+    table_clear_content(storage)
     create_storage_table_keys()
     precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels)
@@ -345,29 +345,13 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears thermal panel ID list of its content, if it exists.
+-- DEBUG "clear": Clears storage table of all of its contents, if it exists. May cause crash.
 COMMAND_parameters.clear = function(pl)
-    if storage.thermal_panels ~= nil then
-        table_clear_content(storage.thermal_panels)
-        mPrint(pl, {
-            "The thermal panel ID list within storage was cleared!"})
-    else
-        mPrint(pl, {
-            "There was no thermal panel ID list within storage to clear!"})
-    end
-end
-
--- DEBUG "delete": Deletes thermal panel ID list, if it exists. Crashes the game unless
--- nil checks are added to various script functions above (they are commented out).
-COMMAND_parameters.delete = function(pl)
-    if storage.thermal_panels ~= nil then
-        storage.thermal_panels = nil
-        mPrint(pl, {
-            "The thermal panel ID list within storage was deleted! Crash incoming!"})
-    else
-        mPrint(pl, {
-            "The thermal panel ID list within storage already does not exist!"})
-    end
+    if storage == nil then return end
+    table_clear_content(storage)
+    mPrint(pl, {
+        "Storage table was entirely cleared!"
+    })
 end
 
 -- DEBUG "unlock": Attempts to forcefully unlock recipes for all items from this mod.

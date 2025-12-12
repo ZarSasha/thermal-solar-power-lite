@@ -7,6 +7,9 @@ Date: 2025-12-11
       67.5kW to 105kW. It is easier to work with and probably also less confusing overall. Remember
       that a lower value also reduces the efficiency of power production, even to the point of it
       becoming impossible!
+    - Pyanodon Coal Processing: Updated adapation. Will automatically correct for halved steam
+      conversion efficiency, while compat option in settings also allows for the same production
+      at 250°C, in order to match the boiler.
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
     - Pyanodon Coal Processing: Improved accuraracy of adaptation.
@@ -17,15 +20,13 @@ Date: 2025-12-11
       sure to properly migrate contents with lua.
     - Now also rebuilds table of thermal panel IDs if mod configuration is changed, just in case
       any clones (like from More Quality Scaling) are removed.
-  Bugfixes:
-    - TODO: Thermal Solar Panels: Fixed an issue that prevented them from being flipped.
-    - Pyanodon Coal Processing: Updated method for correcting heat generation. Probably fixed an
-      inaccuracy in doing so.
   Debug:
     - Removed some info from info command, was not very helpful.
     - Improved reset and unlock commands.
   Internal:
     - Tidied up a fair bit.
+  Todo:
+    - Discovered that panels cannot be flipped. Still have not found a solution.
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.20
 Date: 2025-12-11

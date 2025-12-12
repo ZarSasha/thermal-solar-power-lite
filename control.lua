@@ -241,6 +241,7 @@ end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
+    create_storage_table_keys() -- For mod update to work.
     precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.

@@ -114,7 +114,7 @@ local light_const  = 0.85  -- Highest level of "surface darkness" (default range
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
 local function update_panel_temperature()
-    if storage.thermal_panels == nil then return end -- for easier testing and troubleshooting
+    if storage.thermal_panels == nil then return end -- for less tedious troubleshooting
     for _, panel in pairs(storage.thermal_panels) do
         if not panel.valid then goto continue end
         local q_factor    = 1 + (panel.quality.level * storage.q_scaling)

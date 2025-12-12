@@ -4,27 +4,31 @@ Date: 2025-12-11
   Changes:
     - NB: Thermal Solar Panel heat output is defined by a new setting: It shows nominal output
       rather than net output at 165°C on Nauvis. The default value has therefore been changed from
-      67.5kW to 105kW. It is easier to work with and probably also less confusing overall. Remember
-      that a lower value also reduces the efficiency of power production, even to the point of it
-      becoming impossible!
-    - Pyanodon Coal Processing: Updated adapation. Will automatically correct for halved steam
-      conversion efficiency, while compat option in settings also allows for the same production
-      at 250°C, in order to match the boiler.
+      67.5kW to 105kW. It is easier to work with and probably also less confusing overall with
+      Space Age and other mods.
+    - Pyanodon Coal Processing: Updated adaptation. Will automatically correct for halved steam
+      conversion efficiency, while the compat option in settings allows for the same amount of
+      heat energy to be produced at 250°C, in order to match the boiler and allow the same degree
+      of utilization of the Steam Engine.
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
-    - Pyanodon Coal Processing: Improved accuraracy of adaptation.
   Scripting:
-    - Now properly pre-calculates some variables and caches the results ahead of their use in the
-      on-tick heat-generating script, thus improving performance a bit.
+    - Now properly pre-calculates some variables on_init and on_configuration_changed before their
+      use in the on_tick heat-generating script, thus improving performance.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
       sure to properly migrate contents with lua.
-    - Now also rebuilds table of thermal panel IDs if mod configuration is changed, just in case
+    - Now also rebuilds table of thermal panel IDs on_configuration_changed, just in case
       any clones (like from More Quality Scaling) are removed.
+  Info:
+    - Improved descriptions. Heat exchanger now displays the actual temperature target in its
+      description, and the panel heat output setting receives further explanation.
   Debug:
     - Removed some info from info command, was not very helpful.
-    - Improved debug commands.
+    - Removed "delete" command, function essentially already provided by "clear" command.
+    - Improved other debug commands.
   Internal:
     - Tidied up a fair bit.
+    - Simplified and cleaned up locales.
   Todo:
     - Discovered that panels cannot be flipped. Still have not found a solution.
 ---------------------------------------------------------------------------------------------------

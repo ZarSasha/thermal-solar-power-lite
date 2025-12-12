@@ -79,11 +79,10 @@ local function precalculate_and_cache_results_for_on_tick_script()
     -- COMPATIBILITY: Pyanodon Coal Processing --
     local temp_gain_base = SETTING.panel_output_kW / 50 -- Default heat capacity: 50kJ
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-        -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C, and
-        -- further increases it by a factor obtained from testing:
+        -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C:
         local heat_loss_165C = (165 - ambient_temp) * storage.heat_loss_X
         local heat_loss_250C = (250 - ambient_temp) * storage.heat_loss_X
-        storage.temp_gain = temp_gain_base + (heat_loss_250C - heat_loss_165C) * 1.33
+        storage.temp_gain = temp_gain_base + (heat_loss_250C - heat_loss_165C)
         -- Decreases heat loss rate:
         storage.heat_loss_X = 0.0032
     else

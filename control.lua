@@ -73,7 +73,6 @@ end
 -- Unchanging parameters.
 local ambient_temp = 15    -- Default ambient temperature.
 local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
---local heat_loss_X    = 0.005 -- Factor that determines rate at which heat is lost.
 
 -- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
 local function precalculate_and_cache_results_for_on_tick_script()
@@ -81,11 +80,11 @@ local function precalculate_and_cache_results_for_on_tick_script()
     local temp_gain_base = SETTING.panel_output_kW / 50 -- Default heat capacity: 50kJ
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Increases temp gain to overcome heat loss at 250°C as well as it would at 165°C:
-        storage.temp_gain = temp_gain_base + 0.425
-        -- Decreases heat loss rate by a similar factor.
-        storage.heat_loss_X = 0.0032
+        storage.temp_gain   = temp_gain_base * 1.566
+        storage.heat_loss_X = 0.005 / 1.566
     else
-        storage.temp_gain = temp_gain_base
+        storage.temp_gain   = temp_gain_base
+        storage.heat_loss_X = 0.005
     end
     -- Note: Heat capacity is also increased at the prototype stage.
 

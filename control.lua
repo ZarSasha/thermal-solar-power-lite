@@ -3,8 +3,8 @@
 --  ┃ ┃┃┃┃ ┃ ┣┫┃┃┃ 
 --  ┗┛┗┛┛┗ ┻ ┛┗┗┛┗┛
 ---------------------------------------------------------------------------------------------------
--- This code provides scripts for heat generation from sunlight + a makeshift sunlight indicator
--- for the Thermal Solar Panels. Contains various command functions as well.
+-- This code provides a script for heat generation from sunlight, a makeshift sunlight indicator
+-- for the Thermal Solar Panels, as well as various command functions (mostly for debugging).
 ---------------------------------------------------------------------------------------------------
 require "util"
 require "functions"
@@ -21,7 +21,11 @@ local function create_storage_table_keys()
     if storage.q_scaling      == nil then storage.q_scaling      = 0.15  end
 end
 
--- Names of entities that should be registered into storage.thermal_panels when they are created.
+---------------------------------------------------------------------------------------------------
+-- ENTITIES TO APPLY SCRIPTS TO
+---------------------------------------------------------------------------------------------------
+
+-- Names of entities that should be registered into storage table upon creation. Expandable.
 local LIST_thermal_panels = {
     "tspl-thermal-solar-panel",
     "tspl-thermal-solar-panel-large"
@@ -60,38 +64,33 @@ local function unregister_surface_entities(entity_types, storage_table, event)
     end
 end
 
--- v2.1.6: Won't check for presence of storage table, since that may simply hide bugs. Anyway, the
--- code seems robust and the reset command can still be used as a backup solution.
-
 ---------------------------------------------------------------------------------------------------
--- MAIN SCRIPT FUNCTIONS
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
-    -- HEAT GENERATION
+-- PRECALCULATION & CACHING OF VARIABLES FOR MAIN ON-TICK SCRIPT
 ---------------------------------------------------------------------------------------------------
 
--- Unchanging parameters.
-local ambient_temp = 15    -- Default ambient temperature.
-local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
+local script_frequency = 60 -- 1 second = 60 ticks.
+
+local ambient_temp     = 15 -- Default ambient temperature.
+local base_heat_cap    = 50 -- kJ, default value used for heat energy calculation, won't be changed
 
 -- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
 local function precalculate_and_cache_results_for_on_tick_script()
-    -- Calculates temperature increase pr. second:
-    storage.temp_gain  = (SETTING.panel_output_kW * (60/60)) / 50 -- Default heat capacity: 50kJ
+    -- Calculates temperature increase according to startup setting and script execution frequency:
+    storage.temp_gain  = (SETTING.panel_output_kW * (script_frequency / 60)) / base_heat_cap
     -- COMPATIBILITY: Pyanodon Coal Processing --
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-        -- Lowers heat loss factor to allow same steam energy production but at 250°C:
-        storage.heat_loss_X = round_number(0.005 / (235/150), 4)
+        -- Lowers heat loss rate to allow same steam energy production at 250°C instead of 165°C:
+        storage.heat_loss_X = round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
     else
         storage.heat_loss_X = 0.005
     end
-    -- Note: Heat capacity is also doubled at the prototype stage to compensate for halved steam
-    -- conversion efficiency.
+    -- Note: Heat capacity is also doubled at the prototype stage.
 
     -- COMPATIBILITY: More Quality Scaling --
     if script.active_mods["more-quality-scaling"] then
         if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
         local thermal_panels = LIST_thermal_panels
+        -- Adds clones to list of entities that should be affected by the scripts:
         for _, panel in pairs(thermal_panels) do
             for _, panel_clone in pairs(prototypes.mod_data["entity-clones"].data[panel] or {}) do
                 table.insert(LIST_thermal_panels, panel_clone)
@@ -101,9 +100,13 @@ local function precalculate_and_cache_results_for_on_tick_script()
     else
         storage.q_scaling = 0.15 -- tuned to roughly match scaling of solar panels.
     end
-    -- Note: No need to check for presence of Quality from Space Age DLC. Game handles quality
-    -- property just fine, even if DLC is not installed.
 end
+
+---------------------------------------------------------------------------------------------------
+-- MAIN SCRIPT: HEAT GENERATION (ON-TICK)
+---------------------------------------------------------------------------------------------------
+
+local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
 
 -- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
 -- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
@@ -122,7 +125,7 @@ local function update_panel_temperature()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- MAKESHIFT SUNLIGHT INDICATOR
+-- MAKESHIFT SUNLIGHT INDICATOR (ON GUI OPENED/CLOSED)
 ---------------------------------------------------------------------------------------------------
 
 -- Sunlight indicator: Activates by clearing and inserting new solar-fluid (on GUI opened).
@@ -244,6 +247,9 @@ script.on_configuration_changed(function()
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)
 
+-- Note: Overwriting code of mod without changing its name or version may break the scripts, since
+-- it's not a detectable event. Running the reset command provided below may help.
+
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS
 ---------------------------------------------------------------------------------------------------
@@ -295,7 +301,7 @@ COMMAND_parameters.info = function(pl)
     })
 end
 
--- DEBUG "debug": Describes the function of command parameters used for debugging.
+-- DEBUG "debug": Describes debugging command functions.
 COMMAND_parameters.debug = function(pl)
     mPrint(pl, {
         clr("check",1)..": Checks for existence of thermal panel ID list within the storage table "
@@ -314,7 +320,7 @@ COMMAND_parameters.check = function(pl)
         local count2 = table_length(storage.thermal_panels)
         mPrint(pl, {
             "The thermal panel ID list exists.",
-            "Thermal panel entity count on all surfaces / registered within storage table: "
+            "Thermal panel entity count on all surfaces / within storage table: "
           ..clr(count1,2).." / "..clr(count2,2)..".",
         })
     else
@@ -325,8 +331,7 @@ COMMAND_parameters.check = function(pl)
     end
 end
 
--- DEBUG "reset": Rebuilds contents of storage table, recalculates cached values, resets the
--- make-shift sunlight indicator.
+-- DEBUG "reset": Clears and Rebuilds contents of storage table, resets sunlight indicator.
 COMMAND_parameters.reset = function(pl)
     table_clear_content(storage)
     create_storage_table_keys()
@@ -338,13 +343,13 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears storage table of all of its contents, if it exists. Likely to cause crash
--- unless certain nilchecks are enabled in code above (particularly the on-tick script).
+-- DEBUG "clear": Clears storage table of its contents, if it exists. Likely to cause crash unless
+-- certain nilchecks are enabled in code above (particularly the on-tick script).
 COMMAND_parameters.clear = function(pl)
     if storage == nil or storage == {} then return end
     table_clear_content(storage)
     mPrint(pl, {
-        "Storage table was entirely cleared!"
+        "Storage table was entirely cleared of its contents!"
     })
 end
 
@@ -367,7 +372,7 @@ end
 
 local function new_commands(command)
     local pl1 = game.get_player(command.player_index)
-    if pl1 == nil then return end -- needed?
+    if pl1 == nil then return end
     pl1.print("[color=acid]Thermal Solar Power (Lite):[/color]")
     if not table_contains_key(COMMAND_parameters, command.parameter) then
         mPrint(pl1, {"Write \"/tspl help\" for an overview of command parameters."})

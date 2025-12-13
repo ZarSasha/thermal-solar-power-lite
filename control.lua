@@ -8,6 +8,12 @@
 ---------------------------------------------------------------------------------------------------
 require "functions"
 require "shared.all-stages"
+
+local serpent = require("serpent") -- for testing
+commands.add_command("dump-storage", "Dumps the contents of the mod's storage table to the log file.", function(event)
+  log("Mod Storage Contents: " .. serpent.block(storage, {comment=false}))
+end)
+
 ---------------------------------------------------------------------------------------------------
 -- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------

@@ -2,29 +2,31 @@
 Version: 2.2.0
 Date: 2025-12-12
   Changes:
-    - NB: Thermal Solar Panel heat output is defined by a new setting: It shows nominal output
-      rather than net output at 165°C on Nauvis. The default value has therefore been changed from
-      67.5kW to 105kW. It is easier to work with and probably also less confusing overall with
-      Space Age and other mods.
-    - Pyanodon Coal Processing: Updated adaptation. Will automatically correct for halved steam
-      conversion efficiency, while the compat option in settings allows for the same amount of
-      heat energy to be produced at 250°C, matching the Boiler.
+    - NB: Thermal Solar Panel heat output is defined by a new setting: It shows nominal output at
+      ambient temperature rather than net output at 165°C on Nauvis. The default value has been
+      changed from 67.5kW to 105kW for that reason. This is easier to work with and probably also
+      less confusing overall with Space Age and other mods that add planets.
+    - Pyanodon Coal Processing: Now automatically adjusts heat output (technically by doubling the
+      heat capacity) to compensate for halved steam conversion efficiency.
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
+    - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
+      same efficiency (this time simply by lowering the rate of heat loss), thus matching the
+      Boiler and better utilizing the Steam Engine.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
       sure to properly migrate contents with lua.
-    - Now also rebuilds table of thermal panel IDs on_configuration_changed, just in case
-      any clones (like from More Quality Scaling) are removed.
+    - Now also rebuilds table of thermal panel IDs on_configuration_changed, just in case any
+      clones (like those from More Quality Scaling) are removed.
   Info:
-    - Improved descriptions. Heat exchanger now displays the actual temperature target in its
-      description, and the panel heat output setting has received further explanation.
+    - Improved descriptions. For example, the Basic Heat Exchanger now displays the correct
+      temperature target (as defined in startup settings) in its description.
   Translation:
     - Updated German and Chinese locales with DeepL.
   Debug:
     - Removed some info from info command, was not very helpful.
     - Removed "delete" command, function essentially already provided by "clear" command.
-    - Improved other debug commands.
+    - Improved other debug commands, such as the reset command.
   Internal:
     - Tidied up a fair bit.
     - Simplified and cleaned up locales.

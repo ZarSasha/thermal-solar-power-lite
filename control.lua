@@ -165,7 +165,7 @@ local function reset_thermal_panels()
     table_clear_content(storage.thermal_panels)
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
-            if not panel.unit_number then goto continue end
+            if panel == nil then goto continue end
             storage.thermal_panels[panel.unit_number] = panel
             panel.clear_fluid_inside()
         end

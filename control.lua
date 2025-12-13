@@ -6,19 +6,15 @@
 -- This code provides a script for heat generation from sunlight, a makeshift sunlight indicator
 -- for the Thermal Solar Panels, as well as various command functions (mostly for debugging).
 ---------------------------------------------------------------------------------------------------
-require "util"
 require "functions"
 require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------
 
--- Creates keys for storage table that will be needed by scripts.
+-- Function to create keys for storage table that will be needed by scripts.
 local function create_storage_table_keys()
-    if storage.thermal_panels == nil then storage.thermal_panels = {}    end
-    if storage.temp_gain      == nil then storage.temp_gain      = 2.1   end
-    if storage.heat_loss_X    == nil then storage.heat_loss_X    = 0.005 end
-    if storage.q_scaling      == nil then storage.q_scaling      = 0.15  end
+    if storage.thermal_panels == nil then storage.thermal_panels = {} end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -68,76 +64,76 @@ end
 -- code seems robust and the reset command can still be used as a backup solution.
 
 ---------------------------------------------------------------------------------------------------
--- PRECALCULATION & CACHING OF VARIABLES FOR MAIN ON-TICK SCRIPT
+-- MAIN SCRIPTS
 ---------------------------------------------------------------------------------------------------
 
-local script_frequency = 60 -- 1 second = 60 ticks.
+-- Various parameters:
+local script_frequency = 60   -- 1 second = 60 ticks
+local ambient_temp     = 15   -- Default ambient temperature
+local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
+local base_heat_cap    = 50   -- Default panel heat capacity in kJ
 
-local ambient_temp     = 15 -- Default ambient temperature.
-local base_heat_cap    = 50 -- kJ, default value used for heat energy calculation, won't be changed
+---------------------------------------------------------------------------------------------------
+    -- HEAT GENERATION (ON-NTH_TICK)
+---------------------------------------------------------------------------------------------------
+-- Script that increases temperature of entity in proportion to sunlight, but also decreases it in
+-- proportion to current temperature above ambient level. Adjusted for quality and solar intensity.
+-- Fairly complex, somewhat high UPS impact at scale.
 
--- Precalculates and caches variables for on-tick script, provides compatibility for various mods.
-local function precalculate_and_cache_results_for_on_tick_script()
-    -- Calculates temperature increase according to startup setting and script execution frequency:
-    storage.temp_gain  = (SETTING.panel_output_kW * (script_frequency / 60)) / base_heat_cap
-    -- COMPATIBILITY: Pyanodon Coal Processing --
-    if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-        -- Lowers heat loss rate to allow same steam energy production at 250°C instead of 165°C:
-        storage.heat_loss_X = round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
-    else
-        storage.heat_loss_X = 0.005
-    end
-    -- Note: Heat capacity is also doubled at the prototype stage.
+-- Panel temperature gain pr. cycle, before loss:
+local temp_gain     = (SETTING.panel_output_kW * (script_frequency / 60)) / base_heat_cap
 
-    -- COMPATIBILITY: More Quality Scaling --
-    if script.active_mods["more-quality-scaling"] then
-        if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
-        local thermal_panels = LIST_thermal_panels
-        -- Adds clones to list of entities that should be affected by the scripts:
-        for _, panel in pairs(thermal_panels) do
-            for _, panel_clone in pairs(prototypes.mod_data["entity-clones"].data[panel] or {}) do
-                table.insert(LIST_thermal_panels, panel_clone)
-            end
-        end
-        storage.q_scaling = 0    -- accounts for increased heat capacity (30% pr. quality level)
-    else
-        storage.q_scaling = 0.15 -- tuned to roughly match scaling of solar panels.
-    end
+-- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
+local heat_loss_X   = 0.005 * (script_frequency / 60)
+
+-- Scaling of heat generation according to quality level:
+local q_scaling     = 0.15  -- finetuned to roughly match scaling of solar panels
+
+-- COMPATIBILITY: Pyanodon Coal Processing --
+if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+    -- Decreases loss rate to allow similar efficiency at 250°C (compared to 165°C):
+    heat_loss_X =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
 end
 
----------------------------------------------------------------------------------------------------
--- MAIN SCRIPT: HEAT GENERATION (ON-TICK)
----------------------------------------------------------------------------------------------------
+-- COMPATIBILITY: More Quality Scaling --
+if script.active_mods["more-quality-scaling"] then
+    if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
+    local thermal_panels = LIST_thermal_panels
+    -- Adds clones to list of entities that should be affected by the scripts:
+    for _, panel in pairs(thermal_panels) do
+        for _, panel_clone in pairs(prototypes.mod_data["entity-clones"].data[panel] or {}) do
+            table.insert(LIST_thermal_panels, panel_clone)
+        end
+    end
+    q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
+end
 
-local light_const  = 0.85  -- Highest level of "surface darkness" (default range: 0-0.85).
-
--- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
--- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
+-- Function to update temperature of entity according to circumstances.
 local function update_panel_temperature()
     if storage.thermal_panels == nil then return end -- for less tedious troubleshooting
     for _, panel in pairs(storage.thermal_panels) do
         if not panel.valid then goto continue end
-        local q_factor    = 1 + (panel.quality.level * storage.q_scaling)
+        local q_factor    = 1 + (panel.quality.level * q_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
-        local temp_loss   = (panel.temperature - ambient_temp) * storage.heat_loss_X
+        local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
         panel.temperature =
-            panel.temperature + storage.temp_gain * light_corr * sun_mult * q_factor - temp_loss
+            panel.temperature + temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::
     end
 end
 
 ---------------------------------------------------------------------------------------------------
--- MAKESHIFT SUNLIGHT INDICATOR (ON GUI OPENED/CLOSED)
+    -- MAKESHIFT SUNLIGHT INDICATOR (ON GUI OPENED/CLOSED)
 ---------------------------------------------------------------------------------------------------
+-- Script that emulates a solar level indicator by filling entity with a custom fluid when the gui
+-- is opened, and removing it again when gui is closed.
 
--- Sunlight indicator: Activates by clearing and inserting new solar-fluid (on GUI opened).
+-- Function to clear fluid content and then insert new solar-fluid (on GUI opened).
 local function activate_sunlight_indicator(entity)
     if entity == nil then return end -- checks that GUI is associated with an entity!
     if not table_contains_value(LIST_thermal_panels, entity.name) then return end
-    -- Removes solar-fluid, if any:
     entity.clear_fluid_inside()
-    -- Inputs solar-fluid:
     local light_corr = (light_const - entity.surface.darkness) / light_const
     if light_corr <= 0 then return end
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
@@ -148,7 +144,7 @@ local function activate_sunlight_indicator(entity)
     }
 end
 
--- Sunlight indicator: Deactivates by removing solar-fluid (on GUI closed).
+-- Function to remove solar-fluid (on GUI closed).
 local function deactivate_sunlight_indicator(entity)
     if entity == nil then return end -- same as above
     if not table_contains_value(LIST_thermal_panels, entity.name) then return end

@@ -177,29 +177,27 @@ end
 ---------------------------------------------------------------------------------------------------
 
 -- Function to search on all surfaces for entities from a name list, returning a table.
-local function search_for_entities(entity_types)
+local function search_for_entities(entity_names)
     local found_entities = {}
     for _, surface in pairs(game.surfaces) do
-        for _, found_entity in pairs(surface.find_entities_filtered{name = entity_types}) do
-            if found_entity.valid then
-                found_entities[found_entity.unit_number] = found_entity
-            end
+        for _, found_entity in pairs(surface.find_entities_filtered{name = entity_names}) do
+            found_entities[found_entity.unit_number] = found_entity
         end
     end
-    log("Search result: " .. serpent.block(found_entities, {comment=false}))
+    log("Search result: " .. serpent.block(found_entities, {comment=true}))
     return found_entities
 end
 
 -- Function to rebuild contents of a storage table. Also resets makeshift sunlight indicator
 -- (in case gui is left open for some reason, but it's a trivial problem).
-local function rebuild_entity_ID_table(entity_types, table)
+local function rebuild_entity_ID_table(entity_names, table)
     table_clear_content(table)
-    local entities = search_for_entities(entity_types)
+    local entities = search_for_entities(entity_names)
     for unit_number, entity in pairs(entities) do
         table[unit_number] = entity
         entity.clear_fluid_inside()
     end
-    log("Storage content: " .. serpent.block(table, {comment=false}))
+    log("Storage content: " .. serpent.block(table, {comment=true}))
 end
 
 ---------------------------------------------------------------------------------------------------

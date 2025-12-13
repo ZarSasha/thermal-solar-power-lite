@@ -55,7 +55,6 @@ local LIST_thermal_panels = {
 
 -- Function to add entity to storage table when it is created.
 local function register_entity(entity_types, storage_table, event)
-    --create_storage_table_keys()
     local entity = event.entity or event.destination
     if not table_contains_value(entity_types, entity.name) then return end
     storage_table[entity.unit_number] = entity
@@ -185,16 +184,17 @@ local function search_for_entities(entity_types)
             table.insert(found_entities, entity)
         end
     end
+    log("Search result: " .. serpent.block(found_entities, {comment=false}))
     return found_entities
 end
 
 -- Function to rebuild contents of a storage table. Also resets makeshift sunlight indicator
 -- (in case gui is left open for some reason, but it's a trivial problem).
-local function rebuild_entity_ID_table(entity_types, storage_table)
-    table_clear_content(storage_table)
+local function rebuild_entity_ID_table(entity_types, table)
+    table_clear_content(table)
     local found_entities = search_for_entities(entity_types)
     for _, found_entity in pairs(found_entities) do
-        storage_table[found_entity.unit_number] = found_entity
+        table[found_entity.unit_number] = found_entity
         found_entity.clear_fluid_inside()
     end
 end

@@ -32,7 +32,7 @@ Date: 2025-12-13
   Internal:
     - Tidied up a fair bit.
     - Simplified and cleaned up locales.
-  Todo:
+  Notes:
     - Discovered that panels cannot be flipped. Still have not found a solution.
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.20

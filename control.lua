@@ -181,7 +181,9 @@ local function search_for_entities(entity_types)
     local found_entities = {}
     for _, surface in pairs(game.surfaces) do
         for _, found_entity in pairs(surface.find_entities_filtered{name = entity_types}) do
-            found_entities[entity.unit_number] = found_entity
+            if found_entity.valid then
+                found_entities[found_entity.unit_number] = found_entity
+            end
         end
     end
     log("Search result: " .. serpent.block(found_entities, {comment=false}))
@@ -193,8 +195,8 @@ end
 local function rebuild_entity_ID_table(entity_types, table)
     table_clear_content(table)
     local entities = search_for_entities(entity_types)
-    for ID, entity in pairs(entities) do
-        table[ID] = entity
+    for unit_number, entity in pairs(entities) do
+        table[unit_number] = entity
         entity.clear_fluid_inside()
     end
     log("Storage content: " .. serpent.block(table, {comment=false}))

@@ -2,7 +2,7 @@
 Version: 2.2.0
 Date: 2025-12-12
   Changes:
-    - NB: Thermal Solar Panel heat output is defined by a new setting: It shows nominal output at
+    - NB: Thermal solar panel heat output is defined by a new setting: It shows nominal output at
       ambient temperature rather than net output at 165°C on Nauvis. The default value has been
       changed from 67.5kW to 105kW for that reason. This is easier to work with and probably also
       less confusing overall with Space Age and other mods that add planets.
@@ -13,14 +13,16 @@ Date: 2025-12-12
   Scripting:
     - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
       same efficiency (this time simply by lowering the rate of heat loss), thus matching the
-      Boiler and better utilizing the Steam Engine.
+      boiler and better utilizing the steam engine.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
       sure to properly migrate contents with lua.
     - Now also rebuilds table of thermal panel IDs on_configuration_changed, just in case any
       clones (like those from More Quality Scaling) are removed.
   Info:
-    - Improved descriptions. For example, the Basic Heat Exchanger now displays the correct
-      temperature target (as defined in startup settings) in its description.
+    - Improved descriptions. Expanded explanation of some settings, removed a lot of the
+      capitalization.
+    - The basic heat exchanger now displays the correct temperature target (as defined in startup
+      settings) in its description.
   Translation:
     - Updated German and Chinese locales with DeepL.
   Debug:

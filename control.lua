@@ -10,7 +10,7 @@ require "functions"
 require "shared.all-stages"
 
 commands.add_command("dump-storage", "Dumps the contents of the mod's storage table to the log file.", function(event)
-  log("Mod Storage Contents: " .. serpent.block(storage, {comment=true}))
+  log("Mod Storage Contents: " .. serpent.block(storage.thermal_panels, {comment=true}))
 end)
 
 ---------------------------------------------------------------------------------------------------

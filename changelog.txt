@@ -25,6 +25,8 @@ Date: 2025-12-13
       settings) in its description.
   Translation:
     - Updated German and Chinese locales with DeepL.
+  Bugfixes:
+    - TODO: Improved clean-up of entity ID table within the storage table.
   Debug:
     - Removed some info from info command, was not very helpful.
     - Removed "delete" command, function essentially already provided by "clear" command.

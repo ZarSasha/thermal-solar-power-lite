@@ -350,7 +350,7 @@ COMMAND_parameters.check = function(pl)
     end
 end
 
--- DEBUG "reset": Clears and Rebuilds contents of storage table, resets sunlight indicator.
+-- DEBUG "reset": Clears and rebuilds panel ID table in storage, resets sunlight indicator.
 COMMAND_parameters.reset = function(pl)
     table_clear_content(storage.thermal_panels)
     rebuild_entity_ID_table(LIST_thermal_panels, storage.thermal_panels)
@@ -360,11 +360,10 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears storage table of its contents, if it exists. May cause crash unless
+-- DEBUG "clear": Clears panel ID table of its contents, if it exists. May cause crash unless
 -- certain nilchecks are enabled in code above (particularly the on-tick script).
 COMMAND_parameters.clear = function(pl)
-    if storage == nil or storage == {} then return end
-    table_clear_content(storage)
+    table_clear_content(storage.thermal_panels)
     mPrint(pl, {
         "Storage table was entirely cleared of its contents!"
     })

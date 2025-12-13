@@ -233,7 +233,6 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
-    precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
@@ -241,7 +240,6 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- For mod update to work.
-    precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)
@@ -334,7 +332,6 @@ end
 COMMAND_parameters.reset = function(pl)
     table_clear_content(storage)
     create_storage_table_keys()
-    precalculate_and_cache_results_for_on_tick_script()
     rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels)
     mPrint(pl, {
         "The contents of the storage table were reset and rebuild.",

@@ -49,7 +49,7 @@ data:extend({
 		default_value = "Default",
 		allowed_values = {
             "Default",
-            "Pyanodon" -- Lowers heat loss to allow similar steam production at 250°C.
+            "Pyanodon" -- Lowers heat loss to allow similarly efficient steam production at 250°C.
         },
 		order = "e"
 	}

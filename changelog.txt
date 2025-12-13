@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.0
-Date: 2025-12-12
+Date: 2025-12-13
   Changes:
     - NB: Thermal solar panel heat output is defined by a new setting: It shows nominal output at
       ambient temperature rather than net output at 165°C on Nauvis. The default value has been

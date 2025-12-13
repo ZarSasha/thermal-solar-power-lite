@@ -13,6 +13,23 @@ commands.add_command("dump-storage", "Dumps the contents of the mod's storage ta
   log("Mod Storage Contents: " .. serpent.block(storage, {comment=false}))
 end)
 
+-- right output (number key, string value): thermal_panels = {
+    --[277] = "[LuaEntity: tspl-thermal-solar-panel at [gps=53.5,14.5]]",
+    --[300] = "[LuaEntity: tspl-thermal-solar-panel at [gps=57.5,14.5]]"
+--}
+
+--there may be many nil values, entries without a number key! Clean it up! 
+-- Example: thermal_panels = {
+    --nil,
+    --"[LuaEntity: tspl-thermal-solar-panel-large at [gps=30.5,13.5]]",
+    --nil,
+    --nil,
+    --[277] = "[LuaEntity: tspl-thermal-solar-panel at [gps=53.5,14.5]]",
+    --[300] = "[LuaEntity: tspl-thermal-solar-panel at [gps=57.5,14.5]]"
+--}
+
+-- This persists even after a clear and a reset! What!
+
 ---------------------------------------------------------------------------------------------------
 -- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------
@@ -173,7 +190,7 @@ end
 
 -- Function to rebuild contents of a storage table. Also resets makeshift sunlight indicator
 -- (in case gui is left open for some reason, but it's a trivial problem).
-local function rebuild_entity_ID_list(entity_types, storage_table)
+local function rebuild_entity_ID_table(entity_types, storage_table)
     table_clear_content(storage_table)
     local found_entities = search_for_entities(entity_types)
     for _, found_entity in pairs(found_entities) do
@@ -238,14 +255,14 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
-    rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
+    rebuild_entity_ID_table(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- For mod update to work.
-    rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels) -- *
+    rebuild_entity_ID_table(LIST_thermal_panels, storage.thermal_panels) -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)
 
@@ -335,9 +352,8 @@ end
 
 -- DEBUG "reset": Clears and Rebuilds contents of storage table, resets sunlight indicator.
 COMMAND_parameters.reset = function(pl)
-    table_clear_content(storage)
-    create_storage_table_keys()
-    rebuild_entity_ID_list(LIST_thermal_panels, storage.thermal_panels)
+    table_clear_content(storage.thermal_panels)
+    rebuild_entity_ID_table(LIST_thermal_panels, storage.thermal_panels)
     mPrint(pl, {
         "The contents of the storage table were reset and rebuild.",
         "Any solar-fluid remaining in thermal panels was removed as well."

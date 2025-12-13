@@ -10,25 +10,8 @@ require "functions"
 require "shared.all-stages"
 
 commands.add_command("dump-storage", "Dumps the contents of the mod's storage table to the log file.", function(event)
-  log("Mod Storage Contents: " .. serpent.block(storage, {comment=false}))
+  log("Mod Storage Contents: " .. serpent.block(storage, {comment=true}))
 end)
-
--- right output (number key, string value): thermal_panels = {
-    --[277] = "[LuaEntity: tspl-thermal-solar-panel at [gps=53.5,14.5]]",
-    --[300] = "[LuaEntity: tspl-thermal-solar-panel at [gps=57.5,14.5]]"
---}
-
---there may be many nil values, entries without a number key! Clean it up! 
--- Example: thermal_panels = {
-    --nil,
-    --"[LuaEntity: tspl-thermal-solar-panel-large at [gps=30.5,13.5]]",
-    --nil,
-    --nil,
-    --[277] = "[LuaEntity: tspl-thermal-solar-panel at [gps=53.5,14.5]]",
-    --[300] = "[LuaEntity: tspl-thermal-solar-panel at [gps=57.5,14.5]]"
---}
-
--- This persists even after a clear and a reset! What!
 
 ---------------------------------------------------------------------------------------------------
 -- STORAGE TABLE CREATION
@@ -173,31 +156,19 @@ local function deactivate_sunlight_indicator(entity)
 end
 
 ---------------------------------------------------------------------------------------------------
--- DEBUG: RESET FUNCTIONS (rarely if ever needed)
+-- DEBUG: RESET FUNCTION (rarely if ever needed)
 ---------------------------------------------------------------------------------------------------
 
--- Function to search on all surfaces for entities from a name list, returning a table.
-local function search_for_entities(entity_names)
-    local found_entities = {}
+-- Function to clear and rebuild panel ID list within storage, as well as clear the panels of any
+-- "solar-fluid" that may accidentally remain from unexpected events.
+local function reset_thermal_panels()
+    table_clear_content(storage.thermal_panels)
     for _, surface in pairs(game.surfaces) do
-        for _, found_entity in pairs(surface.find_entities_filtered{name = entity_names}) do
-            found_entities[found_entity.unit_number] = found_entity
+        for _, panel in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
+            storage.thermal_panels[panel.unit_number] = panel
+            panel.clear_fluid_inside()
         end
     end
-    log("Search result: " .. serpent.block(found_entities, {comment=true}))
-    return found_entities
-end
-
--- Function to rebuild contents of a storage table. Also resets makeshift sunlight indicator
--- (in case gui is left open for some reason, but it's a trivial problem).
-local function rebuild_entity_ID_table(entity_names, table)
-    table_clear_content(table)
-    local entities = search_for_entities(entity_names)
-    for unit_number, entity in pairs(entities) do
-        table[unit_number] = entity
-        entity.clear_fluid_inside()
-    end
-    log("Storage content: " .. serpent.block(table, {comment=true}))
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -256,14 +227,14 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
-    rebuild_entity_ID_table(LIST_thermal_panels, storage.thermal_panels) -- *
+    reset_thermal_panels() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- For mod update to work.
-    rebuild_entity_ID_table(LIST_thermal_panels, storage.thermal_panels) -- *
+    reset_thermal_panels() -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)
 
@@ -353,16 +324,14 @@ end
 
 -- DEBUG "reset": Clears and rebuilds panel ID table in storage, resets sunlight indicator.
 COMMAND_parameters.reset = function(pl)
-    table_clear_content(storage.thermal_panels)
-    rebuild_entity_ID_table(LIST_thermal_panels, storage.thermal_panels)
+    reset_thermal_panels()
     mPrint(pl, {
         "The contents of the storage table were reset and rebuild.",
         "Any solar-fluid remaining in thermal panels was removed as well."
     })
 end
 
--- DEBUG "clear": Clears panel ID table of its contents, if it exists. May cause crash unless
--- certain nilchecks are enabled in code above (particularly the on-tick script).
+-- DEBUG "clear": Clears panel ID table within storage of its contents, if it exists.
 COMMAND_parameters.clear = function(pl)
     table_clear_content(storage.thermal_panels)
     mPrint(pl, {

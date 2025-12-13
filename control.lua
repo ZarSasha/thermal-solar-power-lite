@@ -176,12 +176,12 @@ end
 -- DEBUG: RESET FUNCTIONS (rarely if ever needed)
 ---------------------------------------------------------------------------------------------------
 
--- Function to search on all surfaces for entities from a name list, returning an array.
+-- Function to search on all surfaces for entities from a name list, returning a table.
 local function search_for_entities(entity_types)
     local found_entities = {}
     for _, surface in pairs(game.surfaces) do
-        for _, entity in pairs(surface.find_entities_filtered{name = entity_types}) do
-            table.insert(found_entities, entity)
+        for _, found_entity in pairs(surface.find_entities_filtered{name = entity_types}) do
+            found_entities[entity.unit_number] = found_entity
         end
     end
     log("Search result: " .. serpent.block(found_entities, {comment=false}))
@@ -192,11 +192,12 @@ end
 -- (in case gui is left open for some reason, but it's a trivial problem).
 local function rebuild_entity_ID_table(entity_types, table)
     table_clear_content(table)
-    local found_entities = search_for_entities(entity_types)
-    for _, found_entity in pairs(found_entities) do
-        table[found_entity.unit_number] = found_entity
-        found_entity.clear_fluid_inside()
+    local entities = search_for_entities(entity_types)
+    for ID, entity in pairs(entities) do
+        table[ID] = entity
+        entity.clear_fluid_inside()
     end
+    log("Storage content: " .. serpent.block(table, {comment=false}))
 end
 
 ---------------------------------------------------------------------------------------------------

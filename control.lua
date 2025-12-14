@@ -193,7 +193,7 @@ script.on_event({
     -- * Pre-stage needed to unregister entity from storage table before entity is removed.
 },  function(event)
     unregister_entity(event)
-end) 
+end)
 
 -- Function set to run when a surface is cleared or destroyed (not a normal event).
 script.on_event({
@@ -202,7 +202,7 @@ script.on_event({
     -- * Pre-stage needed to unregister entities from storage table before entities are removed.
 },  function(event)
     unregister_surface_entities(event)
-end) 
+end)
 
 -- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
 script.on_event({defines.events.on_tick}, function(event)

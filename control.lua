@@ -103,7 +103,7 @@ if script.active_mods["more-quality-scaling"] then
     q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
 end
 
--- Function to update temperature of thermal panel according to circumstances.
+-- Function to update temperature of thermal panels according to circumstances.
 local function update_panel_temperature()
     if storage.thermal_panels == nil then return end -- makes troubleshooting less tedious
     for _, panel in pairs(storage.thermal_panels) do

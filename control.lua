@@ -23,7 +23,7 @@ local function create_storage_table_keys()
 end
 
 ---------------------------------------------------------------------------------------------------
--- ENTITIES TO APPLY SCRIPTS TO
+-- THERMAL PANEL ENTITIES TO APPLY SCRIPTS TO
 ---------------------------------------------------------------------------------------------------
 
 -- Names of entities that should be registered into storage table upon creation. Expandable.
@@ -33,39 +33,30 @@ local LIST_thermal_panels = {
 }
 
 ---------------------------------------------------------------------------------------------------
--- ENTITY REGISTRATION/UNREGISTRATION
+-- THERMAL PANEL ENTITY REGISTRATION/UNREGISTRATION
 ---------------------------------------------------------------------------------------------------
 
--- Function to add entity to storage table when it is created.
-local function register_entity(entity_types, storage_table, event)
+-- Function to add panel unit number + string identifier to a storage table when built.
+local function register_entity(event)
     local entity = event.entity or event.destination
-    if not table_contains_value(entity_types, entity.name) then return end
-    storage_table[entity.unit_number] = entity
+    if not table_contains_value(LIST_thermal_panels, entity.name) then return end
+    storage.thermal_panels[entity.unit_number] = entity
 end
 
--- Function to remove entity from storage table when it is mined or destroyed.
-local function unregister_entity(entity_types, storage_table, event)
-    --if storage.thermal_panels == nil then return end
+-- Function to remove panel unit number + string identifier from a storage table when destroyed.
+local function unregister_entity(event)
     local entity = event.entity
-    if not table_contains_value(entity_types, entity.name) then return end
-    storage_table[entity.unit_number] = nil
+    if not table_contains_value(LIST_thermal_panels, entity.name) then return end
+    storage.thermal_panels[entity.unit_number] = nil
 end
 
--- Function to remove entities from storage table, when their surface is cleared/deleted.
-local function unregister_surface_entities(entity_types, storage_table, event)
-    --if storage.thermal_panels == nil then return end
+-- Function to remove panels from a storage table when their surface is cleared/deleted.
+local function unregister_surface_entities(event)
     local surface = game.surfaces[event.surface_index]
-    local found_entities = {}
-    for _, searched_entity in pairs(surface.find_entities_filtered{name = entity_types}) do
-        table.insert(found_entities, searched_entity)
-    end
-    for _, found_entity in pairs(found_entities) do
-        storage_table[found_entity.unit_number] = nil
+    for _, entity in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
+        storage.thermal_panels[entity.unit_number] = nil
     end
 end
-
--- v2.1.6: Won't check for presence of storage table, since that may simply hide bugs. Anyway, the
--- code seems robust and the reset command can still be used as a backup solution.
 
 ---------------------------------------------------------------------------------------------------
 -- MAIN SCRIPTS
@@ -160,9 +151,13 @@ end
 ---------------------------------------------------------------------------------------------------
 
 -- Function to clear and rebuild panel ID list within storage, as well as clear the panels of any
--- "solar-fluid" that may accidentally remain from unexpected events.
+-- "solar-fluid" that may accidentally remain for whatever reason.
 local function reset_thermal_panels()
-    table_clear_content(storage.thermal_panels)
+    if storage.thermal_panels == nil then
+        storage.thermal_panels = {}
+    else
+        table_clear_content(storage.thermal_panels)
+    end
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
             storage.thermal_panels[panel.unit_number] = panel
@@ -177,15 +172,15 @@ end
 
 -- Function set to run when an entity is built.
 script.on_event({
-    defines.events.on_built_entity,                 -- event.entity
-    defines.events.on_robot_built_entity,           -- event.entity
-    defines.events.on_space_platform_built_entity,  -- event.entity
-    defines.events.script_raised_built,             -- event.entity
-    defines.events.script_raised_revive,            -- event.entity
-    defines.events.on_entity_cloned                 -- event.destination (not a normal event) *
+    defines.events.on_built_entity,                -- event.entity
+    defines.events.on_robot_built_entity,          -- event.entity
+    defines.events.on_space_platform_built_entity, -- event.entity
+    defines.events.script_raised_built,            -- event.entity
+    defines.events.script_raised_revive,           -- event.entity
+    defines.events.on_entity_cloned                -- event.destination (not a normal event) *
     -- * Event is raised for every single entity created from cloned area as well.
 },  function(event)
-    register_entity(LIST_thermal_panels, storage.thermal_panels, event)
+    register_entity(event)
 end)
 
 -- Function set to run when an entity is mined or destroyed in various ways.
@@ -197,7 +192,7 @@ script.on_event({
     defines.events.script_raised_destroy
     -- * Pre-stage needed to unregister entity from storage table before entity is removed.
 },  function(event)
-    unregister_entity(LIST_thermal_panels, storage.thermal_panels, event)
+    unregister_entity(event)
 end) 
 
 -- Function set to run when a surface is cleared or destroyed (not a normal event).
@@ -206,12 +201,12 @@ script.on_event({
     defines.events.on_pre_surface_deleted  -- *
     -- * Pre-stage needed to unregister entities from storage table before entities are removed.
 },  function(event)
-    unregister_surface_entities(LIST_thermal_panels, storage.thermal_panels, event)
+    unregister_surface_entities(event)
 end) 
 
 -- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % 60 == 0 then update_panel_temperature() end
+    if event.tick % script_frequency == 0 then update_panel_temperature() end
 end)
 
 -- Function set to run when a GUI is opened.
@@ -227,14 +222,14 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
-    reset_thermal_panels() -- *
+    --reset_thermal_panels() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    create_storage_table_keys() -- For mod update to work.
-    reset_thermal_panels() -- *
+    create_storage_table_keys() -- For update to storage tables to work.
+    --reset_thermal_panels() -- *
     -- * In case any clones (like from More Quality Scaling) are removed from the game.
 end)
 
@@ -250,10 +245,10 @@ end)
 -- HELPER FUNCTIONS -------------------------------------------------------------------------------
 
 -- Searches on all surfaces for entities from a list, returning the total number.
-local function search_and_count_entities(entity_types)
+local function search_and_count_thermal_panels()
     local total_count = 0
     for _, surface in pairs(game.surfaces) do
-        local sub_count = surface.count_entities_filtered{name = entity_types}
+        local sub_count = surface.count_entities_filtered{name = LIST_thermal_panels}
         total_count = total_count + sub_count
     end
     return total_count
@@ -306,7 +301,7 @@ end
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
-    local count1 = search_and_count_entities(LIST_thermal_panels)
+    local count1 = search_and_count_thermal_panels()
     if storage.thermal_panels ~= nil then
         local count2 = table_length(storage.thermal_panels)
         mPrint(pl, {
@@ -333,6 +328,7 @@ end
 
 -- DEBUG "clear": Clears panel ID table within storage of its contents, if it exists.
 COMMAND_parameters.clear = function(pl)
+    if storage.thermal_panels == nil then return end
     table_clear_content(storage.thermal_panels)
     mPrint(pl, {
         "Storage table was entirely cleared of its contents!"

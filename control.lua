@@ -44,8 +44,8 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Complete list of entity names, mostly for debugging. Populated directly below.
 local LIST_thermal_panels = {}
 
-for key, _ in pairs(prototypes) do
-    if string.find(prototypes.entity[key], panel_name_base, 1, true) then
+for key, _ in pairs(prototypes.entity) do
+    if string.find(key, panel_name_base, 1, true) then
         table.insert(LIST_thermal_panels, key)
     end
 end

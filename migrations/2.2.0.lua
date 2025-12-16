@@ -2,8 +2,7 @@
 -- MIGRATIONS FOR V2.2.0
 ---------------------------------------------------------------------------------------------------
 -- The new time slicing feature needs several variables to be stored within the storage table. The
--- main table that holds the string identifiers also needs to replaced with a simple array
--- (contiguous indexed table).
+-- main table that holds the string identifiers also needs to be replaced with a simple array.
 
 if storage.panels               == nil then storage.panels               =    {} end
 if storage.panels.main          == nil then storage.panels.main          =    {} end
@@ -14,33 +13,15 @@ if storage.panels.progress      == nil then storage.panels.progress      =     1
 if storage.panels.complete      == nil then storage.panels.complete      = false end
 
 if storage.tspl_thermal_panel_table ~= nil then
-    -- Extracts values from table and copies them into new array in storage:
     for _, v in pairs(storage.tspl_thermal_panel_table) do
         table.insert(storage.panels.main, v)
     end
-    -- Deletes old table in storage:
     table_clear(storage.tspl_thermal_panel_table)
     storage.tspl_thermal_panel_table = nil
-    -- Writes to log (factorio-current.log in hidden AppData/Roaming/Factorio folder)
     log(
         "Migrated data from table: 'storage.tspl_thermal_panel_table' "
       .."to new array: 'storage.panels.main'."
     )
---[[else
-    local LIST_thermal_panels = {}
-    for key, _ in pairs(prototypes.entity) do
-        if string.find(key, "tspl-thermal-solar-panel", 1, true) then
-            table.insert(LIST_thermal_panels, key)
-        end
-    end
-    log("Migration script: List of panels was build, presumably.")
-    for _, surface in pairs(game.surfaces) do
-        for _, panel in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
-            table.insert(storage.panels.main, panel)
-            panel.clear_fluid_inside()
-        end
-    end
-    log("Populated new array: 'storage.panels.main'.")]]
 end
 
 game.print("[color=acid]Thermal Solar Power (Lite):[/color]")

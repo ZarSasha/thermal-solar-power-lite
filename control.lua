@@ -367,14 +367,15 @@ end
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
     if storage.panels ~= nil then
-        mPrint(pl, {"The table 'storage.panels' exists. So do the following subvariables:"})
+        -- Storage table:
+        mPrint(pl, {"The table 'storage.panels' exists. Any missing subkeys are written here:"})
         local subvars = {
             "main", "to_be_added", "to_be_removed", "batch_size", "progress", "complete"
         }
         for _, subvar in ipairs(subvars) do
-            if storage.panels[subvar] ~= nil then mPrint(pl, {"  "..subvar}) end
+            if storage.panels[subvar] == nil then mPrint(pl, {"  "..subvar}) end
         end
-        --
+        -- Entity count:
         mPrint(pl, {"Thermal solar panel entity count:"})
         local count1 = search_and_count_thermal_panels()
         mPrint(pl, {"  On all surfaces: "..clr(count1,2).."."})

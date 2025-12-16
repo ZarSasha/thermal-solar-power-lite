@@ -369,26 +369,24 @@ end
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
-    --
-    if storage.panels == nil then
+    if storage.panels ~= nil then
+        mPrint(pl, {"The table 'storage.panels' exists. So do the following subtables:"})
+        local subvars = {
+            "main", "to_be_added", "to_be_removed", "batch_size", "progress", "complete"
+        }
+        for _, subvar in ipairs(subvars) do
+            if storage.panels[subvar] ~= nil then mPrint(pl, {"  "..subvar}) end
+        end
+        --
+        mPrint(pl, {"Thermal solar panel entity count:"})
+        local count1 = search_and_count_thermal_panels()
+        mPrint(pl, {"  On all surfaces: "..clr(count1,2).."."})
+        if storage.panels.main ~= nil then
+            local count2 = table_length(storage.panels.main)
+            mPrint(pl, {"  Within storage: "..clr(count2,2).."."})
+        end
+    else
         mPrint(pl, {"The table 'storage.panels' does not exist!"})
-        goto continue
-    end
-    --
-    mPrint(pl, {"The table 'storage.panels' exists. So do the following subtables:"})
-    local subvars = {"main", "to_be_added", "to_be_removed", "batch_size", "progress", "complete"}
-    for _, subvar in ipairs(subvars) do
-        if storage.panels[subvar] ~= nil then mPrint(pl, {"  "..subvar}) end
-    end
-    --
-    ::continue::
-    --
-    mPrint(pl, {"Thermal solar panel entity count:"})
-    local count1 = search_and_count_thermal_panels()
-    mPrint(pl, {"  On all surfaces: "..clr(count1,2).."."})
-    if not address_not_nil(storage.panels.main) then
-        local count2 = table_length(storage.panels.main)
-        mPrint(pl, {"  Within storage: "..clr(count2,2).."."})
     end
 end
 

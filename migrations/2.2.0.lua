@@ -26,19 +26,21 @@ if storage.tspl_thermal_panel_table ~= nil then
         "Migrated data from table: 'storage.tspl_thermal_panel_table' "
       .."to new array: 'storage.panels.main'."
     )
-else
+--[[else
     local LIST_thermal_panels = {}
     for key, _ in pairs(prototypes.entity) do
         if string.find(key, "tspl-thermal-solar-panel", 1, true) then
             table.insert(LIST_thermal_panels, key)
         end
     end
+    log("Migration script: List of panels was build, presumably.")
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
             table.insert(storage.panels.main, panel)
             panel.clear_fluid_inside()
         end
     end
+    log("Populated new array: 'storage.panels.main'.")]]
 end
 
 game.print("[color=acid]Thermal Solar Power (Lite):[/color]")

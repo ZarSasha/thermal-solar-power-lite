@@ -350,8 +350,8 @@ local COMMAND_parameters = {}
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
         clr("info",1)..": Provides very basic info.",
-        clr("check",1)..": Checks for existence of thermal panel ID list within the storage table "
-        .."and makes a count.",
+        clr("check",1)..": Checks storage, counts thermal panels on all surfaces and within "
+        .."storage.",
         clr("reset",1)..": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
         clr("clear",1)..": Clears the panel ID table.",
         clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
@@ -370,7 +370,7 @@ end
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
     if storage.panels ~= nil then
-        mPrint(pl, {"The table 'storage.panels' exists. So do the following subtables:"})
+        mPrint(pl, {"The table 'storage.panels' exists. So do the following subvariables:"})
         local subvars = {
             "main", "to_be_added", "to_be_removed", "batch_size", "progress", "complete"
         }

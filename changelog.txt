@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.0
-Date: 2025-12-13
+Date: 2025-12-16
   Changes:
     - NB: Thermal solar panel heat output is defined by a new setting: It shows nominal output at
       ambient temperature rather than net output at 165°C on Nauvis. The default value has been
@@ -11,15 +11,18 @@ Date: 2025-12-13
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
-    - Moderaly overhauled heat-generating script: Now distributes calculations across all game
-      ticks instead of only one, thus greatly reducing CPU spikes.
+    - Improved performance by distributing calculations for the heat generating script over many
+      ticks. (3150 panels would produce a spike of ~8.3ms every second (half the available time
+      budget), but that is now reduced to a single spike or <0.55ms followed by a variable load of
+      0.01-0.25ms).
     - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
       same efficiency (this time simply by lowering the rate of heat loss), thus matching the
       boiler and better utilizing the steam engine.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
       sure to properly migrate contents with lua. (UNFINISHED)
-    - Now also rebuilds table of thermal panel IDs on_configuration_changed, just in case any
-      clones (like those from More Quality Scaling) are removed.
+    - Now simply unregisters entities from storage table when detected to be invalid, thus
+      simplifying code in many ways. Tracks changes and updates table periodically to protect data
+      integrity.
   Info:
     - Improved descriptions. Expanded explanation of some settings, removed a lot of the
       capitalization.
@@ -34,7 +37,7 @@ Date: 2025-12-13
     - Removed "delete" command, function essentially already provided by "clear" command.
     - Improved other debug commands, such as the reset command.
   Internal:
-    - Tidied up a fair bit.
+    - Tidied up a fair bit, simplified a lot of code.
     - Simplified and cleaned up locales.
   Notes:
     - Discovered that panels cannot be flipped. Still have not found a solution.

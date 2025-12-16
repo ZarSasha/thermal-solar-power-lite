@@ -6,7 +6,8 @@
 -- (contiguous indexed table).
 
 -- Adds new table to storage, if it doesn't exist yet.
-if storage.panels == nil then
+local function create_new_storage_keys()
+    if storage.panels ~= nil then return end
     storage.panels = {
         main          = {},
         to_be_added   = {},
@@ -16,6 +17,8 @@ if storage.panels == nil then
         complete      = false
     }
 end
+
+create_new_storage_keys()
 
 -- Transfer of data from storage table to new variable:
 if storage.tspl_thermal_panel_table ~= nil then
@@ -32,5 +35,23 @@ if storage.tspl_thermal_panel_table ~= nil then
       .."to new array: 'storage.panels.main'."
     )
 end
+
+---------------------------------------------------------------------------------------------------
+-- AUTOMATIC MESSAGES IN CONSOLE --
+---------------------------------------------------------------------------------------------------
+
+local CONSOLE_MESSAGE = {}
+
+CONSOLE_MESSAGE.update_2_2_0 = function()
+    local pl = game.player
+    if script.active_mods[MOD_NAME] == "2.2.0" then
+        pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
+        pl.print("  Regarding update to v2.2.0: Make sure to read the changelog!")
+        pl.print("  If panels don't work, please report the issue on the Mod Portal.")
+        pl.print("  Writing '/tspl reset' in the console may resolve the issue quickly.")
+    end
+end
+
+CONSOLE_MESSAGE.update_2_2_0()
 
 ---------------------------------------------------------------------------------------------------

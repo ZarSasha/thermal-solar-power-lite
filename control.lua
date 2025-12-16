@@ -261,24 +261,6 @@ local function clr(text, colorIndex)
 end
 
 ---------------------------------------------------------------------------------------------------
--- AUTOMATIC MESSAGES IN CONSOLE --
----------------------------------------------------------------------------------------------------
-
-local CONSOLE_MESSAGE = {}
-
-CONSOLE_MESSAGE.update_2_2_0 = function()
-    local pl = game.player
-    if script.active_mods[MOD_NAME] == "2.2.0" then
-        pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-        mPrint(pl, {
-            "Regarding update to v2.2.0: Make sure to read the changelog!",
-            "If panels don't work, please report the issue on the Mod Portal.",
-            "Writing '/tspl reset' in the console may resolve the issue quickly."
-        })
-    end
-end
-
----------------------------------------------------------------------------------------------------
 -- FINAL FUNCTION SETS AND SCRIPT EXECUTION
 ---------------------------------------------------------------------------------------------------
 
@@ -343,7 +325,6 @@ end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    create_storage_table_keys()
     CONSOLE_MESSAGE.update_2_2_0()
 end)
 

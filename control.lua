@@ -157,31 +157,30 @@ end
 -- time slicing.
 local function update_panel_temperature()
     local panels = storage.panels -- table, thus referenced
-    for i = 1, panels.batch_size do
-        for _, panel in next(panels.main, panels.progress) do
-            -- Resets progress and prevents activation of function till next cycle,
-            -- when there are no more entries to go through:
-            if not panel then
-                panels.progress = 1
-                panels.complete = true
-                return
-            end
-            -- Keeps track of progress:
-            panels.progress = panels.progress + 1
-            -- Marks for removal from storage table and skips if not valid:
-            if not panel.valid then
-                table.insert(panels.to_be_removed, panel)
-                goto continue
-            end
-            -- Calculates and applies temperature change to panel:
-            local q_factor    = 1 + (panel.quality.level * q_scaling)
-            local light_corr  = (light_const - panel.surface.darkness) / light_const
-            local sun_mult    = panel.surface.get_property("solar-power")/100
-            local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
-            panel.temperature =
-                panel.temperature + (temp_gain * light_corr * sun_mult * q_factor) - (temp_loss)
-            ::continue::
+    for i = panels.progress, panels.progress + panels.batch_size do
+        local panel = panels.main[i]
+        -- Resets progress and prevents activation of function till next cycle,
+        -- when there are no more entries to go through:
+        if not panel then
+            panels.progress = 1
+            panels.complete = true
+            return
         end
+        -- Keeps track of progress:
+        panels.progress = panels.progress + 1
+        -- Marks for removal from storage table and skips if not valid:
+        if not panel.valid then
+            table.insert(panels.to_be_removed, panel)
+            goto continue
+        end
+        -- Calculates and applies temperature change to panel:
+        local q_factor    = 1 + (panel.quality.level * q_scaling)
+        local light_corr  = (light_const - panel.surface.darkness) / light_const
+        local sun_mult    = panel.surface.get_property("solar-power")/100
+        local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
+        panel.temperature =
+            panel.temperature + (temp_gain * light_corr * sun_mult * q_factor) - (temp_loss)
+        ::continue::
     end
 end
 

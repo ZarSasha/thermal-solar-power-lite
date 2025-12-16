@@ -222,15 +222,16 @@ end
 -- Function to clear and rebuild panel ID list within storage, as well as clear the panels of any
 -- "solar-fluid" that may accidentally remain for whatever reason.
 local function reset_thermal_panels()
-    if storage.panels.main == nil then
-        storage.panels.main = {}
+    local panels = storage.panels
+    if panels.main == nil then
+        panels.main = {}
     else
-        table_clear(storage.panels.main)
+        table_clear(panels.main)
     end
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
-            table.insert(storage.panels.main, panel)
-            --storage.panels.main[panel.unit_number] = panel
+            table.insert(panels.main, panel)
+            --panels.main[panel.unit_number] = panel
             panel.clear_fluid_inside()
         end
     end

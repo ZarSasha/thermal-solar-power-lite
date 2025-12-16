@@ -56,7 +56,7 @@ local function register_entity(event)
     local panels = storage.panels
     local entity = event.entity or event.destination
     if not string.find(entity.name, panel_name_base, 1, true) then return end
-    table.insert(panels.to_be_added)
+    table.insert(panels.to_be_added, entity)
 end
 
 --[[

@@ -218,7 +218,7 @@ local function deactivate_sunlight_indicator(entity)
 end
 
 ---------------------------------------------------------------------------------------------------
--- DEBUG: RESET FUNCTION (rarely if ever needed)
+-- HELPER FUNCTIONS (DEBUGGING, CONSOLE MESSAGES & COMMANDS) --
 ---------------------------------------------------------------------------------------------------
 
 -- Function to clear and rebuild panel ID list within storage, as well as clear the panels of any
@@ -236,6 +236,45 @@ local function reset_thermal_panels()
             --panels.main[panel.unit_number] = panel
             panel.clear_fluid_inside()
         end
+    end
+end
+
+-- Searches on all surfaces for entities from a list, returning the total number.
+local function search_and_count_thermal_panels()
+    local total_count = 0
+    for _, surface in pairs(game.surfaces) do
+        local sub_count = surface.count_entities_filtered{name = LIST_thermal_panels}
+        total_count = total_count + sub_count
+    end
+    return total_count
+end
+
+-- Prints multiple lines from an array, slightly indented to differentiate from header.
+local function mPrint(player, console_lines)
+    for _, line in ipairs(console_lines) do player.print("  "..line) end
+end
+
+-- Colors text.
+local function clr(text, colorIndex)
+    colors = {"66B2FF", "FFB266"} -- custom hues of blue and orange (easier to read)
+    return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
+end
+
+---------------------------------------------------------------------------------------------------
+-- AUTOMATIC MESSAGES IN CONSOLE --
+---------------------------------------------------------------------------------------------------
+
+local CONSOLE_MESSAGE = {}
+
+CONSOLE_MESSAGE.update_2_2_0 = function()
+    local pl = game.player
+    if script.active_mods[MOD_NAME] == "2.2.0" then
+        pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
+        mPrint(pl, {
+            "Regarding update to v2.2.0: Make sure to read the changelog!",
+            "If panels don't work, please report the issue on the Mod Portal.",
+            "Writing '/tspl reset' in the console may resolve the issue quickly."
+        })
     end
 end
 
@@ -298,48 +337,25 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
-    --reset_thermal_panels() -- *
+    reset_thermal_panels() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
+--[[
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    create_storage_table_keys() -- For update to storage tables to work.
-    --reset_thermal_panels() -- *
-    -- * In case any clones (like from More Quality Scaling) are removed from the game.
+    create_storage_table_keys()
 end)
+]]
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
 -- it's not a detectable event. Running the reset command provided below may help.
 
 ---------------------------------------------------------------------------------------------------
--- CONSOLE COMMANDS
+-- CONSOLE MESSAGES & PLAYER COMMANDS
 ---------------------------------------------------------------------------------------------------
 -- Execute a command by typing "/tspl " into the console, along with a parameter. Useful for
 -- getting some basic info, and for debugging.
-
--- HELPER FUNCTIONS -------------------------------------------------------------------------------
-
--- Searches on all surfaces for entities from a list, returning the total number.
-local function search_and_count_thermal_panels()
-    local total_count = 0
-    for _, surface in pairs(game.surfaces) do
-        local sub_count = surface.count_entities_filtered{name = LIST_thermal_panels}
-        total_count = total_count + sub_count
-    end
-    return total_count
-end
-
--- Prints multiple lines from an array, slightly indented to differentiate from header.
-local function mPrint(player, console_lines)
-    for _, line in ipairs(console_lines) do player.print("  "..line) end
-end
-
--- Colors text.
-local function clr(text, colorIndex)
-    colors = {"66B2FF", "FFB266"} -- custom hues of blue and orange (easier to read)
-    return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
-end
 
 -- COMMAND PARAMETERS -----------------------------------------------------------------------------
 

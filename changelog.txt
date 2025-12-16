@@ -31,7 +31,7 @@ Date: 2025-12-16
   Translation:
     - Updated German and Chinese locales with DeepL.
   Bugfixes:
-    - TODO: Improved clean-up of entity ID table within the storage table.
+    - Indirectly improved clean-up of entity ID table within the storage table.
   Debug:
     - Removed some info from info command, was not very helpful.
     - Removed "delete" command, function essentially already provided by "clear" command.

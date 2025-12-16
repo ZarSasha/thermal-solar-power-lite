@@ -344,13 +344,14 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys()
+    CONSOLE_MESSAGE.update_2_2_0()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
 -- it's not a detectable event. Running the reset command provided below may help.
 
 ---------------------------------------------------------------------------------------------------
--- CONSOLE MESSAGES & PLAYER COMMANDS
+-- CONSOLE COMMANDS
 ---------------------------------------------------------------------------------------------------
 -- Execute a command by typing "/tspl " into the console, along with a parameter. Useful for
 -- getting some basic info, and for debugging.

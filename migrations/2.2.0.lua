@@ -28,10 +28,9 @@ if storage.tspl_thermal_panel_table ~= nil then
     )
 end
 
-local pl = game.player
-pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-pl.print("  Regarding update to v2.2.0: Make sure to read the changelog!")
-pl.print("  If panels don't work, please report the issue on the Mod Portal.")
-pl.print("  Writing '/tspl reset' in the console may resolve the issue quickly.")
+game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
+game.print("  Regarding update to v2.2.0: Make sure to read the changelog!")
+game.print("  If panels don't work, please report the issue on the Mod Portal.")
+game.print("  Writing '/tspl reset' in the console may resolve the issue quickly.")
 
 ---------------------------------------------------------------------------------------------------

@@ -158,7 +158,7 @@ end
 local function update_panel_temperature()
     local panels = storage.panels -- table, thus referenced
     for iterator = panels.progress, panels.progress + panels.batch_size do
-        for panel, _ in next(panels.main, iterator) do
+        for _, panel in next(panels.main, iterator) do
             -- Resets progress and prevents activation of function till next cycle,
             -- when there are no more entries to go through:
             if not panel then

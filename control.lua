@@ -350,7 +350,11 @@ local COMMAND_parameters = {}
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
         clr("info",1)..": Provides very basic info.",
-        clr("debug",1)..": Provides info on available debug functions."
+        clr("check",1)..": Checks for existence of thermal panel ID list within the storage table "
+        .."and makes a count.",
+        clr("reset",1)..": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
+        clr("clear",1)..": Clears the panel ID table.",
+        clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
 
@@ -360,18 +364,6 @@ COMMAND_parameters.info = function(pl)
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
-    })
-end
-
--- DEBUG "debug": Describes debugging command functions.
-COMMAND_parameters.debug = function(pl)
-    mPrint(pl, {
-        clr("check",1)..": Checks for existence of thermal panel ID list within the storage table "
-        .."and makes a count.",
-        clr("reset",1)..": Rebuilds all variables within the storage table. Resets the sunlight "
-        .."indicator as well.",
-        clr("clear",1)..": Clears the panel ID table.",
-        clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
 

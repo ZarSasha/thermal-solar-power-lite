@@ -41,13 +41,11 @@ end
 -- Base name. Contained in name of larger version, clones are likely to contain it as well.
 local panel_name_base = "tspl-thermal-solar-panel"
 
---[[
 -- Names of entities that should be registered into storage table upon creation. Expandable.
 local LIST_thermal_panels = {
     "tspl-thermal-solar-panel",
     "tspl-thermal-solar-panel-large"
 }
-]]
 
 ---------------------------------------------------------------------------------------------------
 -- THERMAL PANEL ENTITY REGISTRATION

@@ -41,11 +41,14 @@ end
 -- Base name. Contained in name of larger version, clones are likely to contain it as well.
 local panel_name_base = "tspl-thermal-solar-panel"
 
--- Names of entities that should be registered into storage table upon creation. Expandable.
-local LIST_thermal_panels = {
-    "tspl-thermal-solar-panel",
-    "tspl-thermal-solar-panel-large"
-}
+-- Complete list of entity names, mostly for debugging. Populated directly below.
+local LIST_thermal_panels = {}
+
+for key, _ in pairs(prototypes) do
+    if string.find(prototypes.entity[key], panel_name_base, 1, true) then
+        table.insert(LIST_thermal_panels, key)
+    end
+end
 
 ---------------------------------------------------------------------------------------------------
 -- THERMAL PANEL ENTITY REGISTRATION
@@ -367,26 +370,33 @@ COMMAND_parameters.debug = function(pl)
         .."and makes a count.",
         clr("reset",1)..": Rebuilds all variables within the storage table. Resets the sunlight "
         .."indicator as well.",
-        clr("clear",1)..": Clears the storage table entirely.",
+        clr("clear",1)..": Clears the panel ID table.",
         clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
+    --
+    if storage.panels == nil then
+        mPrint(pl, {"The table 'storage.panels' does not exist!"})
+        goto continue
+    end
+    --
+    mPrint(pl, {"The table 'storage.panels' exists. So do the following subtables:"})
+    local subvars = {"main", "to_be_added", "to_be_removed", "batch_size", "progress", "complete"}
+    for _, subvar in ipairs(subvars) do
+        if storage.panels[subvar] ~= nil then mPrint(pl, {"  "..subvar}) end
+    end
+    --
+    ::continue::
+    --
+    mPrint(pl, {"Thermal solar panel entity count:"})
     local count1 = search_and_count_thermal_panels()
-    if storage.panels.main ~= nil then
+    mPrint(pl, {"  On all surfaces: "..clr(count1,2).."."})
+    if not address_not_nil(storage.panels.main) then
         local count2 = table_length(storage.panels.main)
-        mPrint(pl, {
-            "The thermal panel ID list within the storage table exists.",
-            "Thermal panel entity count on all surfaces / within storage table: "
-          ..clr(count1,2).." / "..clr(count2,2)..".",
-        })
-    else
-        mPrint(pl, {
-            "The thermal panel ID list does not exist within the storage table.",
-            "Thermal panel entity count on all surfaces: "..clr(count1,2).."."
-        })
+        mPrint(pl, {"  Within storage: "..clr(count2,2).."."})
     end
 end
 
@@ -394,17 +404,17 @@ end
 COMMAND_parameters.reset = function(pl)
     reset_thermal_panels()
     mPrint(pl, {
-        "The contents of the storage table were reset and rebuild.",
-        "Any solar-fluid remaining in thermal panels was removed as well."
+        "'storage.panels.main' was reset and rebuilt!",
+        "Any remaining solar-fluid was removed as well."
     })
 end
 
 -- DEBUG "clear": Clears panel ID table within storage of its contents, if it exists.
 COMMAND_parameters.clear = function(pl)
-    if storage.panels.main == nil then return end
+    if not address_not_nil(storage.panels.main) then return end
     table_clear(storage.panels.main)
     mPrint(pl, {
-        "Storage table was entirely cleared of its contents!"
+        "'storage.panels.main' was cleared of its contents!"
     })
 end
 

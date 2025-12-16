@@ -23,7 +23,7 @@ end)
 -- STORAGE TABLE CREATION
 ---------------------------------------------------------------------------------------------------
 
--- Function to create keys for storage table, if they don't exist yet.
+-- Function to fill storage with variables needed for the heat-generating script.
 local function create_storage_table_keys()
     if storage.panels               == nil then storage.panels               =    {} end
     if storage.panels.main          == nil then storage.panels.main          =    {} end

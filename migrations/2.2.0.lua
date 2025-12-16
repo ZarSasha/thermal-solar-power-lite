@@ -5,7 +5,14 @@
 -- main table that holds the string identifiers also needs to replaced with a simple array
 -- (contiguous indexed table).
 
--- Transfer of data from storage table to new variable:
+if storage.panels               == nil then storage.panels               =    {} end
+if storage.panels.main          == nil then storage.panels.main          =    {} end
+if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
+if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
+if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
+if storage.panels.progress      == nil then storage.panels.progress      =     1 end
+if storage.panels.complete      == nil then storage.panels.complete      = false end
+
 if storage.tspl_thermal_panel_table ~= nil then
     -- Extracts values from table and copies them into new array in storage:
     for _, v in pairs(storage.tspl_thermal_panel_table) do
@@ -21,13 +28,10 @@ if storage.tspl_thermal_panel_table ~= nil then
     )
 end
 
--- Message:
 local pl = game.player
-if script.active_mods[MOD_NAME] == "2.2.0" then
-    pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-    pl.print("  Regarding update to v2.2.0: Make sure to read the changelog!")
-    pl.print("  If panels don't work, please report the issue on the Mod Portal.")
-    pl.print("  Writing '/tspl reset' in the console may resolve the issue quickly.")
-end
+pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
+pl.print("  Regarding update to v2.2.0: Make sure to read the changelog!")
+pl.print("  If panels don't work, please report the issue on the Mod Portal.")
+pl.print("  Writing '/tspl reset' in the console may resolve the issue quickly.")
 
 ---------------------------------------------------------------------------------------------------

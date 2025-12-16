@@ -3,23 +3,23 @@ Version: 2.2.0
 Date: 2025-12-16
   Changes:
     - NB: Thermal solar panel heat output is defined by a new setting: It shows nominal output at
-      ambient temperature rather than net output at 165°C on Nauvis. The default value has been
-      changed from 67.5kW to 105kW for that reason. This is easier to work with and probably also
-      less confusing overall with Space Age and other mods that add planets.
+      ambient temperature (15°C) rather than net output at 165°C on Nauvis. The default value has
+      been changed from 67.5kW to 105kW for that reason. This is easier to work with and probably
+      also less confusing overall with Space Age and other mods that add planets.
     - Pyanodon Coal Processing: Now automatically adjusts heat output from script (technically by
       doubling the heat capacity) to compensate for halved steam conversion efficiency.
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
-    - NB: Replaced storage table key that stored IDs of all thermal solar panels, made
-      sure to properly migrate contents with a script. Added one-time migration message to console.
+    - NB: Changed variables within storage table, created a proper migration script and a message
+      for the console, providing some advice in case of trouble.
     - Improved performance by dynamically distributing calculations for the heat generating script
       over many (even all) game ticks. (3150 panels (~1GW power) would produce a spike of ~8.3ms
       every second, but that is now reduced to one of just 0.5-0.9ms, followed by a variable load
       of 0.02-0.25ms.)
-    - Now tracks changes (entities built/removed) and updates the main storage table every second
-      to prevent errors when processing entities over several game ticks. (That creates delay in
-      information from debug functions, but otherwise there are no issues).
+    - Now tracks changes (entities built/removed) and updates storage table every second to prevent
+      errors from processing entities over several game ticks. (It creates delay in information
+      from debug functions, but otherwise there are no issues).
     - Now simply unregisters entities from storage table when detected to be invalid. It fits the
       simple needs of the mod, and requires a lot less code and tracking of events.
     - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
@@ -36,9 +36,10 @@ Date: 2025-12-16
   Bugfixes:
     - Indirectly improved clean-up of entity ID table within the storage table.
   Debug:
+    - Improved commands in general, especially the reset command.
+    - Merged "info" and "debug" commands.
     - Removed some info from info command, was not very helpful as it were.
     - Removed "delete" command, function essentially already provided by "clear" command.
-    - Improved other debug commands, such as the reset command.
   Internal:
     - Tidied up a fair bit, simplified a lot of code.
     - Simplified and cleaned up locales.

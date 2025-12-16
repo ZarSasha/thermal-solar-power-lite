@@ -378,10 +378,10 @@ COMMAND_parameters.check = function(pl)
         -- Entity count:
         mPrint(pl, {"Thermal solar panel entity count:"})
         local count1 = search_and_count_thermal_panels()
-        mPrint(pl, {"  On all surfaces: "..clr(count1,2).."."})
+        mPrint(pl, {"  Found within world (all surfaces): "..clr(count1,2).."."})
         if storage.panels.main ~= nil then
             local count2 = table_length(storage.panels.main)
-            mPrint(pl, {"  Within storage: "..clr(count2,2).."."})
+            mPrint(pl, {"  Registered within storage table: "..clr(count2,2).."."})
         end
     else
         mPrint(pl, {"The table 'storage.panels' does not exist!"})

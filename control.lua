@@ -428,7 +428,7 @@ local function new_commands(command)
     if pl1 == nil then return end
     pl1.print("[color=acid]Thermal Solar Power (Lite):[/color]")
     if not table_contains_key(COMMAND_parameters, command.parameter) then
-        mPrint(pl1, {"Write \"/tspl help\" for an overview of command parameters."})
+        mPrint(pl1, {"Write '/tspl help' for an overview of command parameters."})
         return
     end
     COMMAND_parameters[command.parameter](pl1)

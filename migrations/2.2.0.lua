@@ -5,21 +5,6 @@
 -- main table that holds the string identifiers also needs to replaced with a simple array
 -- (contiguous indexed table).
 
--- Adds new table to storage, if it doesn't exist yet.
-local function create_new_storage_keys()
-    if storage.panels ~= nil then return end
-    storage.panels = {
-        main          = {},
-        to_be_added   = {},
-        to_be_removed = {},
-        batch_size    = 10,
-        progress      =  1,
-        complete      = false
-    }
-end
-
-create_new_storage_keys()
-
 -- Transfer of data from storage table to new variable:
 if storage.tspl_thermal_panel_table ~= nil then
     -- Extracts values from table and copies them into new array in storage:
@@ -36,22 +21,13 @@ if storage.tspl_thermal_panel_table ~= nil then
     )
 end
 
----------------------------------------------------------------------------------------------------
--- AUTOMATIC MESSAGES IN CONSOLE --
----------------------------------------------------------------------------------------------------
-
-local CONSOLE_MESSAGE = {}
-
-CONSOLE_MESSAGE.update_2_2_0 = function()
-    local pl = game.player
-    if script.active_mods[MOD_NAME] == "2.2.0" then
-        pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-        pl.print("  Regarding update to v2.2.0: Make sure to read the changelog!")
-        pl.print("  If panels don't work, please report the issue on the Mod Portal.")
-        pl.print("  Writing '/tspl reset' in the console may resolve the issue quickly.")
-    end
+-- Message:
+local pl = game.player
+if script.active_mods[MOD_NAME] == "2.2.0" then
+    pl.print("[color=acid]Thermal Solar Power (Lite):[/color]")
+    pl.print("  Regarding update to v2.2.0: Make sure to read the changelog!")
+    pl.print("  If panels don't work, please report the issue on the Mod Portal.")
+    pl.print("  Writing '/tspl reset' in the console may resolve the issue quickly.")
 end
-
-CONSOLE_MESSAGE.update_2_2_0()
 
 ---------------------------------------------------------------------------------------------------

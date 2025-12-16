@@ -323,11 +323,6 @@ script.on_init(function()
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
--- Function set to run on any change to startup settings or mods installed.
-script.on_configuration_changed(function()
-    CONSOLE_MESSAGE.update_2_2_0()
-end)
-
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
 -- it's not a detectable event. Running the reset command provided below may help.
 

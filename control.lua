@@ -29,7 +29,7 @@ local function create_storage_table_keys()
     if storage.panels.main          == nil then storage.panels.main          =    {} end
     if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
     if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
-    if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end -- small, for testing
+    if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
     if storage.panels.progress      == nil then storage.panels.progress      =     1 end
     if storage.panels.complete      == nil then storage.panels.complete      = false end
 end
@@ -90,10 +90,10 @@ end
 -- THERMAL PANEL CYCLICAL REGISTER UPDATE
 ---------------------------------------------------------------------------------------------------
 
-local script_cycle_length = 60 -- same as game ticks pr. seconds
+local script_frequency = 60   -- 1 second = 60 ticks
 local mimimum_batch_size  = 10 -- small, for testing
 
--- Function to update contents of "main" array and prepare for next cycle:
+-- Function to update contents of "main" array and adjust process batch size for next cycle:
 local function update_storage_register()
     local panels = storage.panels
     -- Updates main array, clears temporary arrays that keep track of change:
@@ -103,9 +103,8 @@ local function update_storage_register()
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for next cycle:
     panels.complete = false
-    panels.batch_size = round_up_to_nearest_factor(
-        #panels.main / script_cycle_length,
-        mimimum_batch_size
+    panels.batch_size = math.max(
+        round_up_to_nearest_factor(#panels.main / script_frequency, 5), mimimum_batch_size
     )
 end
 
@@ -113,11 +112,8 @@ end
 -- MAIN SCRIPTS
 ---------------------------------------------------------------------------------------------------
 
--- Various parameters:
-local script_frequency = 60   -- 1 second = 60 ticks
-local ambient_temp     = 15   -- Default ambient temperature
+-- Parameter shared by scripts:
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
-local base_heat_cap    = 50   -- Default panel heat capacity in kJ
 
 ---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON-NTH_TICK)
@@ -125,6 +121,10 @@ local base_heat_cap    = 50   -- Default panel heat capacity in kJ
 -- Script that increases temperature of entity in proportion to sunlight, but also decreases it in
 -- proportion to current temperature above ambient level. Adjusted for quality and solar intensity.
 -- Fairly complex, somewhat high UPS impact at scale.
+
+-- Various parameters:
+local ambient_temp     = 15   -- Default ambient temperature
+local base_heat_cap    = 50   -- Default panel heat capacity in kJ
 
 -- Panel temperature gain pr. cycle, before loss:
 local temp_gain     = (SETTING.panel_output_kW * (script_frequency / 60)) / base_heat_cap

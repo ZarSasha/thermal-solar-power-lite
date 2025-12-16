@@ -11,13 +11,15 @@ Date: 2025-12-16
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
+    - NB: Replaced storage table key that stored IDs of all thermal solar panels, made
+      sure to properly migrate contents with a script. Added one-time migration message to console.
     - Improved performance by dynamically distributing calculations for the heat generating script
-      over several (or all) ticks. (3150 panels (~1GW power) would produce a spike of ~8.3ms every
-      second (!), but that is now reduced to one of only 0.5-0.9ms, followed by a variable load of
-      0.02-0.25ms.)
-    - Now tracks changes (entity built/removed) and updates main storage table every second to
-      prevent errors when iterating over the same list during several game ticks. (That creates
-      delay in information from debug functions, but otherwise there are no issues.
+      over many (even all) game ticks. (3150 panels (~1GW power) would produce a spike of ~8.3ms
+      every second, but that is now reduced to one of just 0.5-0.9ms, followed by a variable load
+      of 0.02-0.25ms.)
+    - Now tracks changes (entities built/removed) and updates the main storage table every second
+      to prevent errors when processing entities over several game ticks. (That creates delay in
+      information from debug functions, but otherwise there are no issues).
     - Now simply unregisters entities from storage table when detected to be invalid. It fits the
       simple needs of the mod, and requires a lot less code and tracking of events.
     - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
@@ -25,11 +27,8 @@ Date: 2025-12-16
       boiler and better utilizing the steam engine.
     - More Quality Scaling: Entity names are now simply recognized by a base string expected to
       appear in the name of any clones, so special compatibility is no longer needed.
-    - NB: Replaced storage table key that stored IDs of all thermal solar panels, made
-      sure to properly migrate contents with a script. Added one-time migration message to console.
   Info:
-    - Improved descriptions. Expanded explanation of some settings, removed a lot of the
-      capitalization.
+    - Improved descriptions. Removed a lot of the capitalization.
     - The basic heat exchanger now displays the correct temperature target (as defined in startup
       settings) in its description.
   Translation:
@@ -37,7 +36,7 @@ Date: 2025-12-16
   Bugfixes:
     - Indirectly improved clean-up of entity ID table within the storage table.
   Debug:
-    - Removed some info from info command, was not very helpful.
+    - Removed some info from info command, was not very helpful as it were.
     - Removed "delete" command, function essentially already provided by "clear" command.
     - Improved other debug commands, such as the reset command.
   Internal:

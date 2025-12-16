@@ -9,9 +9,9 @@
 ---------------------------------------------------------------------------------------------------
 
 MOD = {
-    PY_COAL_PROCESSING = mods["pycoalprocessing"],
-    AAI_INDUSTRY       = mods["aai-industry"],
-    EARLY_HEATING      = mods["EarlyHeating"],
+    PY_COAL_PROCESSING = mods["pycoalprocessing"     ],
+    AAI_INDUSTRY       = mods["aai-industry"         ],
+    EARLY_HEATING      = mods["EarlyHeating"         ],
     CHEESE_SOLAR       = mods["ch-concentrated-solar"]
 }
 

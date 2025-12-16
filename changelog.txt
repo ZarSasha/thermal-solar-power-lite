@@ -11,11 +11,13 @@ Date: 2025-12-13
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
+    - Moderaly overhauled heat-generating script: Now distributes calculations across all game
+      ticks instead of only one, thus greatly reducing CPU spikes.
     - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
       same efficiency (this time simply by lowering the rate of heat loss), thus matching the
       boiler and better utilizing the steam engine.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
-      sure to properly migrate contents with lua.
+      sure to properly migrate contents with lua. (UNFINISHED)
     - Now also rebuilds table of thermal panel IDs on_configuration_changed, just in case any
       clones (like those from More Quality Scaling) are removed.
   Info:

@@ -194,7 +194,8 @@ end
 -- Function to clear fluid content and then insert new solar-fluid (on GUI opened).
 local function activate_sunlight_indicator(entity)
     if entity == nil then return end -- checks that GUI is associated with an entity!
-    if not table_contains_value(LIST_thermal_panels, entity.name) then return end
+    if not string.find(entity.name, panel_name_base, 1, true) then return end
+    --if not table_contains_value(LIST_thermal_panels, entity.name) then return end
     entity.clear_fluid_inside()
     local light_corr = (light_const - entity.surface.darkness) / light_const
     if light_corr <= 0 then return end
@@ -209,7 +210,8 @@ end
 -- Function to remove solar-fluid (on GUI closed).
 local function deactivate_sunlight_indicator(entity)
     if entity == nil then return end -- same as above
-    if not table_contains_value(LIST_thermal_panels, entity.name) then return end
+    if not string.find(entity.name, panel_name_base, 1, true) then return end
+    --if not table_contains_value(LIST_thermal_panels, entity.name) then return end
     entity.clear_fluid_inside()
 end
 
@@ -227,7 +229,8 @@ local function reset_thermal_panels()
     end
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = LIST_thermal_panels}) do
-            storage.panels.main[panel.unit_number] = panel
+            table.insert(storage.panels.main, panel)
+            --storage.panels.main[panel.unit_number] = panel
             panel.clear_fluid_inside()
         end
     end

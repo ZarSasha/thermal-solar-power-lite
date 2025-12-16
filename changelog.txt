@@ -12,17 +12,19 @@ Date: 2025-12-16
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
     - Improved performance by distributing calculations for the heat generating script over many
-      ticks. (3150 panels would produce a spike of ~8.3ms every second (half the available time
-      budget), but that is now reduced to a single spike or <0.55ms followed by a variable load of
-      0.01-0.25ms).
+      ticks. (3150 panels would produce a spike of ~8.3ms every second - half the available time
+      budget - but that is now reduced to a single spike or 0.5-0.9ms followed by a variable load
+      of 0.01-0.25ms).
+    - Implemented many new variables in storage to keep track of changes as well as progress on
+      updating temperature of panels. Main table is updated at the end of each cycle (60 ticks) to
+      prevent skipping or other errors when iterating over them during several game ticks.
+    - Now simply unregisters entities from storage table when detected to be invalid (this happens
+      periodically), thus simplifying code in many ways.
     - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
       same efficiency (this time simply by lowering the rate of heat loss), thus matching the
       boiler and better utilizing the steam engine.
     - NB: Changed name of the storage table key that stores IDs of all thermal solar panels, made
-      sure to properly migrate contents with lua. (UNFINISHED)
-    - Now simply unregisters entities from storage table when detected to be invalid, thus
-      simplifying code in many ways. Tracks changes and updates table periodically to protect data
-      integrity.
+      sure to properly migrate contents with lua. Added one-time migration message to console.
   Info:
     - Improved descriptions. Expanded explanation of some settings, removed a lot of the
       capitalization.

@@ -285,12 +285,12 @@ local COMMAND_parameters = {}
 -- "help": Describes the most important console commands or groups thereof.
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
-        clr("info",1)..": Provides very basic info.",
-        clr("check",1)..": Checks storage, counts thermal panels on all surfaces and within "
+        clr("info",1)..  ": Provides very basic info.",
+        clr("check",1).. ": Checks storage, counts thermal panels on all surfaces and within "
         .."storage.",
-        clr("dump",1)..": Dumps contents of thermal panel ID list into log file.",
-        clr("reset",1)..": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
-        clr("clear",1)..": Clears the panel ID table.",
+        clr("dump",1)..  ": Dumps contents of thermal panel ID list into log file.",
+        clr("reset",1).. ": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
+        clr("clear",1).. ": Clears the panel ID table.",
         clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
@@ -364,11 +364,7 @@ end
 -- DEBUG "dump": Dumps contents of panel ID table into log file (%APPDATA%/roaming/Factorio).
 COMMAND_parameters.dump = function(pl)
     log("Mod Storage Contents: " .. serpent.block(storage.panels.main, {comment=false}))
-    mPrint(pl, {
-        "Contents of 'storage.panels.main' was dumped to log file.",
-        "q_scaling: "..q_scaling,
-        "heat_loss_ex: "..heat_loss_X
-    })
+    mPrint(pl, {"Contents of 'storage.panels.main' was dumped to log file."})
 end
 
 -- CONSOLE COMMANDS -------------------------------------------------------------------------------

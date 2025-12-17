@@ -24,9 +24,10 @@ local light_const      = 0.85 -- Highest level of "surface darkness" (default ra
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON INIT AND CONFIGURATION CHANGED)
 ---------------------------------------------------------------------------------------------------
--- Values that are not easily recalcuated should be stored so they can persist through the
+-- Values that can't simply be recalcuated should be stored so they can persist through the
 -- save/load cycle. All variables below are used by the "on_tick" heat-generating script.
 
+-- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
     if storage.panels               == nil then storage.panels               =    {} end
     if storage.panels.main          == nil then storage.panels.main          =    {} end

@@ -7,9 +7,7 @@
 -- for the Thermal Solar Panels, as well as various command functions (mostly for debugging). The
 -- heat script uses time slicing to distribute calculations across many game ticks.
 ---------------------------------------------------------------------------------------------------
-require "functions"
-require "shared.all-stages"
-
+require "functions" require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- THERMAL SOLAR PANEL SCRIPTS
 ---------------------------------------------------------------------------------------------------
@@ -18,7 +16,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters shared by scripts:
-local script_frequency = 30   -- 60 ticks = 1 second
+local script_frequency = 30   -- The game runs at 60 ticks/s.
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
 
 ---------------------------------------------------------------------------------------------------
@@ -41,8 +39,11 @@ end
 ---------------------------------------------------------------------------------------------------
     -- ENTITY REGISTRATION (ON BUILT AND SIMILAR)
 ---------------------------------------------------------------------------------------------------
+-- When a thermal panel is built by any method, a string identifier* will be added to a temporary
+-- array in storage. At the end of the cycle, it will be registered into the main array, which
+-- contains references to all the panels that the scripts further below should apply to.
 
--- Function to register entity string identifier into temporary "to_be_added" array in storage.
+-- Function to register entity string ID into temporary "to_be_added" array in storage.
 local function register_entity(event)
     local panels = storage.panels
     local entity = event.entity or event.destination
@@ -50,23 +51,29 @@ local function register_entity(event)
     table.insert(panels.to_be_added, entity)
 end
 
--- Note: Deregistration happens later when entity is discovered to be invalid. This is sufficient,
--- since no new scripts must run when entity is mined or otherwise removed.
+-- Note: Deregistration simply happens when the entity is found to be invalid. During traversal of
+-- the main table later on, its string ID will be added to a temporary array, then deleted at the
+-- end of a cycle. The method is completely sufficient for this mod.
+
+-- * A string ID is used to reference an entity and its properties. It may look like this:
+--   "[LuaEntity: tspl-thermal-solar-panel at [gps=25.5,25.5]]",
+--   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,vulcanus]]",
 
 ---------------------------------------------------------------------------------------------------
     -- CYCLICAL REGISTER UPDATE (ON TICK)
 ---------------------------------------------------------------------------------------------------
+-- To keep the main table intact during a cycle that spans several game ticks, changes have to be
+-- stored temporarily before being used to update the main array.
 
 -- Function to update contents of "main" array and adjust process batch size for next cycle:
 local function update_storage_register()
     local panels = storage.panels
-    -- Updates main array, clears temporary arrays that keep track of change (this is done to
-    -- prevent any change to array during loop):
+    -- Updates main array, clears temporary arrays:
     array_append_elements(panels.main, panels.to_be_added)
     array_remove_elements(panels.main, panels.to_be_removed)
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
-    -- Resets status for completion of cycle, calculates batch size for next cycle (batches are
+    -- Resets status for completion of cycle, calculates natch size for the next one (they are
     -- processed on all ticks except 1 reserved for the above):
     panels.complete = false
     panels.batch_size = math.max(math.ceil(#panels.main / ((script_frequency - 1))),1)
@@ -75,9 +82,9 @@ end
 ---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON TICK)
 ---------------------------------------------------------------------------------------------------
--- Script that increases temperature of entity in proportion to sunlight, but also decreases it in
--- proportion to current temperature above ambient level. Adjusted for quality and solar intensity.
--- Fairly complex, somewhat high UPS impact at scale.
+-- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
+-- it in proportion to current temperature above ambient level. Adjusted for quality and solar 
+-- intensity, has compatibility for some mods.
 
 -- Various parameters:
 local ambient_temp     = 15   -- Default ambient temperature
@@ -104,9 +111,8 @@ if script.active_mods["more-quality-scaling"] then
     q_scaling = 0
 end
 
--- Function to update temperature of all thermal panels according to circumstances. Incorporates
--- time slicing (distributes array iteration over all ticks except 1 within every cycle). For the
--- sake of performance, the function generally writes to storage as little as possible.
+-- Function to update temperature of all thermal panels according to circumstances. Adapted for
+-- time slicing. Generally writes to storage as little as possible, for the sake of performance.
 local function update_panel_temperature()
     local panels     = storage.panels    -- table, thus referenced
     local batch_size = panels.batch_size -- number copy
@@ -120,9 +126,7 @@ local function update_panel_temperature()
             panels.complete = true
             return
         end
-        -- Keeps track of progress:
-        --panels.progress = panels.progress + 1
-        -- Marks entry for removal from storage table and skips it, if not valid:
+        -- Marks entry for deregistration and skips it, if not valid:
         if not panel.valid then
             table.insert(panels.to_be_removed, panel)
             goto continue
@@ -143,8 +147,8 @@ end
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON GUI OPENED/CLOSED)
 ---------------------------------------------------------------------------------------------------
--- Script that emulates a solar level indicator by filling entity with a custom fluid when the gui
--- is opened, and removing it again when gui is closed.
+-- Script that emulates a solar level indicator by filling the panel with a custom fluid when the
+-- gui is opened, and removing it again when the gui is closed.
 
 -- Function to clear fluid content and then insert new solar-fluid (on GUI opened).
 local function activate_sunlight_indicator(entity)
@@ -169,7 +173,7 @@ local function deactivate_sunlight_indicator(entity)
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- HELPER FUNCTIONS (RESETTING, DEBUGGING, CONSOLE MESSAGES & COMMANDS) --
+    -- RESETTING (RARELY IF EVER NEEDED)
 ---------------------------------------------------------------------------------------------------
 
 -- Complete list of panel variants, including any clones.
@@ -185,38 +189,14 @@ end
 -- "solar-fluid" that may accidentally have remained for whatever reason.
 local function reset_thermal_panels()
     local panels = storage.panels
-    if panels.main == nil then
-        panels.main = {}
-    else
-        table_clear(panels.main)
-    end
+    if panels.main == nil then panels.main = {} end
+    table_clear(panels.main)
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(panels.main, panel)
             panel.clear_fluid_inside()
         end
     end
-end
-
--- Searches on all surfaces for entities from a list, returning the total number.
-local function search_and_count_thermal_panels()
-    local total_count = 0
-    for _, surface in pairs(game.surfaces) do
-        local sub_count = surface.count_entities_filtered{name = panel_variants}
-        total_count = total_count + sub_count
-    end
-    return total_count
-end
-
--- Prints multiple lines from an array, slightly indented to differentiate from header.
-local function mPrint(player, console_lines)
-    for _, line in ipairs(console_lines) do player.print("  "..line) end
-end
-
--- Colors text.
-local function clr(text, colorIndex)
-    colors = {"66B2FF", "FFB266"} -- custom hues of blue and orange (easier to read)
-    return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -238,8 +218,7 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % script_frequency == 0 then
-        -- Process from last cycle assumed to be complete!
+    if event.tick % script_frequency == 0 then -- Process from last cycle assumed to be complete!
         update_storage_register()  -- within 1 tick
     elseif not storage.panels.complete then
         update_panel_temperature() -- within all but the 1 tick above
@@ -272,10 +251,36 @@ end)
 -- it's not a detectable event. Running the reset command provided below may help.
 
 ---------------------------------------------------------------------------------------------------
-    -- CONSOLE COMMANDS
+-- CONSOLE COMMANDS
 ---------------------------------------------------------------------------------------------------
 -- Execute a command by typing "/tspl " into the console, along with a parameter. Useful for
 -- getting some basic info, and for debugging.
+
+---------------------------------------------------------------------------------------------------
+    -- HELPER FUNCTIONS FOR CONSOLE COMMANDS
+---------------------------------------------------------------------------------------------------
+
+-- Searches on all surfaces for entities from a list, returning the total number.
+local function search_and_count_thermal_panels()
+    local total_count = 0
+    for _, surface in pairs(game.surfaces) do
+        local sub_count = surface.count_entities_filtered{name = panel_variants}
+        total_count = total_count + sub_count
+    end
+    return total_count
+end
+
+-- Prints multiple lines from an array, slightly indented to differentiate from header.
+local function mPrint(player, console_lines)
+    for _, line in ipairs(console_lines) do player.print("  "..line) end
+end
+
+-- Colors text.
+local function clr(text, colorIndex)
+    colors = {"66B2FF", "FFB266"} -- custom hues of blue and orange (easier to read)
+    return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
+end
+
 
 -- COMMAND PARAMETERS -----------------------------------------------------------------------------
 

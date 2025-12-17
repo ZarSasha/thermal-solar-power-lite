@@ -107,10 +107,9 @@ end
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates
 -- time slicing (distributes array iteration over all ticks except 1 within every cycle).
 local function update_panel_temperature()
-    local panels     = storage.panels    -- table, thus referenced
-    local batch_size = panels.batch_size -- number copy
-    local progress   = panels.progress   -- number copy
-    for i = progress, progress + batch_size - 1 do
+    local panels = storage.panels -- table, thus referenced
+    local remove = {}
+    for i = panels.progress, panels.progress + panels.batch_size - 1 do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:
@@ -121,7 +120,7 @@ local function update_panel_temperature()
         end
         -- Marks entry for removal from storage table and skips it, if not valid:
         if not panel.valid then
-            table.insert(panels.to_be_removed, panel)
+            table.insert(remove, panel)
             goto continue
         end
         -- Calculates and applies temperature change to panel:
@@ -133,7 +132,8 @@ local function update_panel_temperature()
             panel.temperature + (temp_gain * light_corr * sun_mult * q_factor) - (temp_loss)
         ::continue::
     end
-    panels.progress = panels.progress + batch_size -- low computational cost
+    array_append_elements(panels.to_be_removed, remove)
+    panels.progress = panels.progress + panels.batch_size -- low computational cost
 end
 
 ---------------------------------------------------------------------------------------------------

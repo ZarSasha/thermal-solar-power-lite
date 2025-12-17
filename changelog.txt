@@ -13,6 +13,7 @@ Date: 2025-12-16
   Scripting:
     - NB: Changed variables within storage table, created a proper migration script and a message
       for the console, providing some advice in case of trouble.
+    - Increased update frequency for heat-generating script to twice a second.
     - Improved performance by dynamically distributing calculations for the heat generating script
       over potentially all game ticks. (3150 large panels (~1GW power) would produce a spike of
       ~8.3ms every second, but that is now reduced to one of <0.7ms, followed by a variable load of

@@ -13,11 +13,11 @@ Date: 2025-12-16
   Scripting:
     - NB: Changed variables within storage table, created a proper migration script and a message
       for the console, providing some advice in case of trouble.
-    - Doubled update rate for heat generating script to twice a second.
+    - Doubled update rate for heat generating script to twice a second, matching the tooltip.
     - Improved performance by dynamically distributing calculations for the heat generating script
       over potentially all game ticks. (3150 large panels (~1GW power) would produce a spike of
-      ~8.5ms every second, but that is now reduced to one of <0.9ms, followed by a variable load of
-      roughly 0.2ms/tick.)
+      ~8.5ms every second, but that is now reduced to one of <0.9ms, with an average impact of
+      roughly 0.2ms/tick, and that at twice the update rate!)
     - Now tracks changes (entities built/removed) and only updates storage table every second to
       prevent errors from processing entities over several game ticks.
     - Now simply unregisters entities from storage table when detected to be invalid. It fits the

@@ -16,7 +16,7 @@ require "functions" require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters shared by scripts:
-local script_frequency = 30   -- The game runs at 60 ticks/s.
+local script_frequency = 60   -- The game runs at 60 ticks/s.
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
 
 ---------------------------------------------------------------------------------------------------

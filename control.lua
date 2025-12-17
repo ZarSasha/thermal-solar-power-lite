@@ -28,17 +28,8 @@ end
 -- THERMAL PANEL ENTITIES TO APPLY SCRIPTS TO
 ---------------------------------------------------------------------------------------------------
 
--- Base name. Contained in name of larger version, clones are likely to contain it as well.
+-- Base name. Contained in name of larger version, clones should contain it as well.
 local panel_name_base = "tspl-thermal-solar-panel"
-
--- Complete list of entity names, mostly used for debugging. Populated directly below.
-local panel_variants = {}
-
-for key, _ in pairs(prototypes.entity) do
-    if string.find(key, panel_name_base, 1, true) then
-        table.insert(panel_variants, key)
-    end
-end
 
 ---------------------------------------------------------------------------------------------------
 -- THERMAL PANEL ENTITY REGISTRATION
@@ -52,50 +43,24 @@ local function register_entity(event)
     table.insert(panels.to_be_added, entity)
 end
 
---[[
--- Function to add panel unit number + string identifier to a storage table when built.
-local function register_entity(event)
-    local entity = event.entity or event.destination
-    if not table_contains_value(panel_variants, entity.name) then return end
-    storage.panels.main[entity.unit_number] = entity
-end
-
--- Function to remove panel unit number + string identifier from a storage table when destroyed.
-local function unregister_entity(event)
-    local entity = event.entity
-    if not table_contains_value(panel_variants, entity.name) then return end
-    storage.panels.main[entity.unit_number] = nil
-end
-
--- Function to remove panels from a storage table when their surface is cleared/deleted.
-local function unregister_surface_entities(event)
-    local surface = game.surfaces[event.surface_index]
-    for _, entity in pairs(surface.find_entities_filtered{name = panel_variants}) do
-        storage.panels.main[entity.unit_number] = nil
-    end
-end
-]]
-
 ---------------------------------------------------------------------------------------------------
 -- THERMAL PANEL CYCLICAL REGISTER UPDATE
 ---------------------------------------------------------------------------------------------------
 
-local script_frequency = 60   -- 1 second = 60 ticks
-local mimimum_batch_size  = 10 -- small, for testing
+local script_frequency    = 60 -- 1 second = 60 ticks
+local mimimum_batch_size  = 1  -- low, for testing
 
 -- Function to update contents of "main" array and adjust process batch size for next cycle:
 local function update_storage_register()
     local panels = storage.panels
     -- Updates main array, clears temporary arrays that keep track of change:
     array_append_elements(panels.main, panels.to_be_added)
-    array_remove_elements(panels.main, panels.to_be_removed) -- efficient method
+    array_remove_elements(panels.main, panels.to_be_removed)
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for next cycle:
     panels.complete = false
-    panels.batch_size = math.max(
-        round_up_to_nearest_factor(#panels.main / script_frequency, 5), mimimum_batch_size
-    )
+    panels.batch_size = math.max(math.ceil(#panels.main / script_frequency), mimimum_batch_size)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -178,7 +143,6 @@ end
 local function activate_sunlight_indicator(entity)
     if entity == nil then return end -- checks that GUI is associated with an entity!
     if not string.find(entity.name, panel_name_base, 1, true) then return end
-    --if not table_contains_value(panel_variants, entity.name) then return end
     entity.clear_fluid_inside()
     local light_corr = (light_const - entity.surface.darkness) / light_const
     if light_corr <= 0 then return end
@@ -194,16 +158,24 @@ end
 local function deactivate_sunlight_indicator(entity)
     if entity == nil then return end -- same as above
     if not string.find(entity.name, panel_name_base, 1, true) then return end
-    --if not table_contains_value(panel_variants, entity.name) then return end
     entity.clear_fluid_inside()
 end
 
 ---------------------------------------------------------------------------------------------------
--- HELPER FUNCTIONS (DEBUGGING, CONSOLE MESSAGES & COMMANDS) --
+-- HELPER FUNCTIONS (RESETTING, DEBUGGING, CONSOLE MESSAGES & COMMANDS) --
 ---------------------------------------------------------------------------------------------------
 
+-- Complete list of panel variant, including any clones.
+local panel_variants = {}
+
+for key, _ in pairs(prototypes.entity) do
+    if string.find(key, panel_name_base, 1, true) then
+        table.insert(panel_variants, key)
+    end
+end
+
 -- Function to clear and rebuild panel ID list within storage, as well as clear the panels of any
--- "solar-fluid" that may accidentally remain for whatever reason.
+-- "solar-fluid" that may accidentally have remained for whatever reason.
 local function reset_thermal_panels()
     local panels = storage.panels
     if panels.main == nil then
@@ -214,7 +186,6 @@ local function reset_thermal_panels()
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(panels.main, panel)
-            --panels.main[panel.unit_number] = panel
             panel.clear_fluid_inside()
         end
     end
@@ -258,29 +229,6 @@ script.on_event({
     register_entity(event)
 end)
 
---[[
--- Function set to run when an entity is mined or destroyed in various ways.
-script.on_event({
-    defines.events.on_pre_player_mined_item,    -- *
-    defines.events.on_robot_pre_mined,          -- *
-    defines.events.on_space_platform_pre_mined, -- *
-    defines.events.on_entity_died,
-    defines.events.script_raised_destroy
-    -- * Pre-stage needed to unregister entity from storage table before entity is removed.
-},  function(event)
-    unregister_entity(event)
-end)
-
--- Function set to run when a surface is cleared or destroyed (not a normal event).
-script.on_event({
-    defines.events.on_pre_surface_cleared, -- *
-    defines.events.on_pre_surface_deleted  -- *
-    -- * Pre-stage needed to unregister entities from storage table before entities are removed.
-},  function(event)
-    unregister_surface_entities(event)
-end)
-]]
-
 -- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % 60 == 0 then update_storage_register() end
@@ -303,7 +251,6 @@ script.on_init(function()
     reset_thermal_panels() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
-
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()

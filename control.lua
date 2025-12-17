@@ -234,8 +234,7 @@ script.on_event({defines.events.on_tick}, function(event)
     if event.tick % script_frequency == 3 then -- 1/60 ticks *
         update_storage_register() return
     end
-    if storage.panels.complete then return end
-    if event.tick % script_frequency ~= 3 then -- 59/60 ticks *
+    if not storage.panels.complete and event.tick % script_frequency ~= 3 then -- 59/60 ticks *
         update_panel_temperature()
     end
 end) -- * Number different from 0, to reduce change of overlapping with scripts from other mods.

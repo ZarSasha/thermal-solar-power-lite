@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters shared by scripts:
-local script_frequency = 20 -- 1 second = 60 ticks
+local script_frequency = 30 -- twice a second, matching gui update rate
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
 
 ---------------------------------------------------------------------------------------------------

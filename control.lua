@@ -143,7 +143,8 @@ end
 
 -- COMPATIBILITY: More Quality Scaling --
 if script.active_mods["more-quality-scaling"] then
-    q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
+    -- Removes quality scaling factor, since heat capacity scales instead (30% pr. level):
+    q_scaling = 0
 end
 
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates

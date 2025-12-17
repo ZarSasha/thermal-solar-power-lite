@@ -111,7 +111,7 @@ local function update_panel_temperature()
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
     local next_stop  = progress + batch_size - 1
-    for i = panels.progress, next_stop do
+    for i = progress, next_stop do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:

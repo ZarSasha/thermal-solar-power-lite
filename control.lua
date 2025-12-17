@@ -7,7 +7,8 @@
 -- for the Thermal Solar Panels, as well as various command functions (mostly for debugging). The
 -- heat script uses time slicing to distribute calculations across many game ticks.
 ---------------------------------------------------------------------------------------------------
-require "functions" require "shared.all-stages"
+require "functions"
+require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- THERMAL SOLAR PANEL SCRIPTS
 ---------------------------------------------------------------------------------------------------

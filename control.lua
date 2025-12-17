@@ -107,8 +107,10 @@ end
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates
 -- time slicing (distributes array iteration over all ticks except 1 within every cycle).
 local function update_panel_temperature()
-    local panels = storage.panels -- table, thus referenced
-    for i = panels.progress, panels.progress + panels.batch_size - 1 do
+    local panels     = storage.panels -- table, thus referenced
+    local batch_size = panels.batch_size -- number value copy, used throughout cycle
+    local next_stop  = panels.progress + batch_size - 1 -- number value copy
+    for i = panels.progress, next_stop do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:

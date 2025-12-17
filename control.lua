@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters shared by scripts:
-local script_frequency = 60   -- Once a second
+local script_frequency = 15   -- 60 ticks = 1 second
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
 
 ---------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ local function create_storage_table_keys()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- THERMAL PANEL ENTITY REGISTRATION (ON BUILT AND SIMILAR)
+    -- ENTITY REGISTRATION (ON BUILT AND SIMILAR)
 ---------------------------------------------------------------------------------------------------
 
 -- Function to register entity string identifier into temporary "to_be_added" array in storage.
@@ -52,7 +52,7 @@ end
 -- since no new scripts must run when entity is mined or otherwise removed.
 
 ---------------------------------------------------------------------------------------------------
-    -- THERMAL PANEL CYCLICAL REGISTER UPDATE (ON TICK)
+    -- CYCLICAL REGISTER UPDATE (ON TICK)
 ---------------------------------------------------------------------------------------------------
 
 -- Function to update contents of "main" array and adjust process batch size for next cycle:
@@ -162,7 +162,7 @@ local function deactivate_sunlight_indicator(entity)
 end
 
 ---------------------------------------------------------------------------------------------------
--- HELPER FUNCTIONS (RESETTING, DEBUGGING, CONSOLE MESSAGES & COMMANDS) --
+    -- HELPER FUNCTIONS (RESETTING, DEBUGGING, CONSOLE MESSAGES & COMMANDS) --
 ---------------------------------------------------------------------------------------------------
 
 -- Complete list of panel variants, including any clones.
@@ -213,7 +213,7 @@ local function clr(text, colorIndex)
 end
 
 ---------------------------------------------------------------------------------------------------
--- FINAL FUNCTION SETS AND SCRIPT EXECUTION
+    -- FINAL FUNCTION SETS AND SCRIPT EXECUTION
 ---------------------------------------------------------------------------------------------------
 
 -- Function set to run when an entity is built.
@@ -266,7 +266,7 @@ end)
 -- it's not a detectable event. Running the reset command provided below may help.
 
 ---------------------------------------------------------------------------------------------------
--- CONSOLE COMMANDS
+    -- CONSOLE COMMANDS
 ---------------------------------------------------------------------------------------------------
 -- Execute a command by typing "/tspl " into the console, along with a parameter. Useful for
 -- getting some basic info, and for debugging.

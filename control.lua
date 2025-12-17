@@ -397,7 +397,7 @@ COMMAND_parameters.clear = function(pl)
     })
 end
 
--- DEBUG "unlock": Attempts to forcefully unlock recipes for all items from this mod.
+-- DEBUG "unlock": Attempts to forcefully unlock and unhide recipes for all items from this mod.
 COMMAND_parameters.unlock = function(pl)
     local items, icons = {"tspl-thermal-solar-panel","tspl-thermal-solar-panel-large",
         "tspl-basic-heat-exchanger", "tspl-basic-heat-pipe"}, {}
@@ -408,7 +408,7 @@ COMMAND_parameters.unlock = function(pl)
     end
     mPrint(pl, {
         "Recipes for all entities from this mod ( "..table.concat(icons," ").." ) were "
-      .."forcefully unlocked (hopefully)!"
+      .."forcefully unlocked and had their visibility restored (hopefully)!"
     })
 end
 

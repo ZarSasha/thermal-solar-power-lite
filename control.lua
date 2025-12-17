@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters shared by scripts:
-local script_frequency = 60 -- 1 second = 60 ticks
+local script_frequency = 20 -- 1 second = 60 ticks
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
 
 ---------------------------------------------------------------------------------------------------
@@ -231,14 +231,14 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % script_frequency == 17 then -- 1/60 ticks *
+    if event.tick % script_frequency == 3 then -- 1/60 ticks *
         update_storage_register() return
     end
     if storage.panels.complete then return end
-    if event.tick % script_frequency ~= 17 then -- 59/60 ticks
+    if event.tick % script_frequency ~= 3 then -- 59/60 ticks *
         update_panel_temperature()
     end
-end) -- * Number different from 0, to reduce change of overlap with scripts from other mods.
+end) -- * Number different from 0, to reduce change of overlapping with scripts from other mods.
 
 -- Function set to run when a GUI is opened.
 script.on_event({defines.events.on_gui_opened}, function(event)

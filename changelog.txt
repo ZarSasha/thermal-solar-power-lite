@@ -39,6 +39,7 @@ Date: 2025-12-16
     - Merged "help" and "debug" commands.
     - Removed some info from info command, was not very helpful as it were.
     - Removed "delete" command, function essentially already provided by "clear" command.
+    - Added "dump" command, for checking contents of panel ID list within storage.
   Internal:
     - Tidied up a fair bit, simplified a lot of code.
     - Simplified and cleaned up locales.

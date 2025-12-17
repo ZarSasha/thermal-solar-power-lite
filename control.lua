@@ -230,7 +230,7 @@ end)
 
 -- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % 60 == 0 then update_storage_register() end
+    if event.tick % 61 == 17 then update_storage_register() end -- prime numbers
     if not storage.panels.complete then update_panel_temperature() end
 end)
 

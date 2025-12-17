@@ -110,8 +110,7 @@ local function update_panel_temperature()
     local panels     = storage.panels    -- table, thus referenced
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
-    local next_stop  = progress + batch_size - 1
-    for i = progress, next_stop do
+    for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:
@@ -239,8 +238,7 @@ script.on_event({defines.events.on_tick}, function(event)
     if event.tick % script_frequency == 0 then
         -- Process from last cycle assumed to be complete!
         update_storage_register()  -- within 1 tick
-    else
-        if storage.panels.complete then return end
+    elseif not storage.panels.complete then
         update_panel_temperature() -- within all but the 1 tick above
     end
 end)

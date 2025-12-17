@@ -138,7 +138,7 @@ local function update_panel_temperature()
         local sun_mult    = panel.surface.get_property("solar-power")/100
         local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
         panel.temperature =
-            panel.temperature + (temp_gain * light_corr * sun_mult * q_factor) - (temp_loss)
+            panel.temperature + temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::
     end
     -- Updates progress, if cycle is not yet finished:

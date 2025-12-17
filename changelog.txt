@@ -15,8 +15,8 @@ Date: 2025-12-17
       for the console, providing some advice in case of trouble.
     - Improved performance by dynamically distributing calculations for the heat generating script
       over potentially all game ticks. (3150 large panels (~1GW power) would produce a spike of
-      ~8.5ms every second, but that is now reduced to one of ~0.5-1.0ms, with an average impact
-      of ~0.2ms/tick.)
+      ~8.5ms every second, but that is now reduced to one of <0.85ms, with an average impact
+      of ~0.20ms/tick. The average seems ~50% higher, but it's spread out.)
     - Now tracks changes and only updates storage table twice a second to prevent errors from
       processing entities over several game ticks.
     - Now simply unregisters entities from storage table when detected to be invalid. It fits the

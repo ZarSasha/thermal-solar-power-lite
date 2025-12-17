@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters shared by scripts:
-local script_frequency = 30 -- twice a second, matching gui update rate
+local script_frequency = 60   -- Once a second
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
 
 ---------------------------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ local function update_storage_register()
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for next cycle (batches are
-    -- processed on no more than 29 of 30 ticks):
+    -- processed on all ticks except 1 reserved for the above):
     panels.complete = false
     panels.batch_size = math.max(math.ceil(#panels.main / ((script_frequency - 1))),1)
 end
@@ -103,7 +103,7 @@ if script.active_mods["more-quality-scaling"] then
 end
 
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates
--- time slicing (distributes array iteration over up to 29 of 30 game ticks).
+-- time slicing (distributes array iteration over all ticks except 1 within every cycle).
 local function update_panel_temperature()
     local panels = storage.panels -- table, thus referenced
     for i = panels.progress, panels.progress + panels.batch_size - 1 do
@@ -231,11 +231,11 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % script_frequency == 3 then -- 1/30 ticks *
+    if event.tick % script_frequency == 3 then -- within 1 tick *
         update_storage_register() return
     end
     if storage.panels.complete then return end
-    if event.tick % script_frequency ~= 3 then -- 29/30 ticks *
+    if event.tick % script_frequency ~= 3 then -- within all but the 1 tick above *
         update_panel_temperature()
     end
 end) -- * Number different from 0, to reduce change of overlapping with scripts from other mods.

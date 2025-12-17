@@ -48,7 +48,6 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local script_frequency    = 60 -- 1 second = 60 ticks
-local mimimum_batch_size  = 1  -- low, for testing
 
 -- Function to update contents of "main" array and adjust process batch size for next cycle:
 local function update_storage_register()
@@ -60,7 +59,7 @@ local function update_storage_register()
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for next cycle:
     panels.complete = false
-    panels.batch_size = math.max(math.ceil(#panels.main / script_frequency), mimimum_batch_size)
+    panels.batch_size = math.ceil(#panels.main / script_frequency)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -106,7 +105,7 @@ end
 -- time slicing (distributes calculation over several game ticks).
 local function update_panel_temperature()
     local panels = storage.panels -- table, thus referenced
-    for i = panels.progress, panels.progress + panels.batch_size do
+    for i = panels.progress, panels.progress + panels.batch_size - 1 do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:

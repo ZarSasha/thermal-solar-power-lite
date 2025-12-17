@@ -87,13 +87,4 @@ function round_number(num, decimals)
     return num / decimals
 end
 
--- Rounds up a number to nearest factor.
-function round_up_to_nearest_factor(number, factor)
-    if number % factor == 0 then
-        return number
-    else
-        return math.ceil(number / factor) * factor
-    end
-end
-
 ---------------------------------------------------------------------------------------------------

@@ -73,7 +73,7 @@ local function update_storage_register()
     array_remove_elements(panels.main, panels.to_be_removed)
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
-    -- Resets status for completion of cycle, calculates natch size for the next one (they are
+    -- Resets status for completion of cycle, calculates batch size for the next one (they are
     -- processed on all ticks except 1 reserved for the above):
     panels.complete = false
     panels.batch_size = math.max(math.ceil(#panels.main / ((script_frequency - 1))),1)
@@ -112,7 +112,7 @@ if script.active_mods["more-quality-scaling"] then
 end
 
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for
--- time slicing. Generally writes to storage as little as possible, for the sake of performance.
+-- time slicing. Generally writes to storage as little as possible, for better performance.
 local function update_panel_temperature()
     local panels     = storage.panels    -- table, thus referenced
     local batch_size = panels.batch_size -- number copy
@@ -218,7 +218,7 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % script_frequency == 0 then -- Process from last cycle assumed to be complete!
+    if event.tick % script_frequency == 3 then -- not 0, to reduce risk over overlap
         update_storage_register()  -- within 1 tick
     elseif not storage.panels.complete then
         update_panel_temperature() -- within all but the 1 tick above

@@ -9,8 +9,20 @@
 ---------------------------------------------------------------------------------------------------
 require "functions"
 require "shared.all-stages"
+
 ---------------------------------------------------------------------------------------------------
--- STORAGE TABLE CREATION
+-- THERMAL SOLAR PANEL SCRIPTS
+---------------------------------------------------------------------------------------------------
+
+-- The shared string component of all thermal panel names, including those of any clones:
+local panel_name_base = "tspl-thermal-solar-panel"
+
+-- Parameters shared by scripts:
+local script_frequency = 60 -- 1 second = 60 ticks
+local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
+
+---------------------------------------------------------------------------------------------------
+    -- STORAGE TABLE CREATION (ON INIT AND CONFIGURATION CHANGED)
 ---------------------------------------------------------------------------------------------------
 
 -- Function to fill storage with variables needed for the heat-generating script.
@@ -25,14 +37,7 @@ local function create_storage_table_keys()
 end
 
 ---------------------------------------------------------------------------------------------------
--- THERMAL PANEL ENTITIES TO APPLY SCRIPTS TO
----------------------------------------------------------------------------------------------------
-
--- Base name. Contained in name of larger version, clones should contain it as well.
-local panel_name_base = "tspl-thermal-solar-panel"
-
----------------------------------------------------------------------------------------------------
--- THERMAL PANEL ENTITY REGISTRATION
+    -- THERMAL PANEL ENTITY REGISTRATION (ON BUILT AND SIMILAR)
 ---------------------------------------------------------------------------------------------------
 
 -- Function to register entity string identifier into temporary "to_be_added" array in storage.
@@ -43,16 +48,18 @@ local function register_entity(event)
     table.insert(panels.to_be_added, entity)
 end
 
----------------------------------------------------------------------------------------------------
--- THERMAL PANEL CYCLICAL REGISTER UPDATE
----------------------------------------------------------------------------------------------------
+-- Note: Deregistration happens later when entity is discovered to be invalid. This is sufficient,
+-- since no new scripts must run when entity is mined or otherwise removed.
 
-local script_frequency    = 60 -- 1 second = 60 ticks
+---------------------------------------------------------------------------------------------------
+    -- THERMAL PANEL CYCLICAL REGISTER UPDATE (ON TICK)
+---------------------------------------------------------------------------------------------------
 
 -- Function to update contents of "main" array and adjust process batch size for next cycle:
 local function update_storage_register()
     local panels = storage.panels
-    -- Updates main array, clears temporary arrays that keep track of change:
+    -- Updates main array, clears temporary arrays that keep track of change (this is done to
+    -- prevent any change to array during loop):
     array_append_elements(panels.main, panels.to_be_added)
     array_remove_elements(panels.main, panels.to_be_removed)
     table_clear(panels.to_be_added)
@@ -64,14 +71,7 @@ local function update_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
--- MAIN SCRIPTS
----------------------------------------------------------------------------------------------------
-
--- Parameter shared by scripts:
-local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
-
----------------------------------------------------------------------------------------------------
-    -- HEAT GENERATION (ON-NTH_TICK)
+    -- HEAT GENERATION (ON TICK)
 ---------------------------------------------------------------------------------------------------
 -- Script that increases temperature of entity in proportion to sunlight, but also decreases it in
 -- proportion to current temperature above ambient level. Adjusted for quality and solar intensity.
@@ -92,18 +92,18 @@ local q_scaling     = 0.15  -- finetuned to roughly match scaling of solar panel
 
 -- COMPATIBILITY: Pyanodon Coal Processing --
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-    -- Decreases loss rate to allow similar efficiency at 250°C (compared to 165°C):
+    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
     heat_loss_X =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
 end
 
 -- COMPATIBILITY: More Quality Scaling --
 if script.active_mods["more-quality-scaling"] then
-    -- Removes quality scaling factor, since heat capacity scales instead (30% pr. level):
+    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     q_scaling = 0
 end
 
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates
--- time slicing (distributes calculation over several game ticks).
+-- time slicing (distributes array iteration over up to 59 of 60 game ticks).
 local function update_panel_temperature()
     local panels = storage.panels -- table, thus referenced
     for i = panels.progress, panels.progress + panels.batch_size - 1 do
@@ -117,7 +117,7 @@ local function update_panel_temperature()
         end
         -- Keeps track of progress:
         panels.progress = panels.progress + 1
-        -- Marks for removal from storage table and skips if not valid:
+        -- Marks entry for removal from storage table and skips it, if not valid:
         if not panel.valid then
             table.insert(panels.to_be_removed, panel)
             goto continue
@@ -165,7 +165,7 @@ end
 -- HELPER FUNCTIONS (RESETTING, DEBUGGING, CONSOLE MESSAGES & COMMANDS) --
 ---------------------------------------------------------------------------------------------------
 
--- Complete list of panel variant, including any clones.
+-- Complete list of panel variants, including any clones.
 local panel_variants = {}
 
 for key, _ in pairs(prototypes.entity) do
@@ -231,10 +231,11 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % script_frequency == 17 then -- *
-        update_storage_register()
-    end 
-    if not storage.panels.complete and event.tick % script_frequency ~= 17 then
+    if event.tick % script_frequency == 17 then -- 1/60 ticks *
+        update_storage_register() return
+    end
+    if not storage.panels.complete then return end
+    if event.tick % script_frequency ~= 17 then -- 59/60 ticks
         update_panel_temperature()
     end
 end) -- * Number different from 0, to reduce change of overlap with scripts from other mods.

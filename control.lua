@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters shared by scripts:
-local script_frequency = 15   -- 60 ticks = 1 second
+local script_frequency = 30   -- 60 ticks = 1 second
 local light_const      = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
 
 ---------------------------------------------------------------------------------------------------
@@ -105,7 +105,8 @@ if script.active_mods["more-quality-scaling"] then
 end
 
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates
--- time slicing (distributes array iteration over all ticks except 1 within every cycle).
+-- time slicing (distributes array iteration over all ticks except 1 within every cycle). For the
+-- sake of performance, the function generally writes to storage as little as possible.
 local function update_panel_temperature()
     local panels     = storage.panels    -- table, thus referenced
     local batch_size = panels.batch_size -- number copy

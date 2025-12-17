@@ -232,11 +232,10 @@ end)
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % script_frequency == 0 then
-        update_storage_register()  -- within 1 tick *
+        update_storage_register()  -- within 1 tick
     else
-        if not storage.panels.complete then
-            update_panel_temperature() -- within all but the 1 tick above *
-        end
+        if storage.panels.complete then return end
+        update_panel_temperature() -- within all but the 1 tick above
     end
 end)
 

@@ -119,8 +119,6 @@ local function update_panel_temperature()
             panels.complete = true
             return
         end
-        -- Keeps track of progress:
-        panels.progress = panels.progress + 1
         -- Marks entry for removal from storage table and skips it, if not valid:
         if not panel.valid then
             table.insert(panels.to_be_removed, panel)
@@ -135,6 +133,7 @@ local function update_panel_temperature()
             panel.temperature + (temp_gain * light_corr * sun_mult * q_factor) - (temp_loss)
         ::continue::
     end
+    panels.progress = panels.progress + batch_size - 1
 end
 
 ---------------------------------------------------------------------------------------------------

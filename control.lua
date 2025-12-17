@@ -141,20 +141,10 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     heat_loss_X =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
 end
 
---[[
 -- COMPATIBILITY: More Quality Scaling --
 if script.active_mods["more-quality-scaling"] then
-    if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
-    local thermal_panels = LIST_thermal_panels
-    -- Adds clones to list of entities that should be affected by the scripts:
-    for _, panel in pairs(thermal_panels) do
-        for _, panel_clone in pairs(prototypes.mod_data["entity-clones"].data[panel] or {}) do
-            table.insert(LIST_thermal_panels, panel_clone)
-        end
-    end
     q_scaling = 0 -- accounts for increased heat capacity (30% pr. quality level)
 end
-]]
 
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates
 -- time slicing.

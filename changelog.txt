@@ -26,7 +26,7 @@ Date: 2025-12-16
       same efficiency (this time simply by lowering the rate of heat loss), thus matching the
       boiler and better utilizing the steam engine.
     - More Quality Scaling: Entity names are now simply recognized by a base string expected to
-      appear in the name of any clones, so special compatibility is no longer needed.
+      appear in the name of any clones, so providing compatibility is much simpler.
   Info:
     - Improved descriptions. Removed a lot of the capitalization.
     - The basic heat exchanger now displays the correct temperature target (as defined in startup

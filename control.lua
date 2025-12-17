@@ -24,8 +24,9 @@ local light_const      = 0.85 -- Highest level of "surface darkness" (default ra
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON INIT AND CONFIGURATION CHANGED)
 ---------------------------------------------------------------------------------------------------
+-- Values that are not easily recalcuated should be stored so they can persist through the
+-- save/load cycle. All variables below are used by the "on_tick" heat-generating script.
 
--- Function to fill storage with variables needed for the heat-generating script.
 local function create_storage_table_keys()
     if storage.panels               == nil then storage.panels               =    {} end
     if storage.panels.main          == nil then storage.panels.main          =    {} end
@@ -115,8 +116,6 @@ local function update_panel_temperature()
             panels.complete = true
             return
         end
-        -- Keeps track of progress:
-        panels.progress = panels.progress + 1
         -- Marks entry for removal from storage table and skips it, if not valid:
         if not panel.valid then
             table.insert(panels.to_be_removed, panel)
@@ -130,6 +129,8 @@ local function update_panel_temperature()
         panel.temperature =
             panel.temperature + (temp_gain * light_corr * sun_mult * q_factor) - (temp_loss)
         ::continue::
+        -- Keeps track of progress:
+        panels.progress = panels.progress + 1
     end
 end
 
@@ -232,6 +233,7 @@ end)
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % script_frequency == 0 then
+        -- Process from last cycle assumed to be complete!
         update_storage_register()  -- within 1 tick
     else
         if storage.panels.complete then return end

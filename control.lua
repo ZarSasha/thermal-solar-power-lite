@@ -148,7 +148,7 @@ if script.active_mods["more-quality-scaling"] then
 end
 
 -- Function to update temperature of all thermal panels according to circumstances. Incorporates
--- time slicing.
+-- time slicing (distributes calculation over several game ticks).
 local function update_panel_temperature()
     local panels = storage.panels -- table, thus referenced
     for i = panels.progress, panels.progress + panels.batch_size do

@@ -133,7 +133,7 @@ local function update_panel_temperature()
             panel.temperature + (temp_gain * light_corr * sun_mult * q_factor) - (temp_loss)
         ::continue::
     end
-    panels.progress = panels.progress + batch_size - 1
+    panels.progress = panels.progress + batch_size -- low computational cost
 end
 
 ---------------------------------------------------------------------------------------------------

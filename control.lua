@@ -234,7 +234,7 @@ script.on_event({defines.events.on_tick}, function(event)
     if event.tick % script_frequency == 17 then -- 1/60 ticks *
         update_storage_register() return
     end
-    if not storage.panels.complete then return end
+    if storage.panels.complete then return end
     if event.tick % script_frequency ~= 17 then -- 59/60 ticks
         update_panel_temperature()
     end

@@ -59,7 +59,7 @@ local function update_storage_register()
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for next cycle:
     panels.complete = false
-    panels.batch_size = math.ceil(#panels.main / script_frequency)
+    panels.batch_size = math.max(math.ceil(#panels.main / script_frequency),1)
 end
 
 ---------------------------------------------------------------------------------------------------

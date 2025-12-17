@@ -57,9 +57,10 @@ local function update_storage_register()
     array_remove_elements(panels.main, panels.to_be_removed)
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
-    -- Resets status for completion of cycle, calculates batch size for next cycle:
+    -- Resets status for completion of cycle, calculates batch size for next cycle (batches are
+    -- processed on no more than 59 of 60 ticks):
     panels.complete = false
-    panels.batch_size = math.max(math.ceil(#panels.main / script_frequency),1)
+    panels.batch_size = math.max(math.ceil(#panels.main / ((script_frequency - 1))),1)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -228,10 +229,14 @@ script.on_event({
     register_entity(event)
 end)
 
--- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
+-- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % 61 == 17 then update_storage_register() end -- prime numbers
-    if not storage.panels.complete then update_panel_temperature() end
+    if event.tick % script_frequency == 17 then
+        update_storage_register()
+    end
+    if event.tick % script_frequency ~= 17 and not storage.panels.complete then
+        update_panel_temperature()
+    end
 end)
 
 -- Function set to run when a GUI is opened.

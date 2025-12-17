@@ -110,7 +110,7 @@ local function update_panel_temperature()
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:
-        if not panel then
+        if panel == nil then
             panels.progress = 1
             panels.complete = true
             return
@@ -357,7 +357,11 @@ end
 -- DEBUG "dump": Dumps contents of panel ID table into log file (%APPDATA%/roaming/Factorio).
 COMMAND_parameters.dump = function(pl)
     log("Mod Storage Contents: " .. serpent.block(storage.panels.main, {comment=false}))
-    mPrint(pl, {"Contents of 'storage.panels.main' was dumped to log file."})
+    mPrint(pl, {
+        "Contents of 'storage.panels.main' was dumped to log file.",
+        "q_scaling: "..q_scaling,
+        "heat_loss_ex: "..heat_loss_X
+    })
 end
 
 -- CONSOLE COMMANDS -------------------------------------------------------------------------------

@@ -231,12 +231,11 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % script_frequency == 3 then -- within 1 tick *
-        update_storage_register() return
-    end
-    if storage.panels.complete then return end
-    if event.tick % script_frequency ~= 3 then -- within all but the 1 tick above *
-        update_panel_temperature()
+    if event.tick % script_frequency == 3 then
+        update_storage_register()  -- within 1 tick *
+    else
+        if storage.panels.complete then return end
+        update_panel_temperature() -- within all but the 1 tick above *
     end
 end) -- * Number different from 0, to reduce change of overlapping with scripts from other mods.
 

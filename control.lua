@@ -309,7 +309,7 @@ COMMAND_parameters.info = function(pl)
     local sun_level = pl.surface.get_property("solar-power")
     local temp_max_output   = temp_gain_base * (sun_level/100)
     local temp_loss_target  = temp_loss_base * (SETTING.exchanger_temp - ambient_temp)
-    local net_output_target = gross_output - temp_loss_target
+    local net_output_target = temp_max_output - temp_loss_target
     local efficiency        = net_output_target / temp_max_output
     local panels_num = SETTING.exchanger_output_kW / (SETTING.panel_output_kW * efficiency)
     mPrint(pl, {

@@ -307,25 +307,43 @@ end
 
 --[[
 -- Various parameters:
-local ambient_temp     = 15   -- Default ambient temperature
-local base_heat_cap    = 50   -- Default panel heat capacity in kJ
-local real_heat_cap    = 50
+local ambient_temp        = 15   -- Default ambient temperature
+local base_heat_cap       = 50   -- Default panel heat capacity in kJ
+local real_heat_cap       = 50
 
 -- Panel temperature gain pr. cycle, before loss:
-local temp_gain_base = SETTING.panel_output_kW / base_heat_cap
+local temp_gain_rate_base = SETTING.panel_output_kW / base_heat_cap
+local temp_gain_rate_adj  = temp_gain_rate_base * (script_frequency / 60)
 
 -- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
-local temp_loss_base = 0.005
+local temp_loss_rate_base = 0.005
+local temp_loss_rate_adj  = temp_loss_rate_base * (script_frequency / 60)
+
+-- Scaling of heat generation according to quality level:
+local q_scaling           = 0.15  -- finetuned to roughly match scaling of solar panels
+
+-- COMPATIBILITY: Pyanodon Coal Processing --
+if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
+    temp_loss =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
+    real_heat_cap = 100
+end
+
+-- COMPATIBILITY: More Quality Scaling --
+if script.active_mods["more-quality-scaling"] then
+    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
+    q_scaling = 0
+end
 ]]
 
 local function temp_simulator(player, temperature_target)
     local panel = { temperature = temperature_target }
-    local day_length = player.surface.get_property("day-night-cycle")/3600
+    local day_length = player.surface.get_property("day-night-cycle")/60
     local total_excess = 0
     for i = 1, day_length do
-        -- Simulation light levels:
+        -- Simulating light levels one second at a time:
         local light_level
-        if i <= math.floor(0.20*day_length) then
+        if                                         i <= math.floor(0.20*day_length) then
             light_level = -(5/day_length) * i + 2.25
         elseif i > math.floor(0.20*day_length) and i <= math.floor(0.30*day_length) then
             light_level = 0
@@ -362,8 +380,8 @@ COMMAND_parameters.info = function(pl)
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
     })
     local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * panels_num * base_heat_cap
-    local day_length = pl.surface.get_property("day-night-cycle")/3600
-    local avg_output_kw = round_number(0.985 * excess_energy / day_length) -- adjusted a bit
+    local day_length = pl.surface.get_property("day-night-cycle")/60
+    local avg_output_kw = round_number(excess_energy / day_length)
     mPrint(pl, {
         "Expected average output from ideal setup: "
       ..clr("~"..avg_output_kw.."kW.",2),

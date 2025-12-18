@@ -2,22 +2,21 @@
 Version: 2.2.0
 Date: 2025-12-17
   Changes:
-    - NB: Thermal solar panel heat output is defined by a new setting: It shows nominal output at
-      ambient temperature (15°C) rather than net output at 165°C on Nauvis. The default value has
-      been changed from 67.5kW to 105kW for that reason. This is easier to work with and probably
-      also less confusing overall with Space Age and other mods that add planets.
+    - NB: The setting for thermal panel heat output is no longer compensated but reflects nominal
+      output at the lowest temperature (15°C). The default value was thus changed from 67.5kW to
+      105kW. Easier to work with and less wonky with Space Age. Still ~33.8% efficient at 165°C,
+      active the equivalent of ~52.5% of the day on Nauvis. 1 steam engine to π panel output ;-).
     - Pyanodon Coal Processing: Now automatically adjusts heat output from script (technically by
       doubling the heat capacity) to compensate for halved steam conversion efficiency.
   Balancing:
     - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Scripting:
-    - NB: Changed variables within storage table, created a proper migration script and a message
-      for the console, providing some advice in case of trouble.
+    - NB: Changed a variable within the storage table, created a proper migration script and a
+      message for the console, providing some advice in case of trouble.
     - Improved performance by dynamically distributing calculations for the heat generating script
-      over potentially all game ticks. (3125 large panels (~1GW power) would produce a spike of
-      ~8.5ms every second, but that is now reduced to one of <0.85ms, with an average impact
-      of ~0.20ms/tick. The average does seem ~50% higher than before, but it's spread out.)
-    - Now tracks changes and only updates storage table twice a second to prevent errors from
+      over potentially all game ticks. Example: 3125 large panels (~1GW power) would produce a
+      spike of ~8.5ms every second, now reduced to <0.85ms, with an average impact of ~0.20ms/tick.
+    - Now tracks changes and only updates storage table once a second to prevent any errors when
       processing entities over several game ticks.
     - Now simply unregisters entities from storage table when detected to be invalid. It fits the
       simple needs of the mod, and requires a lot less code and tracking of events.
@@ -30,15 +29,14 @@ Date: 2025-12-17
     - Improved descriptions. Removed a lot of the capitalization.
     - The basic heat exchanger now displays the correct temperature target (as defined in startup
       settings) in its description.
+    - Added more relevant info to "info" command, which helps with dimensioning of thermal solar
+      complex on different surfaces.
   Translation:
     - Updated German and Chinese locales with DeepL.
   Bugfixes:
     - Indirectly improved clean-up of entity ID table within the storage table.
   Debug:
-    - Improved commands in general.
-    - Merged "help" and "debug" commands.
-    - Removed some info from info command, was not very helpful as it were.
-    - Removed "delete" command, function essentially already provided by "clear" command.
+    - Merged "help" and "debug" commands, removed "delete" command (was superfluous).
     - Added "dump" command, for checking contents of panel ID list within storage.
   Internal:
     - Tidied up a fair bit, simplified a lot of code.

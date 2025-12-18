@@ -92,10 +92,12 @@ local ambient_temp     = 15   -- Default ambient temperature
 local base_heat_cap    = 50   -- Default panel heat capacity in kJ
 
 -- Panel temperature gain pr. cycle, before loss:
-local temp_gain     = (SETTING.panel_output_kW * (script_frequency / 60)) / base_heat_cap
+local temp_gain_base = SETTING.panel_output_kW / base_heat_cap
+local temp_gain      = temp_gain_base * (script_frequency / 60)
 
 -- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
-local heat_loss_X   = 0.005 * (script_frequency / 60)
+local temp_loss_base = 0.005
+local temp_loss      = temp_loss_base * (script_frequency / 60)
 
 -- Scaling of heat generation according to quality level:
 local q_scaling     = 0.15  -- finetuned to roughly match scaling of solar panels
@@ -103,7 +105,7 @@ local q_scaling     = 0.15  -- finetuned to roughly match scaling of solar panel
 -- COMPATIBILITY: Pyanodon Coal Processing --
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
-    heat_loss_X =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
+    temp_loss =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
 end
 
 -- COMPATIBILITY: More Quality Scaling --
@@ -137,7 +139,7 @@ local function update_panel_temperature()
         local q_factor    = 1 + (panel.quality.level * q_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
-        local temp_loss   = (panel.temperature - ambient_temp) * heat_loss_X
+        local temp_loss   = (panel.temperature - ambient_temp) * temp_loss
         panel.temperature =
             panel.temperature + temp_gain * light_corr * sun_mult * q_factor - temp_loss
         ::continue::
@@ -305,9 +307,15 @@ end
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
     local sun_level = pl.surface.get_property("solar-power")
+    local temp_max_output   = temp_gain_base * (sun_level/100)
+    local temp_loss_target  = temp_loss_base * (SETTING.exchanger_temp - ambient_temp)
+    local net_output_target = gross_output - temp_loss_target
+    local efficiency        = net_output_target / temp_max_output
+    local panels_num = SETTING.exchanger_output_kW / (SETTING.panel_output_kW * efficiency)
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
+        clr(round_number(panels_num,2),2).." panels per exchanger is appropriate on this surface."
     })
 end
 

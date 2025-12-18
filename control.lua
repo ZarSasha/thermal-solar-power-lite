@@ -318,7 +318,7 @@ local temp_loss_base = 0.005
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local sun_level        = pl.surface.get_property("solar-power")/100
+    local sun_level        = pl.surface.get_property("solar-power")
     local temp_gain_max    = temp_gain_base * (sun_level/100)
     local temp_loss_target = temp_loss_base * (SETTING.exchanger_temp - ambient_temp)
     local efficiency       = (temp_gain_max - temp_loss_target) / temp_gain_max

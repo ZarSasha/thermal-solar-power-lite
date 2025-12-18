@@ -364,9 +364,10 @@ COMMAND_parameters.info = function(pl)
     local ideal_heat_capacity = 250 + panels_num * real_heat_cap -- for exchanger + all panels
     local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * ideal_heat_capacity
     local day_length = pl.surface.get_property("day-night-cycle")/3600
-    local avg_output_kw = excess_energy / day_length
+    local avg_output_kw = round_number(excess_energy / day_length, 2)
     mPrint(pl, {
-        "Expected average output on this surface: "..avg_output_kw.."kW."
+        "Expected average output on this surface: "..avg_output_kw.."kW.",
+        "Efficiency: "..round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)),2).."%."
     })
 end
 

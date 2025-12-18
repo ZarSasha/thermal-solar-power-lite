@@ -89,11 +89,11 @@ end
 
 -- Various parameters:
 local ambient_temp        = 15   -- Default ambient temperature
-local base_heat_cap       = 50   -- Default panel heat capacity in kJ
-local real_heat_cap       = 50
+local base_heat_cap_kJ    = 50   -- Default panel heat capacity in kJ
+local real_heat_cap_kJ    = 50
 
 -- Panel temperature gain pr. cycle, before loss:
-local temp_gain_rate_base = SETTING.panel_output_kW / base_heat_cap
+local temp_gain_rate_base = SETTING.panel_output_kW / base_heat_cap_kJ
 local temp_gain_rate_adj  = temp_gain_rate_base * (script_frequency / 60)
 
 -- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
@@ -107,7 +107,7 @@ local q_scaling           = 0.15  -- finetuned to roughly match scaling of solar
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
     temp_loss =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
-    real_heat_cap = 100
+    real_heat_cap_kJ = 100
 end
 
 -- COMPATIBILITY: More Quality Scaling --
@@ -308,11 +308,11 @@ end
 --[[
 -- Various parameters:
 local ambient_temp        = 15   -- Default ambient temperature
-local base_heat_cap       = 50   -- Default panel heat capacity in kJ
+local base_heat_cap_kJ       = 50   -- Default panel heat capacity in kJ
 local real_heat_cap       = 50
 
 -- Panel temperature gain pr. cycle, before loss:
-local temp_gain_rate_base = SETTING.panel_output_kW / base_heat_cap
+local temp_gain_rate_base = SETTING.panel_output_kW / base_heat_cap_kJ
 local temp_gain_rate_adj  = temp_gain_rate_base * (script_frequency / 60)
 
 -- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
@@ -336,12 +336,14 @@ if script.active_mods["more-quality-scaling"] then
 end
 ]]
 
-local function temp_simulator(player, temperature_target)
-    local panel = { temperature = temperature_target }
+-- Helper function to calculate heat energy that may be converted into steam. Simulates a day cycle
+-- with adjustments for day length and solar intensity. Assumes that panels have already warmed up
+-- to exchanger target temperature.
+local function temp_simulator(player)
     local day_length = player.surface.get_property("day-night-cycle")/60
-    local total_excess = 0
+    local excess_temp_units = 0
     for i = 1, day_length do
-        -- Simulating light levels one second at a time:
+        -- Simulates the progression of light levels of a day, one second at a time:
         local light_level
         if                                          i < math.floor(0.20*day_length) then
             light_level = -(5/day_length) * i + 1
@@ -353,16 +355,22 @@ local function temp_simulator(player, temperature_target)
             light_level = 1
         end
         -- Calculates new temperature for each second of the simulated day:
+        local temp_target = SETTING.exchanger_temp
+        local panel = { temperature = temp_target }
         local sun_mult    = player.surface.get_property("solar-power")/100
         local temp_gain   = temp_gain_rate_base * light_level * sun_mult
         local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_base
         panel.temperature = panel.temperature + temp_gain - temp_loss
-        if panel.temperature > temperature_target then
-            total_excess = total_excess + (panel.temperature - temperature_target)
-            panel.temperature = temperature_target
+        if panel.temperature > temp_target then
+            excess_temp_units = excess_temp_units + (panel.temperature - temp_target)
+            panel.temperature = temp_target
         end
     end
-    return total_excess
+    -- Returns total heat output in kJ which can be converted into steam at target temperature.
+        local excess_heat = excess_temp_units * real_heat_cap_kJ
+        local average_output_kW = round_number(excess_heat / day_length)
+        local efficiency_pc = round_number(((average_output_kW / SETTING.panel_output_kW) * 100),1)
+        return average_output_kW, efficiency_pc
 end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
@@ -379,14 +387,11 @@ COMMAND_parameters.info = function(pl)
         "Ideal panel-to-exchanger ratio: "
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
     })
-    local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * panels_num * base_heat_cap
-    local day_length = pl.surface.get_property("day-night-cycle")/60
-    local avg_output_kw = round_number(excess_energy / day_length)
-    local efficiency_pc = round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)),1)
+    local average_output_kW, efficiency_pc = temp_simulator(pl)
     mPrint(pl, {
-        "Expected average output from ideal setup: "
-      ..clr("~"..avg_output_kw.."kW.",2),
-        "Expected efficiency in relation to power rating: "
+        "Expected average output "
+      ..clr("~"..average_output_kW.."kW.",2),
+        "Expected efficiency: "
       ..clr("~"..efficiency_pc.."%",2).."."
     })
 end

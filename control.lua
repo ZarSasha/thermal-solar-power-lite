@@ -375,15 +375,17 @@ end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
+    local surface_name     = pl.surface.name
     local sun_level        = pl.surface.get_property("solar-power")
+    local day_length       = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_max    = temp_gain_rate_base * (sun_level/100)
     local temp_loss_target = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp)
     local efficiency       = (temp_gain_max - temp_loss_target) / temp_gain_max
     local panels_num =
         SETTING.exchanger_output_kW / (SETTING.panel_output_kW * (sun_level/100) * efficiency)
     mPrint(pl, {
-        "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
-      ..clr(sun_level.."%",2)..".",
+        "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr(sun_level.."%",2)
+      .."Day-length: "..clr(day_length.." seconds",2)..".",
         "Ideal panel-to-exchanger ratio: "
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
     })

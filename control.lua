@@ -311,7 +311,8 @@ COMMAND_parameters.info = function(pl)
     local temp_loss_target  = temp_loss_base * (SETTING.exchanger_temp - ambient_temp)
     local net_output_target = temp_max_output - temp_loss_target
     local efficiency        = net_output_target / temp_max_output
-    local panels_num = SETTING.exchanger_output_kW / (SETTING.panel_output_kW * efficiency)
+    local panels_num =
+        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_level * efficiency)
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",

@@ -368,7 +368,7 @@ local function temp_simulator(player)
     end
     -- Returns total heat output in kJ which can be converted into steam at target temperature.
         local excess_heat = excess_temp_units * real_heat_cap_kJ
-        local average_output_kW = round_number(excess_heat / day_length) * 0.84
+        local average_output_kW = round_number(excess_heat / day_length) * 0.92
         local efficiency_pc = round_number(((average_output_kW / SETTING.panel_output_kW) * 100),1)
         return average_output_kW, efficiency_pc
 end

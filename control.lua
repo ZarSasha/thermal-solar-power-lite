@@ -363,12 +363,12 @@ COMMAND_parameters.info = function(pl)
     })
     local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * panels_num * base_heat_cap
     local day_length = pl.surface.get_property("day-night-cycle")/3600
-    local avg_output_kw = round_number(excess_energy / day_length, 2)
+    local avg_output_kw = round_number(excess_energy / day_length) * 0.99 -- adjusted a bit
     mPrint(pl, {
         "Expected average output from ideal setup: Less than "
       ..clr(avg_output_kw.."kW.",2),
         "Expected efficiency in relation to power rating: Less than "
-      ..clr(round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)),2)
+      ..clr(round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)))
       .."%",2).."."
     })
 end

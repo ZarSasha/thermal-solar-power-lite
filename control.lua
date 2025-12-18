@@ -391,7 +391,9 @@ COMMAND_parameters.info = function(pl)
     })
 end
 
--- Veri inaccurate! Maybe heat capacity of exchanger messes things up? Maybe also heat transfer?
+-- Inaccurate! Maybe heat capacity of exchanger messes things up? Maybe also heat transfer?
+-- Nauvis: Predicts 1020kW with 26.67 panels, but actually is 956kW with 27 panels. 6,3% error.
+-- Gleba: Predicts 598kW with 120 panels but actually is just 561kw. 13% error.
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)

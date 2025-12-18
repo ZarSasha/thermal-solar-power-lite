@@ -344,11 +344,11 @@ local function temp_simulator(player, temperature_target)
         -- Simulating light levels one second at a time:
         local light_level
         if                                         i <= math.floor(0.20*day_length) then
-            light_level = -(5/day_length) * i + 2.25
+            light_level = -(5/day_length) * i + 1
         elseif i > math.floor(0.20*day_length) and i <= math.floor(0.30*day_length) then
             light_level = 0
         elseif i > math.floor(0.30*day_length) and i <= math.floor(0.50*day_length) then
-            light_level = (5/day_length) * i - 2.75
+            light_level = (5/day_length) * i - 1.5
         elseif i > math.floor(0.50*day_length) then
             light_level = 1
         end

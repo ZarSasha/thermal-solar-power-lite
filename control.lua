@@ -365,10 +365,10 @@ COMMAND_parameters.info = function(pl)
     local day_length = pl.surface.get_property("day-night-cycle")/3600
     local avg_output_kw = round_number(0.985 * excess_energy / day_length) -- adjusted a bit
     mPrint(pl, {
-        "Expected average output from ideal setup: Less than "
-      ..clr(avg_output_kw.."kW.",2),
-        "Expected efficiency in relation to power rating: Less than "
-      ..clr(round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)))
+        "Expected average output from ideal setup: "
+      ..clr("~"..avg_output_kw.."kW.",2),
+        "Expected efficiency in relation to power rating: "
+      ..clr("~"..round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)))
       .."%",2).."."
     })
 end

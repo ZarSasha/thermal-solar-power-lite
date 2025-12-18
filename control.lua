@@ -318,8 +318,8 @@ COMMAND_parameters.info = function(pl)
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
         "Ideal panel-to-exchanger ratio: "
-      ..clr(round_number(panels_num,2), 2)..".",
-        "Expected power production efficiency: "
+      ..clr(round_number(panels_num,2)..":1", 2)..".",
+        "Expected power production day-cycle efficiency: "
       ..clr(planets[pl.surface.name] or "unknown", 2).."."
     })
 end

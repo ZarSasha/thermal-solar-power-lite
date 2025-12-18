@@ -385,7 +385,7 @@ COMMAND_parameters.info = function(pl)
         SETTING.exchanger_output_kW / (SETTING.panel_output_kW * (sun_level/100) * efficiency)
     mPrint(pl, {
         "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr(sun_level.."%",2)
-      .."Day-length: "..clr(day_length.." seconds",2)..".",
+      ..". Day-length: "..clr(day_length.." seconds",2)..".",
         "Ideal panel-to-exchanger ratio: "
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
     })

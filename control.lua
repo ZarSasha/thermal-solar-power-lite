@@ -343,19 +343,19 @@ local function temp_simulator(player, temperature_target)
     for i = 1, day_length do
         -- Simulating light levels one second at a time:
         local light_level
-        if                                         i <= math.floor(0.20*day_length) then
+        if                                          i < math.floor(0.20*day_length) then
             light_level = -(5/day_length) * i + 1
-        elseif i > math.floor(0.20*day_length) and i <= math.floor(0.30*day_length) then
+        elseif i >= math.floor(0.20*day_length) and i < math.floor(0.30*day_length) then
             light_level = 0
-        elseif i > math.floor(0.30*day_length) and i <= math.floor(0.50*day_length) then
+        elseif i >= math.floor(0.30*day_length) and i < math.floor(0.50*day_length) then
             light_level = (5/day_length) * i - 1.5
-        elseif i > math.floor(0.50*day_length) then
+        elseif i >= math.floor(0.50*day_length) then
             light_level = 1
         end
         -- Calculates new temperature for each second of the simulated day:
         local sun_mult    = player.surface.get_property("solar-power")/100
-        local temp_gain   = temp_gain_rate_adj * light_level * sun_mult
-        local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_adj
+        local temp_gain   = temp_gain_rate_base * light_level * sun_mult
+        local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_base
         panel.temperature = panel.temperature + temp_gain - temp_loss
         if panel.temperature > temperature_target then
             total_excess = total_excess + (panel.temperature - temperature_target)
@@ -382,12 +382,12 @@ COMMAND_parameters.info = function(pl)
     local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * panels_num * base_heat_cap
     local day_length = pl.surface.get_property("day-night-cycle")/60
     local avg_output_kw = round_number(excess_energy / day_length)
+    local efficiency_pc = round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)),1)
     mPrint(pl, {
         "Expected average output from ideal setup: "
       ..clr("~"..avg_output_kw.."kW.",2),
         "Expected efficiency in relation to power rating: "
-      ..clr("~"..round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)))
-      .."%",2).."."
+      ..clr("~"..efficiency_pc.."%",2).."."
     })
 end
 

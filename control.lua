@@ -305,42 +305,10 @@ COMMAND_parameters.help = function(pl)
     })
 end
 
---[[
--- Various parameters:
-local ambient_temp        = 15   -- Default ambient temperature
-local base_heat_cap_kJ       = 50   -- Default panel heat capacity in kJ
-local real_heat_cap       = 50
-
--- Panel temperature gain pr. cycle, before loss:
-local temp_gain_rate_base = SETTING.panel_output_kW / base_heat_cap_kJ
-local temp_gain_rate_adj  = temp_gain_rate_base * (script_frequency / 60)
-
--- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
-local temp_loss_rate_base = 0.005
-local temp_loss_rate_adj  = temp_loss_rate_base * (script_frequency / 60)
-
--- Scaling of heat generation according to quality level:
-local q_scaling           = 0.15  -- finetuned to roughly match scaling of solar panels
-
--- COMPATIBILITY: Pyanodon Coal Processing --
-if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
-    temp_loss =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
-    real_heat_cap = 100
-end
-
--- COMPATIBILITY: More Quality Scaling --
-if script.active_mods["more-quality-scaling"] then
-    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
-    q_scaling = 0
-end
-]]
-
 -- Helper function to calculate heat energy that may be converted into steam. Simulates a day cycle
 -- with adjustments for day length and solar intensity. Assumes that panels have already warmed up
 -- to exchanger target temperature.
-local function temp_simulator(player)
-    local day_length = player.surface.get_property("day-night-cycle")/60
+local function temp_simulator(player, sun_mult, day_length)
     local excess_temp_units = 0
     for i = 1, day_length do
         -- Simulates the progression of light levels of a day, one second at a time:
@@ -357,7 +325,6 @@ local function temp_simulator(player)
         -- Calculates new temperature for each second of the simulated day:
         local temp_target = SETTING.exchanger_temp
         local panel = { temperature = temp_target }
-        local sun_mult    = player.surface.get_property("solar-power")/100
         local temp_gain   = temp_gain_rate_base * light_level * sun_mult
         local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_base
         panel.temperature = panel.temperature + temp_gain - temp_loss
@@ -376,20 +343,20 @@ end
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
     local surface_name     = pl.surface.name
-    local sun_level        = pl.surface.get_property("solar-power")
+    local sun_mult        = pl.surface.get_property("solar-power")/100
     local day_length       = pl.surface.get_property("day-night-cycle")/60
-    local temp_gain_max    = temp_gain_rate_base * (sun_level/100)
+    local temp_gain_max    = temp_gain_rate_base * sun_mult
     local temp_loss_target = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp)
     local efficiency       = (temp_gain_max - temp_loss_target) / temp_gain_max
     local panels_num =
-        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * (sun_level/100) * efficiency)
+        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * efficiency)
     mPrint(pl, {
-        "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr(sun_level.."%",2)
+        "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
       ..". Day-length: "..clr(day_length.." seconds",2)..".",
         "Ideal panel-to-exchanger ratio: "
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
     })
-    local average_output_kW, efficiency_pc = temp_simulator(pl)
+    local average_output_kW, efficiency_pc = temp_simulator(pl, sun_mult, day_length)
     mPrint(pl, {
         "Expected average output "
       ..clr("~"..average_output_kW.."kW.",2),
@@ -398,9 +365,10 @@ COMMAND_parameters.info = function(pl)
     })
 end
 
--- Inaccurate! Maybe heat capacity of exchanger messes things up? Maybe also heat transfer?
--- Nauvis: Predicts 1020kW with 26.67 panels, but actually is 956kW with 27 panels. 6,3% error.
--- Gleba: Predicts 598kW with 120 panels but actually is just 561kw. 13% error.
+-- Inaccurate! Likely has something to do with the exchanger, which adds 250kJ of heat capacity
+-- to the network. About 18,5%, which is very close to the overestimation of 18,6%
+-- Nauvis: Predicts 1134kW with 27 panels, but it actually is 956kW. 18,6% error.
+-- Gleba: Predicts 960kW with 120 panels, but it actually is 468kW. 105% error. Hm.
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)

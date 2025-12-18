@@ -304,25 +304,40 @@ COMMAND_parameters.help = function(pl)
     })
 end
 
+--[[
+-- Various parameters:
+local ambient_temp     = 15   -- Default ambient temperature
+local base_heat_cap    = 50   -- Default panel heat capacity in kJ
+
+-- Panel temperature gain pr. cycle, before loss:
+local temp_gain_base = SETTING.panel_output_kW / base_heat_cap
+
+-- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
+local temp_loss_base = 0.005
+]]
+
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local sun_level = pl.surface.get_property("solar-power")
-    local temp_max_output   = temp_gain_base * (sun_level/100)
-    local temp_loss_target  = temp_loss_base * (SETTING.exchanger_temp - ambient_temp)
-    local net_output_target = temp_max_output - temp_loss_target
-    local efficiency        = net_output_target / temp_max_output
+    local sun_level        = pl.surface.get_property("solar-power")/100
+    local temp_gain_max    = temp_gain_base * (sun_level/100)
+    local temp_loss_target = temp_loss_base * (SETTING.exchanger_temp - ambient_temp)
+    local efficiency       = (temp_gain_max - temp_loss_target) / temp_gain_max
     local panels_num =
         SETTING.exchanger_output_kW / (SETTING.panel_output_kW * (sun_level/100) * efficiency)
-    local planets = {["vulcanus"] = "57.8%", ["nauvis"] = "33.7%", ["gleba"] = "3.9%"}
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
         "Ideal panel-to-exchanger ratio: "
       ..clr(round_number(panels_num,2)..":1", 2)..".",
-        "Expected power production day-cycle efficiency: "
-      ..clr(planets[pl.surface.name] or "unknown", 2).."."
+        "NB: Higher ratio also means lower efficiency, even below 0%! Power production",
+        "is barely possible on Gleba (with its 50% solar intensity) at default settings!"
     })
 end
+--[[
+    local planets = {["vulcanus"] = "57.8%", ["nauvis"] = "33.7%", ["gleba"] = "3.9%"}
+        "Expected power production day-cycle efficiency: "
+      ..clr(planets[pl.surface.name] or "unknown", 2).."."
+]]
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)

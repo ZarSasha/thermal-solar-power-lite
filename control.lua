@@ -373,6 +373,8 @@ COMMAND_parameters.info = function(pl)
     })
 end
 
+-- Veri inaccurate! Maybe heat capacity of exchanger messes things up? Maybe also heat transfer?
+
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
     if storage.panels ~= nil then

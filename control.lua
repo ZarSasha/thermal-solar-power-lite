@@ -88,24 +88,26 @@ end
 -- intensity, has compatibility for some mods.
 
 -- Various parameters:
-local ambient_temp     = 15   -- Default ambient temperature
-local base_heat_cap    = 50   -- Default panel heat capacity in kJ
+local ambient_temp        = 15   -- Default ambient temperature
+local base_heat_cap       = 50   -- Default panel heat capacity in kJ
+local real_heat_cap       = 50
 
 -- Panel temperature gain pr. cycle, before loss:
-local temp_gain_base = SETTING.panel_output_kW / base_heat_cap
-local temp_gain      = temp_gain_base * (script_frequency / 60)
+local temp_gain_rate_base = SETTING.panel_output_kW / base_heat_cap
+local temp_gain_rate_adj  = temp_gain_rate_base * (script_frequency / 60)
 
 -- Panel temperature loss pr. cycle, pr. degree above ambient temperature:
-local temp_loss_base = 0.005
-local temp_loss      = temp_loss_base * (script_frequency / 60)
+local temp_loss_rate_base = 0.005
+local temp_loss_rate_adj  = temp_loss_rate_base * (script_frequency / 60)
 
 -- Scaling of heat generation according to quality level:
-local q_scaling     = 0.15  -- finetuned to roughly match scaling of solar panels
+local q_scaling           = 0.15  -- finetuned to roughly match scaling of solar panels
 
 -- COMPATIBILITY: Pyanodon Coal Processing --
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
     temp_loss =  round_number(0.005 / ((250-ambient_temp)/(165-ambient_temp)), 4)
+    real_heat_cap = 100
 end
 
 -- COMPATIBILITY: More Quality Scaling --
@@ -139,9 +141,9 @@ local function update_panel_temperature()
         local q_factor    = 1 + (panel.quality.level * q_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
-        local temp_loss   = (panel.temperature - ambient_temp) * temp_loss
-        panel.temperature =
-            panel.temperature + temp_gain * light_corr * sun_mult * q_factor - temp_loss
+        local temp_gain   = temp_gain_rate_adj * light_corr * sun_mult * q_factor
+        local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_adj
+        panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
     -- Updates progress, if cycle is not yet finished:
@@ -285,7 +287,6 @@ local function clr(text, colorIndex)
     return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
-
 -- COMMAND PARAMETERS -----------------------------------------------------------------------------
 
 -- Table to be populated with functions, each with a name matching a command parameter.
@@ -308,6 +309,7 @@ end
 -- Various parameters:
 local ambient_temp     = 15   -- Default ambient temperature
 local base_heat_cap    = 50   -- Default panel heat capacity in kJ
+local real_heat_cap    = 50
 
 -- Panel temperature gain pr. cycle, before loss:
 local temp_gain_base = SETTING.panel_output_kW / base_heat_cap
@@ -316,11 +318,40 @@ local temp_gain_base = SETTING.panel_output_kW / base_heat_cap
 local temp_loss_base = 0.005
 ]]
 
+local function temp_simulator(player, temperature_target)
+    local panel = { temperature = temperature_target }
+    local day_length = player.surface.get_property("day-night-cycle")/3600
+    local total_excess = 0
+    for i = 1, day_length do
+        -- Simulation light levels:
+        local light_level
+        if i <= math.floor(0.20*day_length) then
+            light_level = -(5/day_length) * i + 2.25
+        elseif i > math.floor(0.20*day_length) and i <= math.floor(0.30*day_length) then
+            light_level = 0
+        elseif i > math.floor(0.30*day_length) and i <= math.floor(0.50*day_length) then
+            light_level = (5/day_length) * i - 2.75
+        elseif i > math.floor(0.50*day_length) then
+            light_level = 1
+        end
+        -- Calculates new temperature for each second of the simulated day:
+        local sun_mult    = player.surface.get_property("solar-power")/100
+        local temp_gain   = temp_gain_rate_adj * light_level * sun_mult
+        local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_adj
+        panel.temperature = panel.temperature + temp_gain - temp_loss
+        if panel.temperature > temperature_target then
+            total_excess = total_excess + (panel.temperature - temperature_target)
+            panel.temperature = temperature_target
+        end
+    end
+    return total_excess
+end
+
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
     local sun_level        = pl.surface.get_property("solar-power")
-    local temp_gain_max    = temp_gain_base * (sun_level/100)
-    local temp_loss_target = temp_loss_base * (SETTING.exchanger_temp - ambient_temp)
+    local temp_gain_max    = temp_gain_rate_base * (sun_level/100)
+    local temp_loss_target = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp)
     local efficiency       = (temp_gain_max - temp_loss_target) / temp_gain_max
     local panels_num =
         SETTING.exchanger_output_kW / (SETTING.panel_output_kW * (sun_level/100) * efficiency)
@@ -328,16 +359,16 @@ COMMAND_parameters.info = function(pl)
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
         "Ideal panel-to-exchanger ratio: "
-      ..clr(round_number(panels_num,2)..":1", 2)..".",
-        "NB: Higher ratio also means lower efficiency, even below 0%! Power production",
-        "is barely possible on Gleba (with its 50% solar intensity) at default settings!"
+      ..clr(round_number(panels_num,2)..":1", 2).."."
+    })
+    local ideal_heat_capacity = 250 + panels_num * real_heat_cap -- for exchanger + all panels
+    local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * ideal_heat_capacity
+    local day_length = pl.surface.get_property("day-night-cycle")/3600
+    local avg_output_kw = excess_energy / day_length
+    mPrint(pl, {
+        "Expected average output on this surface: "..avg_output_kw.."kW."
     })
 end
---[[
-    local planets = {["vulcanus"] = "57.8%", ["nauvis"] = "33.7%", ["gleba"] = "3.9%"}
-        "Expected power production day-cycle efficiency: "
-      ..clr(planets[pl.surface.name] or "unknown", 2).."."
-]]
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)

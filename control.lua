@@ -313,11 +313,18 @@ COMMAND_parameters.info = function(pl)
     local efficiency        = net_output_target / temp_max_output
     local panels_num =
         SETTING.exchanger_output_kW / (SETTING.panel_output_kW * (sun_level/100) * efficiency)
+    local planets = {
+        ["vulcanus"] = "57.8%",
+        ["nauvis"]   = "33.7%",
+        ["gleba"]    = "3.9%"
+    }
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
-        clr(round_number(panels_num,2),2).." panels per exchanger is appropriate on this surface."
+        clr(round_number(panels_num,2),2).." panels per exchanger is appropriate on this surface.",
+        "Expected power production efficiency: "..planets[pl.surface.name].."."
     })
+
 end
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.

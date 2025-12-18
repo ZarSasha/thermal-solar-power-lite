@@ -317,8 +317,10 @@ COMMAND_parameters.info = function(pl)
     mPrint(pl, {
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
-        "Ideal panel-to-exchanger ratio: "..clr(round_number(panels_num,2), 2),
-        "Expected power production efficiency: "..clr(planets[pl.surface.name], 2).."."
+        "Ideal panel-to-exchanger ratio: "
+      ..clr(round_number(panels_num,2), 2)..".",
+        "Expected power production efficiency: "
+      ..clr(planets[pl.surface.name] or "unknown", 2).."."
     })
 end
 

@@ -359,15 +359,17 @@ COMMAND_parameters.info = function(pl)
         "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
       ..clr(sun_level.."%",2)..".",
         "Ideal panel-to-exchanger ratio: "
-      ..clr(round_number(panels_num,2)..":1", 2).."."
+      ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
     })
-    local ideal_heat_capacity = panels_num * real_heat_cap -- all panels
-    local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * ideal_heat_capacity
+    local excess_energy = temp_simulator(pl, SETTING.exchanger_temp) * panels_num * base_heat_cap
     local day_length = pl.surface.get_property("day-night-cycle")/3600
     local avg_output_kw = round_number(excess_energy / day_length, 2)
     mPrint(pl, {
-        "Expected average output on this surface: "..avg_output_kw.."kW.",
-        "Efficiency: "..round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)),2).."%."
+        "Expected average output from ideal setup: Less than "
+      ..clr(avg_output_kw.."kW.",2),
+        "Expected efficiency in relation to power rating: Less than "
+      ..clr(round_number((100*avg_output_kw/(panels_num * SETTING.panel_output_kW)),2)
+      .."%",2).."."
     })
 end
 

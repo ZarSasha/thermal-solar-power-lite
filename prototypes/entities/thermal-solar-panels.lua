@@ -43,7 +43,7 @@ local hr_panel_disconnection_sprites = {
 local heat_capacity_kJ = 50
 if MOD.PY_COAL_PROCESSING then
     -- Compensates for halved steam conversion efficiency:
-    heat_capacity_kJ = 50 * 2
+    heat_capacity_kJ = 100
     -- Note: Runtime script also adapted for 250°C steam, if option is selected.
 end
 

@@ -309,13 +309,6 @@ end
 -- with adjustments for day length and solar intensity. Assumes that panels have already warmed up
 -- to exchanger target temperature.
 local function temp_simulator(sun_mult, day_length)
-    -- Calculates optimal panel to exchanger ratio, for easy dimensioning of thermal complex.
-    local temp_gain_max    = temp_gain_rate_base * sun_mult
-    local temp_loss_target = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp)
-    local efficiency       = (temp_gain_max - temp_loss_target) / temp_gain_max
-    local panels_num =
-        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * efficiency)
-
     -- Determines several values through simulation of a full day cycle.
     local excess_temp_units = 0
     for i = 1, day_length do
@@ -336,6 +329,7 @@ local function temp_simulator(sun_mult, day_length)
         local temp_gain   = temp_gain_rate_base * light_level * sun_mult
         local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_base
         panel.temperature = panel.temperature + temp_gain - temp_loss
+        -- Transfers excess to another variable:
         if panel.temperature > temp_target then
             excess_temp_units = excess_temp_units + (panel.temperature - temp_target)
             panel.temperature = temp_target
@@ -343,12 +337,10 @@ local function temp_simulator(sun_mult, day_length)
     end
     -- Returns total heat output in kJ which can be converted into steam at target temperature.
     local excess_heat = excess_temp_units * real_heat_cap_kJ
-    local heat_correction =
-        round_number((panels_num * real_heat_cap_kJ) / (panels_num * real_heat_cap_kJ + 250),2)
-    local average_output_kW = round_number((excess_heat / day_length) * heat_correction, 2)
+    local average_output_kW = round_number((excess_heat / day_length), 2)
     local efficiency_pc = round_number(((average_output_kW / SETTING.panel_output_kW) * 100),1)
     --
-    return panels_num, average_output_kW, efficiency_pc
+    return average_output_kW, efficiency_pc
 end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
@@ -356,7 +348,10 @@ COMMAND_parameters.info = function(pl)
     local surface_name     = pl.surface.name
     local sun_mult        = pl.surface.get_property("solar-power")/100
     local day_length       = pl.surface.get_property("day-night-cycle")/60
-    local panels_num, average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
+    local max_day_eff = (temp_gain_rate_base - temp_loss_rate_base) / temp_gain_rate_base
+    local average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
+    local panels_num  =
+        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_day_eff)
     mPrint(pl, {
         "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
       ..". Day-length: "..clr(day_length.." seconds",2)..".",

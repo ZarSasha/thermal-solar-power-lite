@@ -308,7 +308,7 @@ end
 -- Helper function to calculate heat energy that may be converted into steam. Simulates a day cycle
 -- with adjustments for day length and solar intensity. Assumes that panels have already warmed up
 -- to exchanger target temperature.
-local function temp_simulator(player, sun_mult, day_length)
+local function temp_simulator(sun_mult, day_length)
     local excess_temp_units = 0
     for i = 1, day_length do
         -- Simulates the progression of light levels of a day, one second at a time:
@@ -334,10 +334,11 @@ local function temp_simulator(player, sun_mult, day_length)
         end
     end
     -- Returns total heat output in kJ which can be converted into steam at target temperature.
-        local excess_heat = excess_temp_units * real_heat_cap_kJ
-        local average_output_kW = round_number(excess_heat / day_length)
-        local efficiency_pc = round_number(((average_output_kW / SETTING.panel_output_kW) * 100),1)
-        return average_output_kW, efficiency_pc
+    local excess_heat = excess_temp_units * real_heat_cap_kJ
+    local average_output_kW = round_number(excess_heat / day_length)
+    local efficiency_pc = round_number(((average_output_kW / SETTING.panel_output_kW) * 100),1)
+
+    return average_output_kW, efficiency_pc
 end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
@@ -356,7 +357,7 @@ COMMAND_parameters.info = function(pl)
         "Ideal panel-to-exchanger ratio: "
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
     })
-    local average_output_kW, efficiency_pc = temp_simulator(pl, sun_mult, day_length)
+    local average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
     mPrint(pl, {
         "Expected average output "
       ..clr("~"..average_output_kW.."kW.",2),

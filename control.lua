@@ -308,7 +308,7 @@ end
 -- Helper function to calculate heat energy that may be converted into steam. Simulates a day cycle
 -- with adjustments for day length and solar intensity. Assumes that panels have already warmed up
 -- to exchanger target temperature.
-local function temp_simulator(sun_mult, day_length)
+local function temp_simulator(panels_num, sun_mult, day_length)
     -- Determines several values through simulation of a full day cycle.
     local temp_target = SETTING.exchanger_temp
     local panel = { temperature = temp_target }
@@ -325,9 +325,19 @@ local function temp_simulator(sun_mult, day_length)
         elseif i >= math.floor(0.50*day_length) then
             light_level = 1
         end
-        -- Calculates new temperature for each second of the simulated day:     
-        local temp_gain   = temp_gain_rate_base * light_level * sun_mult
-        local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_base
+        -- Calculates new temperature for each second of the simulated day:
+        local panels_heat_cap_kJ  = 50 * panels_num
+        local network_heat_cap_kJ =  panels_heat_cap_kJ + 250
+        local panel_loss_X    = 0.005
+
+        local heat_gain = SETTING.panel_output_kW * light_level * sun_mult
+        local heat_loss = (panel.temperature - ambient_temp) * panel_loss_X * panels_heat_cap_kJ
+
+        -- Note: More mass means less temp loss but more heat energy loss, since temp is kept
+        -- high for a longer time. Remember, higher temp, more heat dissipation!
+
+        local temp_gain   = heat_gain / network_heat_cap_kJ
+        local temp_loss   = heat_loss / panels_heat_cap_kJ
         local temp_change = temp_gain - temp_loss
         panel.temperature = panel.temperature + temp_change
         -- Transfers excess to another variable:
@@ -338,7 +348,7 @@ local function temp_simulator(sun_mult, day_length)
     end
     -- Returns total heat output in kJ which can be converted into steam at target temperature.
     local excess_heat_kJ = excess_temp_units * real_heat_cap_kJ
-    local average_output_kW = round_number((excess_heat_kJ / day_length), 2)
+    local average_output_kW = round_number((excess_heat_kJ / (day_length * panels_num)), 2)
     local efficiency_pc = round_number(((average_output_kW / SETTING.panel_output_kW) * 100),1)
     --
     return average_output_kW, efficiency_pc
@@ -354,7 +364,7 @@ COMMAND_parameters.info = function(pl)
     local max_eff_day   = (temp_gain_day - temp_loss_day) / temp_gain_day
     local panels_num    =
         SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_eff_day)
-    local average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
+    local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
     mPrint(pl, {
         "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
       ..". Day-length: "..clr(day_length.." seconds",2)..".",

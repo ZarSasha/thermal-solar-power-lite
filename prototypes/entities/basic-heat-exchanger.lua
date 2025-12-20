@@ -20,13 +20,13 @@ if SETTING.exchanger_color == true then
     BasicHeatEx.pictures.west .structure.layers[1].filename = path .. hr .. "W.png"
     BasicHeatEx.corpse = "basic-heat-exchanger-remnants"
 end
---[[
+
 -- COMPATIBILITY for Pyanodon Coal Processing --
 local heat_capacity_kJ = 250 -- kJ, vanilla: 1MJ
 if MOD.PY_COAL_PROCESSING then
     heat_capacity_kJ = 500
 end
-]]
+
 -- PROPERTIES --
 BasicHeatEx.name = "tspl-basic-heat-exchanger"
 BasicHeatEx.icon = GRAPHICS_ICONS.."basic-heat-exchanger.png"

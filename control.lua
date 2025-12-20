@@ -146,7 +146,7 @@ local function update_panel_temperature()
             ((SETTING.panel_output_kW * script_frequency) / panel_param.heat_cap_kJ) *
             light_corr * sun_mult * q_factor
         local temp_loss   =
-             (panel.temp_loss_factor * script_frequency) *
+             (panel_param.temp_loss_factor * script_frequency) *
              (panel.temperature - env_param.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::

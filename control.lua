@@ -391,11 +391,10 @@ COMMAND_parameters.info = function(pl)
     c.surface_name        = clr(capitalizeFirstLetter(surface_name),2)
     c.sun_mult            = clr(sun_mult * 100 .. "%",2)
     c.daylength_sec       = clr(daylength_sec .. " seconds",2) or clr("N/A",2)
-    c.max_efficiency_pc   = clr(round_number(max_efficiency * 100, 2) .. "%",2)
     c.panel_max_output_kW = clr(max_output_kW .. "kW",2)
     c.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
     c.panels_ratio        = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
-    
+
     if daylength_sec == 0 or daylength_sec == nil then c.daylength_sec = clr("N/A",2) end
     if max_efficiency < 0 then c.panels_ratio = clr("N/A",2) end
 
@@ -405,16 +404,9 @@ COMMAND_parameters.info = function(pl)
       .."Day cycle length: "..c.daylength_sec..".",
         "Panel maximum/nominal output (relative efficiency): "
       ..c.panel_max_output_kW.." / "
-      ..c.panel_nom_output_kW.." ("
-      ..c.max_efficiency_pc..").",
+      ..c.panel_nom_output_kW..".",
         "Ideal panel-to-exchanger ratio: "
       ..c.panels_ratio.."."
-
-    --local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
-      --  "Expected average output: "
-      --..clr("~"..average_output_kW.."kW.",2),
-      --  "Expected efficiency: "
-      --..clr("~"..efficiency_pc.."%",2).."."
     })
 end
 

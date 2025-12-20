@@ -384,11 +384,12 @@ COMMAND_parameters.info = function(pl)
     mPrint(pl, {
         "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
       ..". Day-length: "..clr(day_length.." seconds",2)..".",
-        "Max. panel efficiency: "..clr((max_eff_day*100).."%",2)..".",
-        "Max panel output during the day: "..clr(max_output_day.."kW",2)
-      .."("..clr((max_eff_day*100).."%",2).." max efficiency).",
-        "Ideal panel-to-exchanger ratio: "
+        "Thermal solar panel nominal/maximum output on this surface: "
+      ..clr(SETTING.panel_output_kW.."kW",2).." / "..clr(round_number(max_output_day,2).."kW")
+      .." ("..clr(round_number(max_eff_day*100,2).."%",2)..").",
+        "Ideal panel-to-exchanger ratio for this surface : "
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
+
       --  "Expected average output: "
       --..clr("~"..average_output_kW.."kW.",2),
       --  "Expected efficiency: "

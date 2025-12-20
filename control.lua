@@ -311,30 +311,6 @@ COMMAND_parameters.help = function(pl)
 end
 
 --[[
--- The shared string component of all thermal panel names, including those of any clones:
-local panel_name_base = "tspl-thermal-solar-panel"
-
--- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local script_tick_interval = 60
-local script_frequency = (script_tick_interval/60)
-
--- Environmental parameters (set by game):
-local env_param = {
-    light_const  = 0.85, -- Highest level of "surface darkness" (default range: 0-0.85)
-    ambient_temp = 15    -- Default ambient temperature
-}
-
-local panel_param = {
-    heat_cap_kJ      = 50,
-    temp_loss_factor = 0.005,
-    quality_scaling  = 0.15
-}
-
-local exchanger_param = {
-    heat_cap_kJ = 250
-}
-]]
-
 -- Helper function to calculate heat energy that may be converted into steam. Simulates a day cycle
 -- with adjustments for day length and solar intensity. Assumes that panels have already warmed up
 -- to exchanger target temperature.
@@ -384,33 +360,40 @@ local function temp_simulator(panels_num, sun_mult, day_length)
     return average_output_kW, efficiency_pc
 end
 
--- "info": Provides some info about the thermal solar panels on the current surface.
-COMMAND_parameters.info = function(pl)
-    local surface_name  = pl.surface.name
-    local sun_mult      = pl.surface.get_property("solar-power")/100
-    local day_length    = pl.surface.get_property("day-night-cycle")/60
-    local temp_gain_day = temp_gain_rate_base * sun_mult
-    local temp_loss_day = temp_loss_rate_base * (SETTING.exchanger_temp - env.ambient_temperature) -- at target
-    local max_eff_day   = (temp_gain_day - temp_loss_day) / temp_gain_day
-    local panels_num    =
-        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_eff_day)
-    local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
-    mPrint(pl, {
-        "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
-      ..". Day-length: "..clr(day_length.." seconds",2)..".",
-        "Ideal panel-to-exchanger ratio: "
-      ..clr(round_number(panels_num,2),2)..":"..clr("1",2)..".",
-        "Expected average output: "
-      ..clr("~"..average_output_kW.."kW.",2),
-        "Expected efficiency: "
-      ..clr("~"..efficiency_pc.."%",2).."."
-    })
-end
-
 -- Inaccurate! Likely has something to do with the exchanger, which adds 250kJ of heat capacity
 -- to the network. About 18,5%, which is very close to the overestimation of 18,6%
 -- Nauvis: Predicts 1134kW with 27 panels, but it actually is 956kW. 18,6% error.
 -- Gleba: Predicts 960kW with 120 panels, but it actually is 468kW. 105% error. Hm.
+]]
+
+-- "info": Provides some info about the thermal solar panels on the current surface.
+COMMAND_parameters.info = function(pl)
+    local surface_name   = pl.surface.name
+    local sun_mult       = pl.surface.get_property("solar-power")/100
+    local day_length     = pl.surface.get_property("day-night-cycle")/60
+    local temp_gain_day  =
+        (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
+    local temp_loss_day  =
+        panel_param.temp_loss_factor * (SETTING.exchanger_temp - env.ambient_temperature)
+    local max_eff_day    = (temp_gain_day - temp_loss_day) / temp_gain_day
+    local max_output_day = SETTING.panel_output_kW * sun_mult * max_eff_day
+    local panels_num     =
+        SETTING.exchanger_output_kW / max_output_day
+    --local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
+    mPrint(pl, {
+        "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
+      ..". Day-length: "..clr(day_length.." seconds",2)..".",
+        "Max. panel efficiency: "..clr((max_eff_day*100).."%",2)..".",
+        "Max panel output during the day: "..clr(max_output_day.."kW",2)
+      .."("..clr(max_eff_day*100.."%",2).." max efficiency).",
+        "Ideal panel-to-exchanger ratio: "
+      ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
+      --  "Expected average output: "
+      --..clr("~"..average_output_kW.."kW.",2),
+      --  "Expected efficiency: "
+      --..clr("~"..efficiency_pc.."%",2).."."
+    })
+end
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)

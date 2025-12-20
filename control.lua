@@ -371,7 +371,7 @@ end
 COMMAND_parameters.info = function(pl)
     local surface_name   = pl.surface.name
     local sun_mult       = pl.surface.get_property("solar-power")/100
-    local day_length     = pl.surface.get_property("day-night-cycle")/60
+    local day_length     = pl.surface.get_property("day-night-cycle")/60 or "N/A" -- seconds
     local temp_gain_day  =
         (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_loss_day  =
@@ -380,16 +380,17 @@ COMMAND_parameters.info = function(pl)
     local max_output_day = SETTING.panel_output_kW * sun_mult * max_eff_day
     local panels_num     =
         SETTING.exchanger_output_kW / max_output_day
-    --local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
     mPrint(pl, {
-        "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
-      ..". Day-length: "..clr(day_length.." seconds",2)..".",
-        "Thermal solar panel nominal/maximum output on this surface: "
-      ..clr(SETTING.panel_output_kW.."kW",2).." / "..clr(round_number(max_output_day,2).."kW",2)
-      .." ("..clr(round_number(max_eff_day*100,2).."%",2)..").",
-        "Ideal panel-to-exchanger ratio for this surface : "
-      ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
+        "Surface: "..clr(surface_name,2)..". "
+      .."Solar intensity: "..clr((sun_mult*100).."%",2).."."
+      .."Day cycle length: "..clr(day_length.." seconds",2)..".",
+        "Thermal solar panel maximum/nominal output: "
+      ..clr(max_output_day.."kW",2).." / "..clr(round_number(SETTING.panel_output_kW,2).."kW",2)
+      .." ("..clr("~"..round_number(max_eff_day*100,1).."%",2)..").",
+        "Ideal panel-to-exchanger ratio: "
+      ..clr("~"..round_number(panels_num,2),2).." : "..clr("1",2).."."
 
+    --local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
       --  "Expected average output: "
       --..clr("~"..average_output_kW.."kW.",2),
       --  "Expected efficiency: "

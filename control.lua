@@ -310,6 +310,8 @@ end
 -- to exchanger target temperature.
 local function temp_simulator(sun_mult, day_length)
     -- Determines several values through simulation of a full day cycle.
+    local temp_target = SETTING.exchanger_temp
+    local panel = { temperature = temp_target }
     local excess_temp_units = 0
     for i = 1, day_length do
         -- Simulates the progression of light levels of a day, one second at a time:
@@ -323,12 +325,11 @@ local function temp_simulator(sun_mult, day_length)
         elseif i >= math.floor(0.50*day_length) then
             light_level = 1
         end
-        -- Calculates new temperature for each second of the simulated day:
-        local temp_target = SETTING.exchanger_temp
-        local panel = { temperature = temp_target }
+        -- Calculates new temperature for each second of the simulated day:     
         local temp_gain   = temp_gain_rate_base * light_level * sun_mult
         local temp_loss   = (panel.temperature - ambient_temp) * temp_loss_rate_base
-        panel.temperature = panel.temperature + temp_gain - temp_loss
+        local temp_change = temp_gain - temp_loss
+        panel.temperature = panel.temperature + temp_change
         -- Transfers excess to another variable:
         if panel.temperature > temp_target then
             excess_temp_units = excess_temp_units + (panel.temperature - temp_target)
@@ -349,11 +350,11 @@ COMMAND_parameters.info = function(pl)
     local sun_mult      = pl.surface.get_property("solar-power")/100
     local day_length    = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day = temp_gain_rate_base * sun_mult
-    local temp_loss_day = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp)
+    local temp_loss_day = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp) -- at target
     local max_eff_day   = (temp_gain_day - temp_loss_day) / temp_gain_day
-    local average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
     local panels_num    =
-        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_eff_day)
+        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_eff_day) -- needed for constant daytime! FIX!
+    local average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
     mPrint(pl, {
         "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)
       ..". Day-length: "..clr(day_length.." seconds",2)..".",

@@ -402,7 +402,7 @@ COMMAND_parameters.info = function(pl)
         "Surface: "..c.surface_name..". "
       .."Solar intensity: "..c.sun_mult..". "
       .."Day cycle length: "..c.daylength_sec..".",
-        "Panel maximum/nominal output (relative efficiency): "
+        "Panel maximum/nominal output: "
       ..c.panel_max_output_kW.." / "
       ..c.panel_nom_output_kW..".",
         "Ideal panel-to-exchanger ratio: "

@@ -139,7 +139,7 @@ local function update_panel_temperature()
             goto continue
         end
         -- Calculates and applies temperature change to panel:
-        local q_factor    = 1 + (panel.quality.level * panel_param.q_scaling)
+        local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env_param.light_const - panel.surface.darkness) / env_param.light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
         local temp_gain   =

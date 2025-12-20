@@ -375,7 +375,7 @@ COMMAND_parameters.info = function(pl)
     local temp_gain_day  =
         (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_loss_day  =
-        panel_param.temp_loss_factor * (SETTING.exchanger_temp - env_param.ambient_temperature)
+        panel_param.temp_loss_factor * (SETTING.exchanger_temp - env_param.ambient_temp)
     local max_eff_day    = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_day = SETTING.panel_output_kW * sun_mult * max_eff_day
     local panels_num     =

@@ -353,7 +353,7 @@ COMMAND_parameters.info = function(pl)
     local temp_loss_day = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp) -- at target
     local max_eff_day   = (temp_gain_day - temp_loss_day) / temp_gain_day
     local panels_num    =
-        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_eff_day) -- needed for constant daytime! FIX!
+        SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_eff_day)
     local average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
     mPrint(pl, {
         "Surface: "..clr(surface_name,2)..". Solar intensity: "..clr((sun_mult*100).."%",2)

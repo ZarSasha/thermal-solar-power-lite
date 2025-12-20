@@ -398,7 +398,7 @@ COMMAND_parameters.info = function(pl)
     mPrint(pl, {
         "Surface: "..clr(surface_name,2)..". "
       .."Solar intensity: "..clr(c.sun_mult,2)..". "
-      .."Day cycle length: "..clr(c.daylength,2)..".",
+      .."Day cycle length: "..clr(c.daylength_sec,2)..".",
         "Thermal solar panel maximum/nominal output: "
       ..clr(c.panel_max_output_kW,2).." / "..clr(c.panel_nom_output_kW,2)
       .." ("..clr(c.max_eff_day_pc,2)..").",

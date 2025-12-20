@@ -396,6 +396,7 @@ COMMAND_parameters.info = function(pl)
     c.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
     c.panels_ratio        = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
     
+    if daylength_sec == 0 or daylength_sec == nil then c.daylength_sec = clr("N/A",2) end
     if max_efficiency < 0 then c.panels_ratio = clr("N/A",2) end
 
     mPrint(pl, {
@@ -405,7 +406,7 @@ COMMAND_parameters.info = function(pl)
         "Thermal solar panel maximum/nominal output: "
       ..c.panel_max_output_kW.." / "..c.panel_nom_output_kW.." ("..c.max_efficiency_pc..").",
         "Ideal panel-to-exchanger ratio: "
-      ..c.panels_ratio
+      ..c.panels_ratio.."."
 
     --local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
       --  "Expected average output: "

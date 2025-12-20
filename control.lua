@@ -166,7 +166,8 @@ local function activate_sunlight_indicator(entity)
     if entity == nil then return end -- checks that GUI is associated with an entity!
     if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
-    local light_corr = (env.surface_darkness - entity.surface.darkness) / env.surface_darkness
+    local light_corr =
+        (env_param.surface_darkness - entity.surface.darkness) / env_param.surface_darkness
     if light_corr <= 0 then return end
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
     entity.insert_fluid{
@@ -374,7 +375,7 @@ COMMAND_parameters.info = function(pl)
     local temp_gain_day  =
         (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_loss_day  =
-        panel_param.temp_loss_factor * (SETTING.exchanger_temp - env.ambient_temperature)
+        panel_param.temp_loss_factor * (SETTING.exchanger_temp - env_param.ambient_temperature)
     local max_eff_day    = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_day = SETTING.panel_output_kW * sun_mult * max_eff_day
     local panels_num     =
@@ -385,7 +386,7 @@ COMMAND_parameters.info = function(pl)
       ..". Day-length: "..clr(day_length.." seconds",2)..".",
         "Max. panel efficiency: "..clr((max_eff_day*100).."%",2)..".",
         "Max panel output during the day: "..clr(max_output_day.."kW",2)
-      .."("..clr(max_eff_day*100.."%",2).." max efficiency).",
+      .."("..clr((max_eff_day*100).."%",2).." max efficiency).",
         "Ideal panel-to-exchanger ratio: "
       ..clr(round_number(panels_num,2),2)..":"..clr("1",2).."."
       --  "Expected average output: "

@@ -32,9 +32,11 @@ local panel_param = {
     quality_scaling  = 0.15
 }
 
+--[[
 local exchanger_param = {
     heat_cap_kJ = 250
 }
+]]
 
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON INIT AND CONFIGURATION CHANGED)

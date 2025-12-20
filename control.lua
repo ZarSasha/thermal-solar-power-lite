@@ -349,7 +349,8 @@ COMMAND_parameters.info = function(pl)
     local sun_mult      = pl.surface.get_property("solar-power")/100
     local day_length    = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day = temp_gain_rate_base * sun_mult
-    local max_eff_day   = (temp_gain_day - temp_loss_rate_base) / temp_gain_day
+    local temp_loss_day = temp_loss_rate_base * (SETTING.exchanger_temp - ambient_temp)
+    local max_eff_day   = (temp_gain_day - temp_loss_day) / temp_gain_day
     local average_output_kW, efficiency_pc = temp_simulator(sun_mult, day_length)
     local panels_num    =
         SETTING.exchanger_output_kW / (SETTING.panel_output_kW * sun_mult * max_eff_day)

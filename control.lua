@@ -381,29 +381,31 @@ COMMAND_parameters.info = function(pl)
         (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_loss_day  =
         panel_param.temp_loss_factor * (SETTING.exchanger_temp - env_param.ambient_temp)
-    local max_eff_day    = (temp_gain_day - temp_loss_day) / temp_gain_day
-    local max_output_kW = SETTING.panel_output_kW * sun_mult * max_eff_day
+    local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
+    local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
+    local nom_output_kw  = SETTING.panel_output_kW
     local panels_num     =
         SETTING.exchanger_output_kW / max_output_kW
 
     local c = {}
-    c.surface_name        = capitalizeFirstLetter(surface_name)
-    c.sun_mult            = sun_mult * 100 .. "%"
-    c.daylength_sec       = daylength_sec .. " seconds" or "N/A"
-    c.max_eff_day_pc      = round_number(max_eff_day * 100, 2) .. "%"
-    c.panel_max_output_kW = max_output_kW .. "kW"
-    c.panel_nom_output_kW = round_number(SETTING.panel_output_kW,2)
-    c.panels_num          = max_eff_day > 0 and round_number(panels_num, 2) or "∞"
+    c.surface_name        = clr(capitalizeFirstLetter(surface_name),2)
+    c.sun_mult            = clr(sun_mult * 100 .. "%",2)
+    c.daylength_sec       = clr(daylength_sec .. " seconds",2) or clr("N/A",2)
+    c.max_efficiency_pc   = clr(round_number(max_efficiency * 100, 2) .. "%",2)
+    c.panel_max_output_kW = clr(max_output_kW .. "kW",2)
+    c.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
+    c.panels_ratio        = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
+    
+    if max_efficiency < 0 then c.panels_ratio = clr("N/A",2) end
 
     mPrint(pl, {
-        "Surface: "..clr(surface_name,2)..". "
-      .."Solar intensity: "..clr(c.sun_mult,2)..". "
-      .."Day cycle length: "..clr(c.daylength_sec,2)..".",
+        "Surface: "..c.surface_name..". "
+      .."Solar intensity: "..c.sun_mult..". "
+      .."Day cycle length: "..c.daylength_sec..".",
         "Thermal solar panel maximum/nominal output: "
-      ..clr(c.panel_max_output_kW,2).." / "..clr(c.panel_nom_output_kW,2)
-      .." ("..clr(c.max_eff_day_pc,2)..").",
+      ..c.panel_max_output_kW.." / "..c.panel_nom_output_kW.." ("..c.max_eff_day_pc..").",
         "Ideal panel-to-exchanger ratio: "
-      ..clr(c.panels_num,2).." : "..clr("1",2).."."
+      ..c.panels_ratio
 
     --local average_output_kW, efficiency_pc = temp_simulator(panels_num, sun_mult, day_length)
       --  "Expected average output: "

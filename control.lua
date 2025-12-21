@@ -370,8 +370,6 @@ end
 -- This, too, may be wrong. Gotta check again.
 ]]
 
-local surfaces = {"nauvis", "gleba", "vulcanus"}
-
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
     local surface_name   = pl.surface.name

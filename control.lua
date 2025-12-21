@@ -17,11 +17,11 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local script_tick_interval = 60
-local script_frequency = (script_tick_interval/60)
+local tick_interval = 60
+local tick_frequency = (tick_interval/60)
 
 -- Environmental parameters (set by game):
-local env_param = {
+local env = {
     light_const  = 0.85, -- Highest level of "surface darkness" (default range: 0-0.85)
     ambient_temp = 15    -- Default ambient temperature
 }
@@ -39,7 +39,7 @@ local exchanger_param = {
 ]]
 
 ---------------------------------------------------------------------------------------------------
-    -- STORAGE TABLE CREATION (ON INIT AND CONFIGURATION CHANGED)
+    -- STORAGE TABLE CREATION (ON INIT AND ON CONFIGURATION CHANGED)
 ---------------------------------------------------------------------------------------------------
 -- Values that can't simply be recalcuated should be stored so they can persist through the
 -- save/load cycle. All variables below are used by the "on_tick" heat-generating script.
@@ -79,7 +79,7 @@ end
 --   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,vulcanus]]",
 
 ---------------------------------------------------------------------------------------------------
-    -- CYCLICAL REGISTER UPDATE (ON TICK)
+    -- ENTITY REGISTER UPDATE (ON TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
 -- To keep the main table intact during a cycle that spans several game ticks, changes have to be
 -- stored temporarily before being used to update the main array.
@@ -95,11 +95,11 @@ local function update_storage_register()
     -- Resets status for completion of cycle, calculates batch size for the next one (they are
     -- processed on all ticks except 1 reserved for the above):
     panels.complete = false
-    panels.batch_size = math.max(math.ceil(#panels.main / ((script_tick_interval - 1))),1)
+    panels.batch_size = math.max(math.ceil(#panels.main / ((tick_interval - 1))),1)
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- HEAT GENERATION (ON TICK)
+    -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
 ---------------------------------------------------------------------------------------------------
 -- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
 -- it in proportion to current temperature above ambient level. Adjusted for quality and solar 
@@ -109,7 +109,7 @@ end
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
     panel_param.temp_loss_factor =
-        round_number(0.005 / ((250-env_param.ambient_temp)/(165-env_param.ambient_temp)), 4)
+        round_number(0.005 / ((250-env.ambient_temp)/(165-env.ambient_temp)), 4)
     panel_param.heat_cap_kJ = 100
 end
 
@@ -142,14 +142,14 @@ local function update_panel_temperature()
         end
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
-        local light_corr  = (env_param.light_const - panel.surface.darkness) / env_param.light_const
+        local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
         local temp_gain   =
-            ((SETTING.panel_output_kW * script_frequency) / panel_param.heat_cap_kJ) *
+            ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
             light_corr * sun_mult * q_factor
         local temp_loss   =
-             (panel_param.temp_loss_factor * script_frequency) *
-             (panel.temperature - env_param.ambient_temp)
+             (panel_param.temp_loss_factor * tick_frequency) *
+             (panel.temperature - env.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
@@ -169,7 +169,7 @@ local function activate_sunlight_indicator(entity)
     if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
     local light_corr =
-        (env_param.surface_darkness - entity.surface.darkness) / env_param.surface_darkness
+        (env.surface_darkness - entity.surface.darkness) / env.surface_darkness
     if light_corr <= 0 then return end
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
     entity.insert_fluid{
@@ -232,7 +232,7 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % script_tick_interval == 3 then -- not 0, to reduce risk over overlap
+    if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
         update_storage_register()  -- within 1 tick
     elseif not storage.panels.complete then
         update_panel_temperature() -- within all but the 1 tick above
@@ -380,33 +380,33 @@ COMMAND_parameters.info = function(pl)
     local sun_mult       = pl.surface.get_property("solar-power")/100
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
-    local temp_diff      = SETTING.exchanger_temp - env_param.ambient_temp
-    local temp_loss_day  = panel_param.temp_loss_factor * temp_diff
+    local temp_adj      = SETTING.exchanger_temp - env.ambient_temp
+    local temp_loss_day  = panel_param.temp_loss_factor * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kw  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / max_output_kW
 
-    local c = {}
-    c.surface_name        = clr(capitalizeFirstLetter(surface_name),2)
-    c.sun_mult            = clr(sun_mult * 100 .. "%",2)
-    c.daylength_sec       = clr(daylength_sec .. " seconds",2) or clr("N/A",2)
-    c.panel_max_output_kW = clr(max_output_kW .. "kW",2)
-    c.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
-    c.panels_ratio        = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
+    local console = {}
+    console.surface_name        = clr(capitalizeFirstLetter(surface_name),2)
+    console.sun_mult            = clr(sun_mult * 100 .. "%",2)
+    console.daylength_sec       = clr(daylength_sec .. " seconds",2) or clr("N/A",2)
+    console.panel_max_output_kW = clr(max_output_kW .. "kW",2)
+    console.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
+    console.panels_ratio        = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
 
-    if daylength_sec == 0 or daylength_sec == nil then c.daylength_sec = clr("N/A",2) end
-    if max_efficiency < 0 then c.panels_ratio = clr("N/A",2) end
+    if daylength_sec == 0 or daylength_sec == nil then console.daylength_sec = clr("N/A",2) end
+    if max_efficiency < 0 then console.panels_ratio = clr("N/A",2) end
 
     mPrint(pl, {
-        "Surface: "..c.surface_name..". "
-      .."Solar intensity: "..c.sun_mult..". "
-      .."Day cycle length: "..c.daylength_sec..".",
+        "Surface: "..console.surface_name..". "
+      .."Solar intensity: "..console.sun_mult..". "
+      .."Day cycle length: "..console.daylength_sec..".",
         "Panel maximum/nominal output: "
-      ..c.panel_max_output_kW.." / "
-      ..c.panel_nom_output_kW..".",
+      ..console.panel_max_output_kW.." / "
+      ..console.panel_nom_output_kW..".",
         "Ideal panel-to-exchanger ratio: "
-      ..c.panels_ratio.."."
+      ..console.panels_ratio.."."
     })
 end
 
@@ -438,7 +438,7 @@ end
 COMMAND_parameters.reset = function(pl)
     reset_thermal_panels()
     mPrint(pl, {
-        "'storage.panels.main' was reset and rebuilt!",
+        "'storage.panels.main' was reset and its content rebuilt!",
         "Any remaining solar-fluid was removed as well."
     })
 end
@@ -462,8 +462,8 @@ COMMAND_parameters.unlock = function(pl)
         table.insert(icons, "[img=item."..item.."]")
     end
     mPrint(pl, {
-        "Recipes for all entities from this mod ( "..table.concat(icons," ").." ) were "
-      .."forcefully unlocked and had their visibility restored (hopefully)!"
+        "Recipes for all entities from this mod ( "..table.concat(icons," ").." )",
+        "were forcefully unlocked and had their visibility restored (hopefully)!"
     })
 end
 

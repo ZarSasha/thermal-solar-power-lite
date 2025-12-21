@@ -295,11 +295,6 @@ local function clr(text, colorIndex)
     return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
--- Capitalizes first letter in a string, if it is a lowercase letter.
-local function capitalizeFirstLetter(str)
-    return (str:gsub("^%l", string.upper))
-end
-
 -- COMMAND PARAMETERS -----------------------------------------------------------------------------
 
 -- Table to be populated with functions, each with a name matching a command parameter.
@@ -372,7 +367,10 @@ end
 -- to the network. About 18,5%, which is very close to the overestimation of 18,6%
 -- Nauvis: Predicts 1134kW with 27 panels, but it actually is 956kW. 18,6% error.
 -- Gleba: Predicts 960kW with 120 panels, but it actually is 468kW. 105% error. Hm.
+-- This, too, may be wrong. Gotta check again.
 ]]
+
+local surfaces = {"nauvis", "gleba", "vulcanus"}
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
@@ -388,18 +386,27 @@ COMMAND_parameters.info = function(pl)
     local panels_num     = SETTING.exchanger_output_kW / max_output_kW
 
     local console = {}
-    console.surface_name        = clr(capitalizeFirstLetter(surface_name),2)
+
+    console.surface_name        = clr(surface_name,2)
     console.sun_mult            = clr(sun_mult * 100 .. "%",2)
-    console.daylength_sec       = clr(daylength_sec .. " seconds",2) or clr("N/A",2)
+
+    if daylength_sec > 0 and daylength_sec ~= nil then
+        console.daylength_sec = clr(daylength_sec .. " seconds",2)
+    else
+        console.daylength_sec = clr("N/A",2)
+    end
+
     console.panel_max_output_kW = clr(max_output_kW .. "kW",2)
     console.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
-    console.panels_ratio        = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
 
-    if daylength_sec == 0 or daylength_sec == nil then console.daylength_sec = clr("N/A",2) end
-    if max_efficiency < 0 then console.panels_ratio = clr("N/A",2) end
+    if max_efficiency > 0 then
+        console.panels_ratio = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
+    else
+        console.panels_ratio = clr("N/A",2)
+    end
 
     mPrint(pl, {
-        "Surface: "..console.surface_name..". "
+        "Surface name ID: "..console.surface_name..". "
       .."Solar intensity: "..console.sun_mult..". "
       .."Day cycle length: "..console.daylength_sec..".",
         "Panel maximum/nominal output: "

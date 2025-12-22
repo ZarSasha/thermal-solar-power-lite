@@ -30,7 +30,7 @@ BasicHeatEx.localised_description = {
 BasicHeatEx.minable.result = "tspl-basic-heat-exchanger"
 BasicHeatEx.target_temperature = SETTING.exchanger_temp
 BasicHeatEx.energy_source.min_working_temperature = SETTING.exchanger_temp
-BasicHeatEx.energy_source.specific_heat = heat_capacity_kJ .. "kJ" 
+BasicHeatEx.energy_source.specific_heat = "250kJ"
 BasicHeatEx.energy_source.max_transfer  = "500MW" -- vanilla: 2GW
 BasicHeatEx.energy_consumption = SETTING.exchanger_output_kW .. "kW" -- default: "1800kW"
 

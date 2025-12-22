@@ -13,7 +13,7 @@ local BasicHeatPipe = table.deepcopy(data.raw["heat-pipe"]["heat-pipe"])
 -- PROPERTIES --
 BasicHeatPipe.name = "tspl-basic-heat-pipe"
 BasicHeatPipe.icon = GRAPHICS_ICONS.."basic-heat-pipe.png"
-BasicHeatPipe.heat_buffer.specific_heat = heat_capacity_kJ .. "kJ"
+BasicHeatPipe.heat_buffer.specific_heat = "250kJ"
 BasicHeatPipe.heat_buffer.max_transfer  = "500MW"      -- vanilla: 1GW
 BasicHeatPipe.minable.result = "tspl-basic-heat-pipe"
 BasicHeatPipe.heat_buffer.min_temperature_gradient = 2 -- vanilla: 1

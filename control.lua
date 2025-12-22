@@ -168,7 +168,7 @@ local function activate_sunlight_indicator(entity)
     if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
     local light_corr =
-        (env.surface_darkness - entity.surface.darkness) / env.light_const
+        (env.light_const - entity.surface.darkness) / env.light_const
     if light_corr <= 0 then return end
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
     entity.insert_fluid{

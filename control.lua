@@ -108,7 +108,7 @@ end
 -- COMPATIBILITY: Pyanodon Coal Processing --
 if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
-    panel_param.temp_loss_factor = 0.00316
+    panel_param.temp_loss_factor = 0.00314
 end
 
 -- COMPATIBILITY: More Quality Scaling --

@@ -286,12 +286,14 @@ end
 
 -- Prints multiple lines from an array, slightly indented to differentiate from header.
 local function mPrint(player, console_lines)
-    for _, line in ipairs(console_lines) do player.print("  "..line) end
+    for _, line in pairs(console_lines) do
+        if line ~= nil then player.print("  "..line) end
+    end
 end
 
 -- Colors text.
 local function clr(text, colorIndex)
-    colors = {"66B2FF", "FFB266"} -- custom hues of blue and orange (easier to read)
+    colors = {"66B2FF", "FFB366", "FF6666"} -- custom hues of blue, orange and red (easier to read)
     return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
@@ -394,13 +396,19 @@ COMMAND_parameters.info = function(pl)
         console.daylength_sec = clr("N/A",2)
     end
 
-    console.panel_max_output_kW = clr(max_output_kW .. "kW",2)
+    if max_output_kW >= 0 then
+        console.panel_max_output_kW = clr(max_output_kW .. "kW",2)
+    else
+        console.panel_max_output_kW = clr(max_output_kW .. "kW",3) -- red color
+    end
+
     console.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
 
     if max_efficiency > 0 then
         console.panels_ratio = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
     else
         console.panels_ratio = clr("N/A",2)
+        console.note = "NB: Power production is entirely impossible on this surface!"
     end
 
     mPrint(pl, {
@@ -411,7 +419,8 @@ COMMAND_parameters.info = function(pl)
       ..console.panel_max_output_kW.." / "
       ..console.panel_nom_output_kW..".",
         "Ideal panel-to-exchanger ratio: "
-      ..console.panels_ratio.."."
+      ..console.panels_ratio..".",
+        console.note
     })
 end
 

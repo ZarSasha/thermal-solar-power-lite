@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.0
-Date: 2025-12-20
+Date: 2025-12-22
   Changes:
     - NB: The setting for thermal panel heat output is no longer compensated but reflects nominal
       output at the lowest temperature (15°C). The default value was thus changed from 67.5kW to
@@ -35,6 +35,8 @@ Date: 2025-12-20
     - Updated German and Chinese locales with DeepL.
   Bugfixes:
     - Indirectly improved clean-up of entity ID table within the storage table.
+  Gui:
+    - Slightly adjusted orange color of console messages.
   Debug:
     - Merged "help" and "debug" commands, removed "delete" command (was superfluous).
     - Added "dump" command, for checking contents of panel ID list within storage.

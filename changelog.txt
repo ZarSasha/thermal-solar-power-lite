@@ -22,7 +22,7 @@ Date: 2025-12-22
       simple needs of the mod, and requires a lot less code and tracking of events.
     - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
       same efficiency (this time simply by lowering the rate of heat loss), thus matching the
-      boiler and better utilizing the steam engine.
+      boiler and better utilizing the steam engine. Also more accurate.
     - More Quality Scaling: Entity names are now simply recognized by a base string expected to
       appear in the name of any clones, so providing compatibility requires much less code.
   Info:

@@ -104,7 +104,7 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
     panel_param.temp_loss_factor =
         round_number(panel_param.temp_loss_factor /
-        ((250-env.ambient_temp)/(165-env.ambient_temp)), 7)
+        ((250-env.ambient_temp)/(165-env.ambient_temp)), 6)
 end
 
 -- COMPATIBILITY: More Quality Scaling --
@@ -391,9 +391,9 @@ COMMAND_parameters.info = function(pl)
     end
 
     if max_output_kW >= 0 then
-        console.panel_max_output_kW = clr(max_output_kW .. "kW",2)
+        console.panel_max_output_kW = clr(round_number(max_output_kW,2) .. "kW",2)
     else
-        console.panel_max_output_kW = clr(max_output_kW .. "kW",3) -- red color
+        console.panel_max_output_kW = clr(round_number(max_output_kW,2) .. "kW",3) -- red color
     end
 
     console.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)

@@ -10,12 +10,6 @@
 ---@diagnostic disable-next-line: undefined-field
 local BasicHeatPipe = table.deepcopy(data.raw["heat-pipe"]["heat-pipe"])
 
--- COMPATIBILITY for Pyanodon Coal Processing --
-local heat_capacity_kJ = 250 -- kJ, vanilla: 1MJ
-if MOD.PY_COAL_PROCESSING then
-    heat_capacity_kJ = 500
-end
-
 -- PROPERTIES --
 BasicHeatPipe.name = "tspl-basic-heat-pipe"
 BasicHeatPipe.icon = GRAPHICS_ICONS.."basic-heat-pipe.png"

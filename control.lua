@@ -28,15 +28,9 @@ local env = {
 
 local panel_param = {
     heat_cap_kJ      = 50,
-    temp_loss_factor = 0.005,
-    quality_scaling  = 0.15
+    temp_loss_factor = 0.005, -- may be changed
+    quality_scaling  = 0.15   -- may be changed
 }
-
---[[
-local exchanger_param = {
-    heat_cap_kJ = 250
-}
-]]
 
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON INIT AND ON CONFIGURATION CHANGED)
@@ -110,7 +104,7 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
     panel_param.temp_loss_factor =
         round_number(panel_param.temp_loss_factor /
-        ((250-env.ambient_temp)/(165-env.ambient_temp)), 4)
+        ((250-env.ambient_temp)/(165-env.ambient_temp)), 5)
 end
 
 -- COMPATIBILITY: More Quality Scaling --
@@ -378,7 +372,7 @@ COMMAND_parameters.info = function(pl)
     local sun_mult       = pl.surface.get_property("solar-power")/100
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
-    local temp_adj      = SETTING.exchanger_temp - env.ambient_temp
+    local temp_adj       = SETTING.exchanger_temp - env.ambient_temp
     local temp_loss_day  = panel_param.temp_loss_factor * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency

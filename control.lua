@@ -32,6 +32,12 @@ local panel_param = {
     quality_scaling  = 0.15   -- may be changed
 }
 
+local ACTIVE_MODS = {
+    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
+    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
+
+}
+
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON INIT AND ON CONFIGURATION CHANGED)
 ---------------------------------------------------------------------------------------------------
@@ -100,16 +106,13 @@ end
 -- intensity, has compatibility for some mods.
 
 -- COMPATIBILITY: Pyanodon Coal Processing --
-local heat_corr = 1
-if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
-    heat_corr = (165-env.ambient_temp)/(250-env.ambient_temp)
-    panel_param.temp_loss_factor =
-        round_number(panel_param.temp_loss_factor * heat_corr, 7)
+    panel_param.temp_loss_factor = 0.0031
 end
 
 -- COMPATIBILITY: More Quality Scaling --
-if script.active_mods["more-quality-scaling"] then
+if ACTIVE_MODS.MORE_QUALITY_SCALING then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     panel_param.q_scaling = 0
 end
@@ -377,8 +380,12 @@ COMMAND_parameters.info = function(pl)
     local temp_loss_day  = panel_param.temp_loss_factor * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
-    local nom_output_kw  = SETTING.panel_output_kW
-    local panels_num     = (SETTING.exchanger_output_kW / max_output_kW) * heat_corr
+    local nom_output_kW  = SETTING.panel_output_kW
+    local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
+
+    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+        panels_num = panels_num / 2
+    end
 
     local console = {}
 
@@ -397,13 +404,17 @@ COMMAND_parameters.info = function(pl)
         console.panel_max_output_kW = clr(round_number(max_output_kW,2) .. "kW",3) -- red color
     end
 
-    console.panel_nom_output_kW = clr(round_number(nom_output_kw,2) .. "kW",2)
+    console.panel_nom_output_kW = clr(round_number(nom_output_kW,2) .. "kW",2)
 
     if max_efficiency > 0 then
         console.panels_ratio = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
     else
         console.panels_ratio = clr("N/A",2)
         console.note = "NB: Power production is entirely impossible on this surface!"
+    end
+
+    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+        console.py_note = "Pyanodon: Steam conversion efficiency is only 50%!"
     end
 
     mPrint(pl, {
@@ -415,7 +426,8 @@ COMMAND_parameters.info = function(pl)
       ..console.panel_nom_output_kW..".",
         "Ideal panel-to-exchanger ratio: "
       ..console.panels_ratio..".",
-        console.note
+        console.note,
+        console.py_note
     })
 end
 

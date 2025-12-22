@@ -104,7 +104,7 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
     panel_param.temp_loss_factor =
         round_number(panel_param.temp_loss_factor /
-        ((250-env.ambient_temp)/(165-env.ambient_temp)), 5)
+        ((250-env.ambient_temp)/(165-env.ambient_temp)), 7)
 end
 
 -- COMPATIBILITY: More Quality Scaling --

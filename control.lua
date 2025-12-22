@@ -100,11 +100,12 @@ end
 -- intensity, has compatibility for some mods.
 
 -- COMPATIBILITY: Pyanodon Coal Processing --
+local heat_corr = 1
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C):
+    heat_corr = (165-env.ambient_temp)/(250-env.ambient_temp)
     panel_param.temp_loss_factor =
-        round_number(panel_param.temp_loss_factor /
-        ((250-env.ambient_temp)/(165-env.ambient_temp)), 7)
+        round_number(panel_param.temp_loss_factor * heat_corr, 7)
 end
 
 -- COMPATIBILITY: More Quality Scaling --
@@ -377,7 +378,7 @@ COMMAND_parameters.info = function(pl)
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kw  = SETTING.panel_output_kW
-    local panels_num     = SETTING.exchanger_output_kW / max_output_kW
+    local panels_num     = (SETTING.exchanger_output_kW / max_output_kW) * heat_corr
 
     local console = {}
 

@@ -3,113 +3,172 @@
 --  ┃ ┃┃┃┃ ┃ ┣┫┃┃┃ 
 --  ┗┛┗┛┛┗ ┻ ┛┗┗┛┗┛
 ---------------------------------------------------------------------------------------------------
--- This code provides scripts for heat generation from sunlight + a makeshift sunlight indicator
--- for the Thermal Solar Panels. Contains various command functions as well.
+-- This code provides a script for heat generation from sunlight, a makeshift sunlight indicator
+-- for the Thermal Solar Panels, as well as various command functions (one provides information,
+-- the rest are used for debugging). The heat script uses time slicing to distribute calculations
+-- across many game ticks.
 ---------------------------------------------------------------------------------------------------
-require "functions" require "shared"
+require "functions"
+require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
--- STORAGE TABLE CREATION
+-- THERMAL SOLAR PANEL SCRIPTS
 ---------------------------------------------------------------------------------------------------
 
--- Creates a storage table required by the scripts below, if it doesn't exist yet.
-local function create_storage_table()
-    if storage.tspl_thermal_panel_table == nil then storage.tspl_thermal_panel_table = {} end
+-- The shared string component of all thermal panel names, including those of any clones:
+local panel_name_base = "tspl-thermal-solar-panel"
+
+-- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
+local tick_interval = 60
+local tick_frequency = (tick_interval/60)
+
+-- Environmental parameters (set by game):
+local env = {
+    light_const  = 0.85, -- Highest level of "surface darkness" (default range: 0-0.85)
+    ambient_temp = 15    -- Default ambient temperature
+}
+
+-- Parameters pertaining to the thermal solar panels:
+local panel_param = {
+    heat_cap_kJ      = 50,    -- default value, will not change
+    temp_loss_factor = 0.005, -- may be changed
+    quality_scaling  = 0.15   -- may be changed
+}
+
+local ACTIVE_MODS = {
+    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
+    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
+}
+
+---------------------------------------------------------------------------------------------------
+    -- STORAGE TABLE CREATION (ON INIT AND ON CONFIGURATION CHANGED)
+---------------------------------------------------------------------------------------------------
+-- Values that can't simply be recalcuated should be stored so they can persist through the
+-- save/load cycle. All variables below are used by the "on_tick" heat-generating script.
+
+-- Function to create variables for the storage table, if they do not yet exist.
+local function create_storage_table_keys()
+    if storage.panels               == nil then storage.panels               =    {} end
+    if storage.panels.main          == nil then storage.panels.main          =    {} end
+    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
+    if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
+    if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
+    if storage.panels.progress      == nil then storage.panels.progress      =     1 end
+    if storage.panels.complete      == nil then storage.panels.complete      = false end
 end
 
--- Names of entities that should be registered into the storage table upon creation.
-local LIST_thermal_panels = {"tspl-thermal-solar-panel", "tspl-thermal-solar-panel-large"}
-
 ---------------------------------------------------------------------------------------------------
--- ENTITY REGISTRATION/UNREGISTRATION
+    -- ENTITY REGISTRATION (ON BUILT AND SIMILAR)
 ---------------------------------------------------------------------------------------------------
+-- When a thermal panel is built by any method, a string identifier* will be added to a temporary
+-- array in storage. At the end of the cycle, it will be registered into the main array, which
+-- contains references to all the panels that the scripts further below should apply to.
 
--- Function to add entity to storage table when it is created.
-local function register_entity(entity_types, storage_table, event)
-    --create_storage_table()
+-- Function to register entity string ID into temporary "to_be_added" array in storage.
+local function register_entity(event)
+    local panels = storage.panels
     local entity = event.entity or event.destination
-    if not table_contains_value(entity_types, entity.name) then return end
-    storage_table[entity.unit_number] = entity
+    if not string.find(entity.name, panel_name_base, 1, true) then return end
+    table.insert(panels.to_be_added, entity)
 end
 
--- Function to remove entity from storage table when it is mined or destroyed.
-local function unregister_entity(entity_types, storage_table, event)
-    --if storage table == nil then return end
-    local entity = event.entity
-    if not table_contains_value(entity_types, entity.name) then return end
-    storage_table[entity.unit_number] = nil
-end
+-- Note: An entity will simply be deregistered when found to be invalid during an update cycle
+-- (the string ID is added to a temporary array and then later removed from the main array).
 
--- Function to remove entities from storage table, when their surface is cleared/deleted.
-local function unregister_surface_entities(entity_types, storage_table, event)
-    --if storage table == nil then return end
-    local surface = game.surfaces[event.surface_index]
-    local found_entities = {}
-    for _, searched_entity in pairs(surface.find_entities_filtered{name = entity_types}) do
-        table.insert(found_entities, searched_entity)
-    end
-    for _, found_entity in pairs(found_entities) do
-        storage_table[found_entity.unit_number] = nil
-    end
-end
-
--- v2.1.6: Won't check for presence of storage table, since that may simply hide bugs. Anyway, the
--- code seems robust and the reset command can still be used as a backup solution.
+-- * A string ID is used to reference an entity and gain access to its properties. Example:
+--   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,nauvis]]",
 
 ---------------------------------------------------------------------------------------------------
--- MAIN SCRIPT FUNCTIONS
+    -- ENTITY REGISTER UPDATE (ON TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
+-- To keep the main array intact during a cycle that spans several game ticks, changes have to be
+-- stored temporarily before being used to update the main array.
 
--- COMPATIBILITY: PYANODONS COAL PROCESSING --
-local correction, temp_target = 1, 165
-if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-    correction  = 2   -- compensates for halved efficiency of steam engines
-    temp_target = 250 -- matches higher boiler temp need, without changing panel output setting
+-- Function to update contents of "main" array and adjust process batch size for next cycle:
+local function update_storage_register()
+    local panels = storage.panels
+    -- Updates main array, clears temporary arrays:
+    array_append_elements(panels.main, panels.to_be_added)
+    array_remove_elements(panels.main, panels.to_be_removed)
+    table_clear(panels.to_be_added)
+    table_clear(panels.to_be_removed)
+    -- Resets status for completion of cycle, calculates batch size for the next one
+    -- (they are processed on all ticks except 1 reserved for the above):
+    panels.complete = false
+    panels.batch_size = math.max(math.ceil(#panels.main / ((tick_interval - 1))),1)
 end
 
--- COMPATIBILITY: MORE QUALITY SCALING --
-local quality_scaling_factor = 0.15 -- finetuned to match complex with Solar + Accu
-if script.active_mods["more-quality-scaling"] then
-    if not address_not_nil(prototypes.mod_data["entity-clones"].data) then return end
-    local thermal_panels = LIST_thermal_panels
-    for _, panel in pairs(thermal_panels) do
-        for _, panel_clone in pairs(prototypes.mod_data["entity-clones"].data[panel] or {}) do
-            table.insert(LIST_thermal_panels, panel_clone)
+---------------------------------------------------------------------------------------------------
+    -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
+---------------------------------------------------------------------------------------------------
+-- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
+-- it in proportion to current temperature above ambient level. Adjusted for quality and solar 
+-- intensity, has compatibility for some mods.
+
+-- COMPATIBILITY: Pyanodon Coal Processing --
+if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Also
+    -- accounts for doubled heat capacity of panels, which keeps temperatures higher during night
+    -- and thus slightly increases heat energy loss.
+    panel_param.temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
+end
+
+-- COMPATIBILITY: More Quality Scaling --
+if ACTIVE_MODS.MORE_QUALITY_SCALING then
+    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
+    panel_param.q_scaling = 0
+end
+
+-- Function to update temperature of all thermal panels according to circumstances. Adapted for
+-- time slicing. Generally writes to storage as little as possible, for better performance.
+local function update_panel_temperature()
+    local panels     = storage.panels    -- table reference
+    local batch_size = panels.batch_size -- number copy
+    local progress   = panels.progress   -- number copy
+    local stop       = progress + batch_size - 1
+    for i = progress, stop do
+        local panel = panels.main[i]
+        -- Resets progress and prevents activation of function till next cycle,
+        -- when there are no more entries to go through:
+        if panel == nil then
+            panels.progress = 1
+            panels.complete = true
+            return
         end
-    end
-    quality_scaling_factor = 0 -- accounts for increased heat capacity (30% pr. level)
-end
-
--- PARAMETERS --
-local ambient_temp     = 15 -- Default ambient temperature.
-local temp_gain        = PANEL.heat_output_kW * correction / PANEL.heat_capacity_kJ
-local temp_loss_ideal  = (temp_target - ambient_temp) * PANEL.heat_loss_factor
-local temp_gain_adj    = temp_gain + temp_loss_ideal -- compensates for loss to match setting input
-local light_const      = 0.85 -- highest level of "surface darkness" (default range: 0-0.85)
-
--- Heat generation: Adds heat in proportion to sunlight, removes some in proportion to temperature
--- difference. Adjusted for quality and solar intensity. Fairly complex, somewhat high UPS impact.
-local function update_quality_panel_temperature()
-    if storage.tspl_thermal_panel_table == nil then return end -- makes troubleshooting not tedious
-    for _, panel in pairs(storage.tspl_thermal_panel_table) do
-        if not panel.valid then goto continue end
-        local q_factor    = 1 + (panel.quality.level * quality_scaling_factor)
-        local light_corr  = (light_const - panel.surface.darkness) / light_const
+        -- Marks entry for deregistration and skips it, if not valid:
+        if not panel.valid then
+            table.insert(panels.to_be_removed, panel)
+            goto continue
+        end
+        -- Calculates and applies temperature change to panel:
+        local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
+        local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
         local sun_mult    = panel.surface.get_property("solar-power")/100
-        local temp_loss   = (panel.temperature-ambient_temp) * PANEL.heat_loss_factor
-        panel.temperature = 
-            panel.temperature + light_corr * sun_mult * temp_gain_adj * q_factor - temp_loss
+        local temp_gain   =
+            ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
+            light_corr * sun_mult * q_factor
+        local temp_loss   =
+             (panel_param.temp_loss_factor * tick_frequency) *
+             (panel.temperature - env.ambient_temp)
+        panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
+    -- Updates progress, if cycle is not yet finished:
+    if not panels.complete then panels.progress = progress + batch_size end
 end
 
--- Sunlight indicator: Activates by clearing and inserting new solar-fluid (on GUI opened).
+---------------------------------------------------------------------------------------------------
+    -- MAKESHIFT SUNLIGHT INDICATOR (ON GUI OPENED/CLOSED)
+---------------------------------------------------------------------------------------------------
+-- Script that emulates a solar level indicator by filling the panel with a custom fluid when the
+-- gui is opened, and removing it again when the gui is closed.
+
+-- Function to clear fluid content and then insert new solar-fluid (on GUI opened).
 local function activate_sunlight_indicator(entity)
     if entity == nil then return end -- checks that GUI is associated with an entity!
-    if not table_contains_value(LIST_thermal_panels, entity.name) then return end
-    --removes solar-fluid, if any:
+    if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
-    --inputs solar-fluid:
-    local light_corr = (light_const - entity.surface.darkness) / light_const
+    local light_corr =
+        (env.light_const - entity.surface.darkness) / env.light_const
     if light_corr <= 0 then return end
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
     entity.insert_fluid{
@@ -119,80 +178,64 @@ local function activate_sunlight_indicator(entity)
     }
 end
 
--- Sunlight indicator: Deactivates by removing solar-fluid (on GUI closed).
+-- Function to remove solar-fluid (on GUI closed).
 local function deactivate_sunlight_indicator(entity)
     if entity == nil then return end -- same as above
-    if not table_contains_value(LIST_thermal_panels, entity.name) then return end
+    if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
 end
 
 ---------------------------------------------------------------------------------------------------
--- DEBUG: RESET FUNCTIONS (rarely if ever needed)
+    -- RESETTING (RARELY IF EVER NEEDED)
 ---------------------------------------------------------------------------------------------------
 
--- Function to search on all surfaces for entities from a name list, returning an array.
-local function search_for_entities(entity_types)
-    local found_entities = {}
+-- Complete list of panel variants, including any clones.
+local panel_variants = {}
+
+for key, _ in pairs(prototypes.entity) do
+    if string.find(key, panel_name_base, 1, true) then
+        table.insert(panel_variants, key)
+    end
+end
+
+-- Function to clear and rebuild panel ID list within storage, as well as clear the panels of any
+-- "solar-fluid" that may accidentally have remained for whatever reason.
+local function reset_thermal_panels()
+    local panels = storage.panels
+    if panels.main == nil then panels.main = {} end
+    table_clear(panels.main)
     for _, surface in pairs(game.surfaces) do
-        for _, entity in pairs(surface.find_entities_filtered{name = entity_types}) do
-            table.insert(found_entities, entity)
+        for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
+            table.insert(panels.main, panel)
+            panel.clear_fluid_inside()
         end
     end
-    return found_entities
-end
-
--- Function to rebuild contents of a storage table. Also resets makeshift sunlight indicator
--- (in case gui is left open for some reason, but it's a trivial problem).
-local function rebuild_storage_table(entity_types, storage_table)
-    table_clear_content(storage_table)
-    local found_entities = search_for_entities(entity_types)
-    for _, found_entity in pairs(found_entities) do
-        storage_table[found_entity.unit_number] = found_entity
-        found_entity.clear_fluid_inside()
-    end
 end
 
 ---------------------------------------------------------------------------------------------------
--- FINAL FUNCTION SETS AND SCRIPT EXECUTION
+    -- FINAL FUNCTION SETS AND SCRIPT EXECUTION
 ---------------------------------------------------------------------------------------------------
 
 -- Function set to run when an entity is built.
 script.on_event({
-    defines.events.on_built_entity,                 -- event.entity
-    defines.events.on_robot_built_entity,           -- event.entity
-    defines.events.on_space_platform_built_entity,  -- event.entity
-    defines.events.script_raised_built,             -- event.entity
-    defines.events.script_raised_revive,            -- event.entity
-    defines.events.on_entity_cloned                 -- event.destination (not a normal event) *
+    defines.events.on_built_entity,                -- event.entity
+    defines.events.on_robot_built_entity,          -- event.entity
+    defines.events.on_space_platform_built_entity, -- event.entity
+    defines.events.script_raised_built,            -- event.entity
+    defines.events.script_raised_revive,           -- event.entity
+    defines.events.on_entity_cloned                -- event.destination (not a normal event) *
     -- * Event is raised for every single entity created from cloned area as well.
 },  function(event)
-    register_entity(LIST_thermal_panels, storage.tspl_thermal_panel_table, event)
+    register_entity(event)
 end)
 
--- Function set to run when an entity is mined or destroyed in various ways.
-script.on_event({
-    defines.events.on_pre_player_mined_item,    -- *
-    defines.events.on_robot_pre_mined,          -- *
-    defines.events.on_space_platform_pre_mined, -- *
-    defines.events.on_entity_died,
-    defines.events.script_raised_destroy
-    -- * Pre-stage needed to unregister entity from storage table before it is removed.
-},  function(event)
-    unregister_entity(LIST_thermal_panels, storage.tspl_thermal_panel_table, event)
-end) 
-
--- Function set to run when a surface is cleared or destroyed (not a normal event).
-script.on_event({
-    defines.events.on_pre_surface_cleared, -- *
-    defines.events.on_pre_surface_deleted  -- *
-    -- * Pre-stage needed to unregister entities from storage table before they are removed.
-},  function(event)
-    unregister_surface_entities(LIST_thermal_panels, storage.tspl_thermal_panel_table, event)
-end) 
-
--- Function set to run perpetually with a given frequency (60 ticks = 1 second interval).
+-- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % 60 == 0 then update_quality_panel_temperature() end
+    if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
+        update_storage_register()  -- within 1 tick
+    elseif not storage.panels.complete then
+        update_panel_temperature() -- within all but the 1 tick above
+    end
 end)
 
 -- Function set to run when a GUI is opened.
@@ -207,10 +250,18 @@ end)
 
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
-    create_storage_table()
-    rebuild_storage_table(LIST_thermal_panels, storage.tspl_thermal_panel_table) -- *
+    create_storage_table_keys()
+    reset_thermal_panels() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
+
+-- Function set to run on any change to startup settings or mods installed.
+script.on_configuration_changed(function()
+    create_storage_table_keys()
+end)
+
+-- Note: Overwriting code of mod without changing its name or version may break the scripts, since
+-- it's not a detectable event. Running the reset command provided below may help.
 
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS
@@ -218,13 +269,15 @@ end)
 -- Execute a command by typing "/tspl " into the console, along with a parameter. Useful for
 -- getting some basic info, and for debugging.
 
--- HELPER FUNCTIONS -------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+    -- HELPER FUNCTIONS FOR CONSOLE COMMANDS
+---------------------------------------------------------------------------------------------------
 
 -- Searches on all surfaces for entities from a list, returning the total number.
-local function search_and_count_entities(entity_types)
+local function search_and_count_thermal_panels()
     local total_count = 0
     for _, surface in pairs(game.surfaces) do
-        local sub_count = surface.count_entities_filtered{name = entity_types}
+        local sub_count = surface.count_entities_filtered{name = panel_variants}
         total_count = total_count + sub_count
     end
     return total_count
@@ -232,12 +285,14 @@ end
 
 -- Prints multiple lines from an array, slightly indented to differentiate from header.
 local function mPrint(player, console_lines)
-    for _, line in ipairs(console_lines) do player.print("  "..line) end
+    for _, line in pairs(console_lines) do
+        if line ~= nil then player.print("  "..line) end
+    end
 end
 
 -- Colors text.
 local function clr(text, colorIndex)
-    colors = {"66B2FF", "FFB266"} -- custom hues of blue and orange (easier to read)
+    colors = {"66B2FF", "FFB366", "FF6666"} -- custom hues of blue, orange and red (easier to read)
     return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
@@ -249,111 +304,143 @@ local COMMAND_parameters = {}
 -- "help": Describes the most important console commands or groups thereof.
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
-        clr("info",1)..": Provides info relevant to the thermal panels and their power "
-      .."production.",
-        clr("debug",1)..": Provides info on debug functions which are available through commands."
+        clr("info",1)..  ": Provides some helpful info relevant to the current surface.",
+        clr("check",1).. ": Checks storage, counts thermal panels on all surfaces and within "
+        .."storage.",
+        clr("dump",1)..  ": Dumps contents of thermal panel ID list into log file.",
+        clr("reset",1).. ": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
+        clr("clear",1).. ": Clears the panel ID table of its contents.",
+        clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local sun_level = pl.surface.get_property("solar-power")
-    local max_temp  = ambient_temp + ((temp_gain_adj * (sun_level/100)) / PANEL.heat_loss_factor)
+    local surface_name   = pl.surface.name
+    local sun_mult       = pl.surface.get_property("solar-power")/100
+    local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
+    local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
+    local temp_adj       = SETTING.exchanger_temp - env.ambient_temp
+    local temp_loss_day  = panel_param.temp_loss_factor * temp_adj
+    local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
+    local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
+    local nom_output_kW  = SETTING.panel_output_kW
+    local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
+
+    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+        panels_num = panels_num / 2
+    end
+
+    local console = {}
+
+    console.surface_name        = clr(surface_name,2)
+    console.sun_mult            = clr(sun_mult * 100 .. "%",2)
+
+    if daylength_sec > 0 and daylength_sec ~= nil then
+        console.daylength_sec = clr(daylength_sec .. " seconds",2)
+    else
+        console.daylength_sec = clr("N/A",2)
+    end
+
+    if max_output_kW >= 0 then
+        console.panel_max_output_kW = clr(round_number(max_output_kW,2) .. "kW",2)
+    else
+        console.panel_max_output_kW = clr(round_number(max_output_kW,2) .. "kW",3) -- red color
+    end
+
+    console.panel_nom_output_kW = clr(round_number(nom_output_kW,2) .. "kW",2)
+
+    if max_efficiency > 0 then
+        console.panels_ratio = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
+    else
+        console.panels_ratio = clr("N/A",2)
+        console.note = "NB: Power production is entirely impossible on this surface!"
+    end
+
     mPrint(pl, {
-        "Solar intensity on this surface ("..clr(pl.surface.name,2)..") is "
-      ..clr(sun_level.."%",2)..".",
-        "Thermal Panel temperature limit at constant sunlight is "
-      ..clr(round_number(max_temp, 1),2).."°C due to heat loss, capped at "
-      ..clr(PANEL.max_temp,2).."°C!"
+        "Surface name ID: "..console.surface_name..". "
+      .."Solar intensity: "..console.sun_mult..". "
+      .."Day cycle length: "..console.daylength_sec..".",
+        "Panel maximum/nominal output: "
+      ..console.panel_max_output_kW.." / "
+      ..console.panel_nom_output_kW..".",
+        "Ideal panel-to-exchanger ratio: "
+      ..console.panels_ratio..".",
+        console.note
     })
 end
 
--- DEBUG "debug": Describes the function of command parameters used for debugging.
-COMMAND_parameters.debug = function(pl)
-    mPrint(pl, {
-        clr("check",1)..": Checks for existence of storage table; counts all thermal panels on "
-      .."all surfaces and in the storage table.",
-        clr("reset",1)..": Rebuilds the thermal panel storage table. Resets sunlight indicator as "
-      .."well.",
-        clr("clear",1)..": Clears the thermal panel storage table of its content.",
-        clr("delete",1)..": Entirely deletes the thermal panel storage table.",
-        clr("unlock",1)..": Forcefully unlocks all content from this mod without requiring any "
-      .."tech to be researched."
-    })
-end
-
--- DEBUG "check": Checks if thermal panel storage table exists, provides entity count.
+-- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
-    local count1 = search_and_count_entities(LIST_thermal_panels)
-    if storage.tspl_thermal_panel_table ~= nil then
-        local count2 = table_length(storage.tspl_thermal_panel_table)
-        local panels =
-        mPrint(pl, {
-            "Thermal Panel storage table exists.",
-            "Thermal Panel all surfaces / storage table entity count: "
-          ..clr(count1,2).." / "..clr(count2,2)..".",
-        })
+    if storage.panels ~= nil then
+        -- Storage table:
+        mPrint(pl, {"The table 'storage.panels' exists. Any missing subkeys are written here:"})
+        local subvars = {
+            "main", "to_be_added", "to_be_removed", "batch_size", "progress", "complete"
+        }
+        for _, subvar in ipairs(subvars) do
+            if storage.panels[subvar] == nil then mPrint(pl, {"  "..subvar}) end
+        end
+        -- Entity count:
+        mPrint(pl, {"Thermal solar panel entity count:"})
+        local count1 = search_and_count_thermal_panels()
+        mPrint(pl, {"  Found within world (all surfaces): "..clr(count1,2).."."})
+        if storage.panels.main ~= nil then
+            local count2 = table_length(storage.panels.main)
+            mPrint(pl, {"  Registered within storage table: "..clr(count2,2).."."})
+        end
     else
-        mPrint(pl, {
-            "Thermal Panel storage table does not exist.",
-            "Thermal Panel all surfaces entity count: "..clr(count1,2).."."
-        })
+        mPrint(pl, {"The table 'storage.panels' does not exist!"})
     end
 end
 
--- DEBUG "reset": Rebuilds thermal panel storage table, resets make-shift sunlight indicator.
+-- DEBUG "reset": Clears and rebuilds panel ID table in storage, resets sunlight indicator.
 COMMAND_parameters.reset = function(pl)
-    create_storage_table()
-    rebuild_storage_table(LIST_thermal_panels, storage.tspl_thermal_panel_table)
+    reset_thermal_panels()
     mPrint(pl, {
-        "The Thermal Panel storage table was reset and rebuild.",
-        "Any solar-fluid remaining in thermal panels was removed as well."
+        "'storage.panels.main' was reset and its content rebuilt!",
+        "Any remaining solar-fluid was removed as well."
     })
 end
 
--- DEBUG "clear": Clears thermal panel storage table of its content, if it exists.
+-- DEBUG "clear": Clears panel ID table within storage of its contents, if it exists.
 COMMAND_parameters.clear = function(pl)
-    if storage.tspl_thermal_panel_table ~= nil then
-        table_clear_content(storage.tspl_thermal_panel_table)
-        mPrint(pl, {"Thermal Panel storage table was cleared of its content!"})
-    else
-        mPrint(pl, {"There was no Thermal Panel storage table to clear of its content!"})
-    end
+    if not address_not_nil(storage.panels.main) then return end
+    table_clear(storage.panels.main)
+    mPrint(pl, {
+        "'storage.panels.main' was cleared of its contents!"
+    })
 end
 
--- DEBUG "delete": Deletes thermal panel storage table, if it exists. Crashes the game unless
--- nil checks are added to various script functions above (they are commented out).
-COMMAND_parameters.delete = function(pl)
-    if storage.tspl_thermal_panel_table ~= nil then
-        storage.tspl_thermal_panel_table = nil
-        mPrint(pl, {"Thermal Panel storage table was entirely deleted!"})
-    else
-        mPrint(pl, {"Thermal Panel storage table already does not exist!"})
-    end
-end
-
--- DEBUG "unlock": Attempts to forcefully unlock recipes for all items from this mod.
+-- DEBUG "unlock": Attempts to forcefully unlock and unhide recipes for all items from this mod.
 COMMAND_parameters.unlock = function(pl)
     local items, icons = {"tspl-thermal-solar-panel","tspl-thermal-solar-panel-large",
         "tspl-basic-heat-exchanger", "tspl-basic-heat-pipe"}, {}
     for _,item in pairs(items) do
         pl.force.recipes[item].enabled=true
+        pl.force.recipes[item].hidden=false
         table.insert(icons, "[img=item."..item.."]")
     end
     mPrint(pl, {
-        "Recipes for all entities from this mod ( "..table.concat(icons," ").." ) were "
-      .."forcefully unlocked (hopefully)!"
+        "Recipes for all entities from this mod ( "..table.concat(icons," ").." )",
+        "were forcefully unlocked and had their visibility restored (hopefully)!"
     })
+end
+
+-- DEBUG "dump": Dumps contents of panel ID table into log file (%APPDATA%/roaming/Factorio).
+COMMAND_parameters.dump = function(pl)
+    log("Mod Storage Contents: " .. serpent.block(storage.panels.main, {comment=false}))
+    mPrint(pl, {"Contents of 'storage.panels.main' was dumped to log file."})
 end
 
 -- CONSOLE COMMANDS -------------------------------------------------------------------------------
 
 local function new_commands(command)
     local pl1 = game.get_player(command.player_index)
-    if pl1 == nil then return end -- needed?
+    if pl1 == nil then return end
     pl1.print("[color=acid]Thermal Solar Power (Lite):[/color]")
     if not table_contains_key(COMMAND_parameters, command.parameter) then
-        mPrint(pl1, {"Write \"/tspl help\" for an overview of command parameters."})
+        mPrint(pl1, {"Write '/tspl help' for an overview of command parameters."})
         return
     end
     COMMAND_parameters[command.parameter](pl1)
@@ -361,4 +448,6 @@ end
 
 commands.add_command("tspl", nil, new_commands) -- no help text, provided above instead
 
+---------------------------------------------------------------------------------------------------
+-- END NOTES
 ---------------------------------------------------------------------------------------------------

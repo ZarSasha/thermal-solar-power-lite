@@ -3,7 +3,6 @@
 --  ┣ ┃┃ ┃ ┃ ┃ ┃┣ ┗┓
 --  ┗┛┛┗ ┻ ┻ ┻ ┻┗┛┗┛
 ---------------------------------------------------------------------------------------------------
-require "shared"
 local hit_effects = require "__base__.prototypes.entity.hit-effects"
 local sounds = require("__base__.prototypes.entity.sounds")
 ---------------------------------------------------------------------------------------------------
@@ -40,6 +39,14 @@ local hr_panel_disconnection_sprites = {
 
 -- PROPERTIES -------------------------------------------------------------------------------------
 
+-- COMPATIBILITY for Pyanodon Coal Processing --
+local heat_capacity_kJ = 50
+if MOD.PY_COAL_PROCESSING then
+    -- Compensates for halved steam conversion efficiency and some complex heat loss:
+    heat_capacity_kJ = 100
+    -- Note: Runtime script also adapted for 250°C steam, if option is selected.
+end
+
 local ThermalPanel = {
 	type = "reactor",
 	name = "tspl-thermal-solar-panel",
@@ -49,46 +56,44 @@ local ThermalPanel = {
 	icon_size = 32,
     flags = {"placeable-neutral", "player-creation"},
 	max_health = 200,
-	selection_box = {{-1.5,	-1.5},{1.5,1.5},},
-	collision_box = {{-1.2,-1.2},{1.2,1.2},},
+	selection_box = {{-1.5,	-1.5},{ 1.5, 1.5}},
+	collision_box = {{-1.2, -1.2},{ 1.2, 1.2}},
 	minable = {mining_time = 0.1, result = "tspl-thermal-solar-panel"},
 	resistances = {{type = "fire", percent = 90}},
 	corpse = "medium-remnants",
 	dying_explosion = "solar-panel-explosion",
     damaged_trigger_effect = hit_effects.entity(),
     impact_category = "metal",
-    consumption = (PANEL.heat_output_kW .. "kW"), -- mandatory property, must be greater than 0. 
+    consumption = (SETTING.panel_output_kW .. "kW"), -- mandatory property, must be greater than 0. 
     energy_source = { -- mandatory property
 		type = "fluid",
 		fluid_box = {
             volume              = 100.01,
 			pipe_connections    = {},
-			production_type     = "input",
-			minimum_temperature = 0,
-			maximum_temperature = 100,
-			filter              = "tspl-solar-fluid" -- used by make-shift sunlight indicator
+			production_type     = "none",
+			filter              = "tspl-solar-fluid" -- used by make-shift sunlight indicator.
 		},
 		scale_fluid_usage = false,
 		fluid_usage_per_tick = 0.000001, -- consumes "solar-fluid" very slowly.
-		maximum_temperature = 100,
-		render_no_power_icon = false -- removes flashing 'No Power' icon
+		render_no_power_icon = false -- removes flashing 'No Power' icon.
 	},
-  	neighbour_bonus = 0, -- optional, but it corrects tooltip and Factoriopedia info.
+  	neighbour_bonus = 0, -- optional, but declaring it corrects tooltip and Factoriopedia info.
     picture = {layers = {hr_panel_sprite, panel_shadow_sprite}},
     heat_buffer = { -- mandatory property
-		max_temperature = PANEL.max_temp,
-		specific_heat = (PANEL.heat_capacity_kJ .. "kJ"),
+		max_temperature = 1000,
+		specific_heat = (heat_capacity_kJ .. "kJ"),
 		max_transfer = "36MW",
-		min_temperature_gradient = 0, -- heat loss from script instead
+		min_temperature_gradient = 0, -- heat loss from script instead.
 		connections = {
-			{position = {0, -1}, direction = defines.direction.north},
-			{position = {1, 0},  direction = defines.direction.east },
-			{position = {0, 1},  direction = defines.direction.south},
-			{position = {-1, 0}, direction = defines.direction.west }
+			{position = { 0, -1}, direction = defines.direction.north},
+			{position = { 1,  0}, direction = defines.direction.east },
+			{position = { 0,  1}, direction = defines.direction.south},
+			{position = {-1,  0}, direction = defines.direction.west }
 		}
     },
 	connection_patches_connected    = {sheet = hr_panel_connection_sprites},
 	connection_patches_disconnected = {sheet = hr_panel_disconnection_sprites},
+    --no heat connection patches, because they actually make the panels look worse.
     open_sound = sounds.metal_small_open,
     close_sound = sounds.metal_small_close
 }
@@ -128,35 +133,36 @@ local hr_panel_l_disconnection_sprites = {
     shift = util.by_pixel(0, 5)}
 
 -- PROPERTIES -------------------------------------------------------------------------------------
+---@diagnostic disable-next-line: undefined-field
 local ThermalPanelLarge = table.deepcopy(ThermalPanel)
 ThermalPanelLarge.name = "tspl-thermal-solar-panel-large"
 ThermalPanelLarge.fast_replaceable_group = "tspl-thermal-solar-panel-large"
 ThermalPanelLarge.factoriopedia_description =
     {"factoriopedia-description.tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.icon = GRAPHICS_ICONS.."thermal-solar-panel-large.png"
-ThermalPanelLarge.selection_box = {{-4.5,-4.5},{4.5,4.5},}
-ThermalPanelLarge.collision_box = {{-4.2,-4.2},{4.2,4.2},}
+ThermalPanelLarge.selection_box = {{-4.5, -4.5},{ 4.5, 4.5}}
+ThermalPanelLarge.collision_box = {{-4.2, -4.2},{ 4.2, 4.2}}
 ThermalPanelLarge.max_health = ThermalPanel.max_health * 9
 ThermalPanelLarge.minable = {mining_time = 0.25, result = "tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.corpse = "large-panel-remnants" -- custom remnants
 ThermalPanelLarge.dying_explosion = "large-panel-explosion" -- custom explosion
-ThermalPanelLarge.consumption = (PANEL.heat_output_kW * 9 .. "kW")
+ThermalPanelLarge.consumption = (SETTING.panel_output_kW * 9 .. "kW")
 ThermalPanelLarge.picture.layers[1] = hr_panel_l_sprite
 ThermalPanelLarge.picture.layers[2] = panel_l_shadow_sprite
-ThermalPanelLarge.heat_buffer.specific_heat = (PANEL.heat_capacity_kJ * 9 .. "kJ")
+ThermalPanelLarge.heat_buffer.specific_heat = (heat_capacity_kJ * 9 .. "kJ")
 ThermalPanelLarge.heat_buffer.connections = {
 	{position = {-3, -4}, direction = defines.direction.north},
-	{position = {0, -4},  direction = defines.direction.north},
-	{position = {3, -4},  direction = defines.direction.north},
-	{position = {4, -3},  direction = defines.direction.east },
-	{position = {4, 0},   direction = defines.direction.east },
-	{position = {4, 3},   direction = defines.direction.east },
-	{position = {-3, 4},  direction = defines.direction.south},
-	{position = {0, 4},   direction = defines.direction.south},
-	{position = {3, 4},   direction = defines.direction.south},
+	{position = { 0, -4}, direction = defines.direction.north},
+	{position = { 3, -4}, direction = defines.direction.north},
+	{position = { 4, -3}, direction = defines.direction.east },
+	{position = { 4,  0}, direction = defines.direction.east },
+	{position = { 4,  3}, direction = defines.direction.east },
+	{position = {-3,  4}, direction = defines.direction.south},
+	{position = { 0,  4}, direction = defines.direction.south},
+	{position = { 3,  4}, direction = defines.direction.south},
 	{position = {-4, -3}, direction = defines.direction.west },
-	{position = {-4, 0},  direction = defines.direction.west },
-	{position = {-4, 3},  direction = defines.direction.west }
+	{position = {-4,  0}, direction = defines.direction.west },
+	{position = {-4,  3}, direction = defines.direction.west }
 }
 ThermalPanelLarge.connection_patches_connected    = {sheet = hr_panel_l_connection_sprites}
 ThermalPanelLarge.connection_patches_disconnected = {sheet = hr_panel_l_disconnection_sprites}

@@ -3,11 +3,14 @@
 --  ┣ ┃┃┃┃┃  ┃ ┃┃┃┃┃┗┓
 --  ┻ ┗┛┛┗┗┛ ┻ ┻┗┛┛┗┗┛
 ---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- STANDARD FUNCTIONS
+---------------------------------------------------------------------------------------------------
 
--- STANDARD FUNCTIONS -----------------------------------------------------------------------------
+-- TABLES & ARRAYS --
 
 -- Clears a table of its content.
-function table_clear_content(tbl)
+function table_clear(tbl)
     for key in pairs(tbl) do
         tbl[key] = nil
     end
@@ -38,15 +41,28 @@ function table_length(tbl)
     return count
 end
 
--- Rounds a number with the desired level of precision.
-function round_number(num, decimals)
-    decimals = 10 ^ (decimals or 0)
-    num = num * decimals
-    if num >= 0 then
-        num = math.floor(num + 0.5)
-    else num = math.ceil(num - 0.5)
+-- Adds all entries from one array (indexed table) to the end of another.
+function array_append_elements(destination, source) -- table, table
+    for _, value in pairs(source) do
+        table.insert(destination, value)
     end
-    return num / decimals
+end
+
+-- Removes several entries from an array (indexed table) and moves the rest up, all in one pass.
+-- Efficient. Requires another standard function above.
+function array_remove_elements(table, elements)
+    local j, n = 1, #table
+    for i=1,n do
+        if table_contains_value(elements, table[i]) then
+            table[i] = nil
+        else
+            if (i ~= j) then
+                table[j] = table[i]
+                table[i] = nil
+            end
+            j = j + 1
+        end
+    end
 end
 
 -- Checks if a table address exists. Seems to return table value or nil.
@@ -56,6 +72,19 @@ function address_not_nil(t, ...)
         t = t[select(i, ...)]
     end
     return t
+end
+
+-- MATH --
+
+-- Rounds a number with the desired level of precision.
+function round_number(num, decimals)
+    decimals = 10 ^ (decimals or 0)
+    num = num * decimals
+    if num >= 0 then
+        num = math.floor(num + 0.5)
+    else num = math.ceil(num - 0.5)
+    end
+    return num / decimals
 end
 
 ---------------------------------------------------------------------------------------------------

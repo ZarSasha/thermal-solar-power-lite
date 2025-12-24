@@ -26,7 +26,7 @@ data:extend({
 		flow_color = { 1, 1, 0.2 },
 		default_temperature = 0,
 		max_temperature = 100,
-		heat_capacity = "0.0001J" -- ... can it go even lower?
+		heat_capacity = "1kJ"
 	}
 })
 

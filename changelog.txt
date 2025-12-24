@@ -1,4 +1,52 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.0
+Date: 2025-12-22
+  Changes:
+    - NB: The setting for thermal panel heat output is no longer compensated but reflects nominal
+      output at the lowest temperature (15°C). The default value was thus changed from 67.5kW to
+      105kW. Easier to work with and less weird with Space Age.
+    - Pyanodon Coal Processing: Now automatically adjusts heat output from script (technically by
+      doubling the heat capacity) to compensate for halved steam conversion efficiency.
+  Balancing:
+    - AAI Industry: Lowered tech cost a bit again because I prefer it.
+  Scripting:
+    - NB: Changed a variable within the storage table, created a proper migration script.
+    - Added a migration message for the console, providing some advice in case of trouble.
+    - Improved performance by dynamically distributing calculations for the heat generating script
+      over potentially all game ticks. Example: 3125 large panels (~1GW power) would produce a
+      spike of ~8.5ms every second, now reduced to <0.9ms, with an average impact of ~0.2ms/tick.
+    - Now tracks changes and only updates storage table once a second to prevent any errors when
+      processing entities over several game ticks.
+    - Now simply unregisters entities from storage table when detected to be invalid. It fits the
+      simple needs of the mod, and requires a lot less code and tracking of events.
+    - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
+      same efficiency (this time simply by lowering the rate of heat loss), thus matching the
+      boiler and better utilizing the steam engine. Also adjusted for greater accuracy.
+    - More Quality Scaling: Entity names are now simply recognized by a base string expected to
+      appear in the name of any clones, so providing compatibility requires much less code.
+  Info:
+    - Improved descriptions. Removed a lot of the capitalization.
+    - The basic heat exchanger now displays the correct temperature target (as defined in startup
+      settings) in its tooltip description.
+    - Added more relevant info to "info" command, which helps with dimensioning of the thermal
+      solar complex on different surfaces.
+  Translation:
+    - Updated German and Chinese locales with DeepL.
+  Bugfixes:
+    - Indirectly improved clean-up of entity ID table within the storage table (there seemed to be
+      some small problems arising from copying entities with Creative Mod).
+  Gui:
+    - Slightly adjusted orange color of console messages.
+  Debug:
+    - Merged "help" and "debug" commands, removed "delete" command (was superfluous).
+    - Added "dump" command, for checking contents of panel ID list within storage.
+  Internal:
+    - Tidied up a fair bit, simplified a lot of code.
+    - Simplified and cleaned up locales.
+    - Added a good amount of explanation to runtime scripts.
+  Notes:
+    - Discovered that panels cannot be flipped. Still have not found a solution.
+---------------------------------------------------------------------------------------------------
 Version: 2.1.20
 Date: 2025-12-11
   Balancing:

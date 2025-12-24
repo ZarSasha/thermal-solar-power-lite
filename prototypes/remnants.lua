@@ -3,7 +3,6 @@
 --  ┣┫┣ ┃┃┃┃┃┣┫┃┃ ┃ ┗┓
 --  ┛┗┗┛┛ ┗┛┗┛┗┛┗ ┻ ┗┛
 ---------------------------------------------------------------------------------------------------
-require "shared"
 ---------------------------------------------------------------------------------------------------
 -- REMNANTS 
 ---------------------------------------------------------------------------------------------------
@@ -36,6 +35,7 @@ local hr_panel_l_remnants_sprite = {
 -- BASIC HEAT EXCHANGER --
 local exchanger_asset = GRAPHICS_ENTITIES.."basic-heat-exchanger/remnants/"
 
+---@diagnostic disable-next-line: undefined-field
 local ExchangerRemnants = table.deepcopy(data.raw.corpse["heat-exchanger-remnants"])
 ExchangerRemnants.name = "basic-heat-exchanger-remnants"
 ExchangerRemnants.animation.filename = exchanger_asset.."basic-heat-exchanger-remnants.png"

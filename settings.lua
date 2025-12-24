@@ -62,5 +62,5 @@ data:extend({
 --		producing at least 900 kW of electric energy.
 --		While nominally producing more power than Solar Panels (105kW > 60kW), they dissipate heat
 --      in proportion to their temperature above 15°C. As a result, they don't easily break the
---      temperature threshold required for electricty producion, which under full load happens
+--      temperature threshold required for electricty production, which under full load happens
 --      within a much narrower time frame (~52.5% < 70%).

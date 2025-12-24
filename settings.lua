@@ -59,8 +59,8 @@ data:extend({
 
 -- [n1]	Thermal Solar Panels are currently balanced such that 3x9=27 panels are more than enough to
 --		keep 1 Basic Heat Exchanger and 1 Steam Engine with Steam Storage running around the clock,
---		producing at least 900 kW of electric energy.
+--		producing ~956kW of electric energy on Nauvis.
 --		While nominally producing more power than Solar Panels (105kW > 60kW), they dissipate heat
 --      in proportion to their temperature above 15°C. As a result, they don't easily break the
---      temperature threshold required for electricty production, which under full load happens
+--      temperature threshold required for electricity production, which under full load happens
 --      within a much narrower time frame (~52.5% < 70%).

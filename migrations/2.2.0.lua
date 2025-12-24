@@ -26,7 +26,7 @@ end
 
 game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
 game.print("  Regarding update to v2.2.0: It is recommended to read the changelog!")
-game.print("  If panels don't work, please report the issue on the Mod Portal.")
-game.print("  However, writing '/tspl reset' in the console should quickly resolve it.")
+game.print("  If panels don't work, please report the issue on the Mod Portal or on GitHub.")
+game.print("  However, writing '/tspl reset' in the console should quickly resolve any issues.")
 
 ---------------------------------------------------------------------------------------------------

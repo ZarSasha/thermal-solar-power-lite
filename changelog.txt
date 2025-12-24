@@ -28,8 +28,8 @@ Date: 2025-12-22
     - Improved descriptions. Removed a lot of the capitalization.
     - The basic heat exchanger now displays the correct temperature target (as defined in startup
       settings) in its tooltip description.
-    - Added more relevant info to "info" command, which helps with dimensioning of thermal solar
-      complex on different surfaces.
+    - Added more relevant info to "info" command, which helps with dimensioning of the thermal
+      solar complex on different surfaces.
   Translation:
     - Updated German and Chinese locales with DeepL.
   Bugfixes:

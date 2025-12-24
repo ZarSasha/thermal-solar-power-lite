@@ -4,8 +4,9 @@
 --  ┗┛┗┛┛┗ ┻ ┛┗┗┛┗┛
 ---------------------------------------------------------------------------------------------------
 -- This code provides a script for heat generation from sunlight, a makeshift sunlight indicator
--- for the Thermal Solar Panels, as well as various command functions (mostly for debugging). The
--- heat script uses time slicing to distribute calculations across many game ticks.
+-- for the Thermal Solar Panels, as well as various command functions (one provides information,
+-- the rest are used for debugging). The heat script uses time slicing to distribute calculations
+-- across many game ticks.
 ---------------------------------------------------------------------------------------------------
 require "functions"
 require "shared.all-stages"
@@ -26,8 +27,9 @@ local env = {
     ambient_temp = 15    -- Default ambient temperature
 }
 
+-- Parameters pertaining to the thermal solar panels:
 local panel_param = {
-    heat_cap_kJ      = 50,
+    heat_cap_kJ      = 50,    -- default value, will not change
     temp_loss_factor = 0.005, -- may be changed
     quality_scaling  = 0.15   -- may be changed
 }
@@ -35,7 +37,6 @@ local panel_param = {
 local ACTIVE_MODS = {
     PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
     MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
-
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -70,18 +71,16 @@ local function register_entity(event)
     table.insert(panels.to_be_added, entity)
 end
 
--- Note: Deregistration simply happens when the entity is found to be invalid. During traversal of
--- the main table later on, its string ID will be added to a temporary array, then deleted at the
--- end of a cycle. The method is completely sufficient for this mod.
+-- Note: An entity will simply be deregistered when found to be invalid during an update cycle
+-- (the string ID is added to a temporary array and then later removed from the main array).
 
--- * A string ID is used to reference an entity and its properties. It may look like this:
---   "[LuaEntity: tspl-thermal-solar-panel-large at [gps=25.5,25.5]]",
---   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,vulcanus]]",
+-- * A string ID is used to reference an entity and gain access to its properties. Example:
+--   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,nauvis]]",
 
 ---------------------------------------------------------------------------------------------------
     -- ENTITY REGISTER UPDATE (ON TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- To keep the main table intact during a cycle that spans several game ticks, changes have to be
+-- To keep the main array intact during a cycle that spans several game ticks, changes have to be
 -- stored temporarily before being used to update the main array.
 
 -- Function to update contents of "main" array and adjust process batch size for next cycle:
@@ -92,8 +91,8 @@ local function update_storage_register()
     array_remove_elements(panels.main, panels.to_be_removed)
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
-    -- Resets status for completion of cycle, calculates batch size for the next one (they are
-    -- processed on all ticks except 1 reserved for the above):
+    -- Resets status for completion of cycle, calculates batch size for the next one
+    -- (they are processed on all ticks except 1 reserved for the above):
     panels.complete = false
     panels.batch_size = math.max(math.ceil(#panels.main / ((tick_interval - 1))),1)
 end
@@ -122,7 +121,7 @@ end
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for
 -- time slicing. Generally writes to storage as little as possible, for better performance.
 local function update_panel_temperature()
-    local panels     = storage.panels    -- table, thus referenced
+    local panels     = storage.panels    -- table reference
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
     local stop       = progress + batch_size - 1
@@ -305,72 +304,15 @@ local COMMAND_parameters = {}
 -- "help": Describes the most important console commands or groups thereof.
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
-        clr("info",1)..  ": Provides very basic info.",
+        clr("info",1)..  ": Provides some helpful info relevant to the current surface.",
         clr("check",1).. ": Checks storage, counts thermal panels on all surfaces and within "
         .."storage.",
         clr("dump",1)..  ": Dumps contents of thermal panel ID list into log file.",
         clr("reset",1).. ": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
-        clr("clear",1).. ": Clears the panel ID table.",
+        clr("clear",1).. ": Clears the panel ID table of its contents.",
         clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
     })
 end
-
---[[
--- Helper function to calculate heat energy that may be converted into steam. Simulates a day cycle
--- with adjustments for day length and solar intensity. Assumes that panels have already warmed up
--- to exchanger target temperature.
-local function temp_simulator(panels_num, sun_mult, day_length)
-    -- Determines several values through simulation of a full day cycle.
-    local temp_target = SETTING.exchanger_temp
-    local panel = { temperature = temp_target }
-    local excess_temp_units = 0
-    for i = 1, day_length do
-        -- Simulates the progression of light levels of a day, one second at a time:
-        local light_level
-        if                                          i < math.floor(0.20*day_length) then
-            light_level = -(5/day_length) * i + 1
-        elseif i >= math.floor(0.20*day_length) and i < math.floor(0.30*day_length) then
-            light_level = 0
-        elseif i >= math.floor(0.30*day_length) and i < math.floor(0.50*day_length) then
-            light_level = (5/day_length) * i - 1.5
-        elseif i >= math.floor(0.50*day_length) then
-            light_level = 1
-        end
-        -- Calculates new temperature for each second of the simulated day:
-        local panels_heat_cap_kJ  = 50 * panels_num
-        local network_heat_cap_kJ =  panels_heat_cap_kJ + 250
-        local panel_loss_X    = 0.005
-
-        local heat_gain = SETTING.panel_output_kW * light_level * sun_mult
-        local heat_loss = (panel.temperature - env.ambient_temperature) * panel_loss_X * panels_heat_cap_kJ
-
-        -- Note: More mass means less temp loss but more heat energy loss, since temp is kept
-        -- high for a longer time. Remember, higher temp, more heat dissipation!
-
-        local temp_gain   = heat_gain / network_heat_cap_kJ
-        local temp_loss   = heat_loss / panels_heat_cap_kJ
-        local temp_change = temp_gain - temp_loss
-        panel.temperature = panel.temperature + temp_change
-        -- Transfers excess to another variable:
-        if panel.temperature > temp_target then
-            excess_temp_units = excess_temp_units + (panel.temperature - temp_target)
-            panel.temperature = temp_target
-        end
-    end
-    -- Returns total heat output in kJ which can be converted into steam at target temperature.
-    local excess_heat_kJ = excess_temp_units * real_heat_cap_kJ
-    local average_output_kW = round_number((excess_heat_kJ / (day_length * panels_num)), 2)
-    local efficiency_pc = round_number(((average_output_kW / SETTING.panel_output_kW) * 100),1)
-    --
-    return average_output_kW, efficiency_pc
-end
-
--- Inaccurate! Likely has something to do with the exchanger, which adds 250kJ of heat capacity
--- to the network. About 18,5%, which is very close to the overestimation of 18,6%
--- Nauvis: Predicts 1134kW with 27 panels, but it actually is 956kW. 18,6% error.
--- Gleba: Predicts 960kW with 120 panels, but it actually is 468kW. 105% error. Hm.
--- This, too, may be wrong. Gotta check again.
-]]
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
@@ -415,10 +357,6 @@ COMMAND_parameters.info = function(pl)
         console.note = "NB: Power production is entirely impossible on this surface!"
     end
 
-    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
-        console.py_note = "Pyanodon: Steam conversion efficiency is only 50%!"
-    end
-
     mPrint(pl, {
         "Surface name ID: "..console.surface_name..". "
       .."Solar intensity: "..console.sun_mult..". "
@@ -428,8 +366,7 @@ COMMAND_parameters.info = function(pl)
       ..console.panel_nom_output_kW..".",
         "Ideal panel-to-exchanger ratio: "
       ..console.panels_ratio..".",
-        console.note,
-        console.py_note
+        console.note
     })
 end
 

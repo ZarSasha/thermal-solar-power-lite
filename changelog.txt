@@ -6,9 +6,11 @@ Date: 2025-12-27
       thermal panels will be cloned.
   Internal:
     - Tidied up in some comments.
+  Info:
+    - Fixed date for v2.2.0 changelog entry.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.0
-Date: 2025-12-22
+Date: 2025-12-24
   Changes:
     - NB: The setting for thermal panel heat output is no longer compensated but reflects nominal
       output at the lowest temperature (15°C). The default value was thus changed from 67.5kW to

@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.1
+Date: 2025-12-27
+  Bugfixes:
+    - More Quality Scaling: Added an important check for a setting that determines whether the
+      thermal panels will be cloned.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.0
 Date: 2025-12-22
   Changes:

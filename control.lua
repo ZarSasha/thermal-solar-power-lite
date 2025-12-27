@@ -113,7 +113,8 @@ if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
 end
 
 -- COMPATIBILITY: More Quality Scaling --
-if ACTIVE_MODS.MORE_QUALITY_SCALING then
+if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
+    {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     panel_param.q_scaling = 0
 end

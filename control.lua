@@ -42,9 +42,9 @@ local ACTIVE_MODS = {
 }
 
 ---------------------------------------------------------------------------------------------------
-    -- STORAGE TABLE CREATION (ON INIT AND ON CONFIGURATION CHANGED)
+    -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
 ---------------------------------------------------------------------------------------------------
--- Values that can't simply be recalcuated should be stored so they can persist through the
+-- Values that are not easy to recalculate should be stored so they can persist through the
 -- save/load cycle. All variables below are used by the "on_tick" heat-generating script.
 
 -- Function to create variables for the storage table, if they do not yet exist.
@@ -66,7 +66,7 @@ local function create_storage_table_keys()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- ENTITY REGISTRATION (ON BUILT AND SIMILAR)
+    -- ENTITY REGISTRATION (ON_BUILT AND SIMILAR)
 ---------------------------------------------------------------------------------------------------
 -- When a thermal panel is built by any method, a string identifier* will be added to a temporary
 -- array in storage. At the end of the cycle, it will be registered into the main array, which
@@ -87,7 +87,7 @@ end
 --   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,nauvis]]",
 
 ---------------------------------------------------------------------------------------------------
-    -- ENTITY REGISTER UPDATE (ON TICK SCRIPT, RUNS PERIODICALLY)
+    -- ENTITY REGISTER UPDATE (ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
 -- To keep the main array intact during a cycle that spans several game ticks, changes have to be
 -- stored temporarily before being used to update the main array.
@@ -109,10 +109,11 @@ local function update_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
--- SPACE PLATFORM SOLAR POWER CALCULATION (ON-TICK SCRIPT, RUNS PERIODICALLY)
+-- SPACE PLATFORM SOLAR POWER CALCULATION (ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- Calculates the current solar power for all existing space platforms in Space Age. Results are
--- written to the storage table.
+-- The surface solar intensity on space platforms varies according to their location. The function
+-- below is meant to periodically calculate the current solar power for all existing platforms.
+-- Results are written to the storage table, for use with the heat generating script.
 
 local function calculate_solar_power_for_all_space_platforms()
     for name, surface in pairs(game.surfaces) do
@@ -133,7 +134,7 @@ local function calculate_solar_power_for_all_space_platforms()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- HEAT GENERATION (ON-TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
+    -- HEAT GENERATION (ON_TICK SCRIPT, RUNS ON MOST TICKS)
 ---------------------------------------------------------------------------------------------------
 -- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
 -- it in proportion to current temperature above ambient level. Adjusted for quality and solar 
@@ -160,8 +161,7 @@ local function update_panel_temperature()
     local panels     = storage.panels    -- table reference
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
-    local stop       = progress + batch_size - 1
-    for i = progress, stop do
+    for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:
@@ -198,7 +198,7 @@ local function update_panel_temperature()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- MAKESHIFT SUNLIGHT INDICATOR (ON GUI OPENED/CLOSED)
+    -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)
 ---------------------------------------------------------------------------------------------------
 -- Script that emulates a solar level indicator by filling the panel with a custom fluid when the
 -- gui is opened, and removing it again when the gui is closed.
@@ -349,7 +349,7 @@ COMMAND_parameters.help = function(pl)
     mPrint(pl, {
         clr("info",1)..  ": Provides some helpful info relevant to the current surface.",
         clr("check",1).. ": Checks storage, counts thermal panels on all surfaces and within "
-        .."storage.",
+      .."storage.",
         clr("dump",1)..  ": Dumps contents of thermal panel ID list into log file.",
         clr("reset",1).. ": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
         clr("clear",1).. ": Clears the panel ID table of its contents.",

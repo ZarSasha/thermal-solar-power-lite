@@ -302,7 +302,7 @@ end
 -- Table to be populated with functions, each with a name matching a command parameter.
 local COMMAND_parameters = {}
 
--- "help": Describes the most important console commands or groups thereof.
+-- "help": Describes all console commands provides by this mod.
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
         clr("info",1)..  ": Provides some helpful info relevant to the current surface.",

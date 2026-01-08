@@ -9,6 +9,7 @@
 	"factorio_version": "2.0",
 	"dependencies": [
 		"base >= 2.0.7",
+        "? space-age",
         "? quality",
         "? aai-industry",
         "? ch-concentrated-solar",

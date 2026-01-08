@@ -17,7 +17,7 @@ local effects = largePanelExplosion.created_effect.action_delivery.target_effect
 local dev = 3
 ---@diagnostic disable-next-line: undefined-field
 local copy1 = table.deepcopy(effects[1])
-copy1.repeat_count = 252 
+copy1.repeat_count = 252
 copy1.offset_deviation = {{-(0.7+dev), -(0.5+dev)},{ (0.7+dev), (0.5+dev)}}
 table.insert(effects,copy1)
 ---@diagnostic disable-next-line: undefined-field

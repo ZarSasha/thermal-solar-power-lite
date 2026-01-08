@@ -109,6 +109,12 @@ local function update_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
+-- SURFACE REGISTRATION
+---------------------------------------------------------------------------------------------------
+-- Updates list of 
+
+
+---------------------------------------------------------------------------------------------------
 -- SPACE PLATFORM SOLAR POWER CALCULATION (ON TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
 
@@ -363,9 +369,8 @@ end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local surface_name   = pl.surface.name
     local sun_mult
-    if pl.surface.planet then
+    if pl.surface.platform == nil then
         sun_mult = pl.surface.get_property("solar-power")/100
     else
         sun_mult = storage.platforms.solar_power[pl.surface.name]/100
@@ -385,7 +390,7 @@ COMMAND_parameters.info = function(pl)
 
     local console = {}
 
-    console.surface_name        = clr(surface_name,2)
+    console.surface_name        = clr(pl.surface.name,2)
     console.sun_mult            = clr(round_number(sun_mult * 100,2) .. "%",2)
 
     if daylength_sec > 0 and daylength_sec ~= nil then

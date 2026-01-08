@@ -3,8 +3,8 @@ Version: 2.2.2
 Date: 2026-01-08
   Bugfixes:
     - Space Age: Improved the heat-generating script so the heat output of thermal panels properly
-      reflects solar intensity on space platforms in their current location, even as they travel
-      between planets (just like solar panels).
+      changes according to solar intensity on space platforms in their current location, even as
+      they travel between planets (just like solar panels).
   Info:
     - Updated info command.
   Internal:

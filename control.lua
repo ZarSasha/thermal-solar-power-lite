@@ -109,7 +109,7 @@ local function update_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
--- SPACE PLATFORM SOLAR POWER CALCULATION (ON_TICK SCRIPT, RUNS PERIODICALLY)
+    -- SPACE AGE: SPACE PLATFORM SOLAR POWER CALCULATION (ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
 -- The surface solar intensity on space platforms varies according to their location. The function
 -- below is meant to periodically calculate the current solar power for all existing platforms.

@@ -30,3 +30,9 @@ game.print("  If panels don't work, please report the issue on the Mod Portal or
 game.print("  However, writing '/tspl reset' in the console should quickly resolve any issues.")
 
 ---------------------------------------------------------------------------------------------------
+-- END NOTES:
+---------------------------------------------------------------------------------------------------
+
+-- Looking back, it should have been sufficient to just initialize panels and panels.main in
+-- storage during the migration stage to allow the contents of tspl_thermal_panel_table to be
+-- transferred. A reset rather than transfer could also have worked.

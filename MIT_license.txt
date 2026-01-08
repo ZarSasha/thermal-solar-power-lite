@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------
-Copyright 2025 ZarSasha
+Copyright 2026 ZarSasha
 Copyright 2022 Marximus Maximus, CyberWizard2261
 ----------------------------------------------------------------------------
 Permission is hereby granted, free of charge, to any person obtaining a copy

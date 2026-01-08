@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 --  ┏┓┏┓┳┓┏┳┓┳┓┏┓┓ 
---  ┃ ┃┃┃┃ ┃ ┣┫┃┃┃ 
+--  ┃ ┃┃┃┃ ┃ ┣┫┃┃┃     RUNTIME STAGE
 --  ┗┛┗┛┛┗ ┻ ┛┗┗┛┗┛
 ---------------------------------------------------------------------------------------------------
 -- This code provides a script for heat generation from sunlight, a makeshift sunlight indicator
@@ -20,6 +20,7 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
 local tick_interval = 60
 local tick_frequency = (tick_interval/60)
+local reserved_ticks = 2
 
 -- Environmental parameters (set by game):
 local env = {
@@ -35,29 +36,37 @@ local panel_param = {
 }
 
 local ACTIVE_MODS = {
+    SPACE_AGE            = script.active_mods["space-age"],
     PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
     MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
 }
 
 ---------------------------------------------------------------------------------------------------
-    -- STORAGE TABLE CREATION (ON INIT AND ON CONFIGURATION CHANGED)
+    -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
 ---------------------------------------------------------------------------------------------------
--- Values that can't simply be recalcuated should be stored so they can persist through the
+-- Values that are not easy to recalculate should be stored so they can persist through the
 -- save/load cycle. All variables below are used by the "on_tick" heat-generating script.
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
-    if storage.panels               == nil then storage.panels               =    {} end
-    if storage.panels.main          == nil then storage.panels.main          =    {} end
-    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
-    if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
-    if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
-    if storage.panels.progress      == nil then storage.panels.progress      =     1 end
-    if storage.panels.complete      == nil then storage.panels.complete      = false end
+    if storage.panels                == nil then storage.panels                =    {} end
+    if storage.panels.main           == nil then storage.panels.main           =    {} end
+    if storage.panels.to_be_added    == nil then storage.panels.to_be_added    =    {} end
+    if storage.panels.to_be_removed  == nil then storage.panels.to_be_removed  =    {} end
+    if storage.panels.batch_size     == nil then storage.panels.batch_size     =    10 end
+    if storage.panels.progress       == nil then storage.panels.progress       =     1 end
+    if storage.panels.complete       == nil then storage.panels.complete       = false end
+    if storage.platforms             == nil then storage.platforms             =    {} end
+    if storage.platforms.solar_power == nil then
+        storage.platforms.solar_power = {}
+        for name, _ in pairs(game.surfaces) do
+            storage.platforms.solar_power[name] = 100
+        end
+    end
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- ENTITY REGISTRATION (ON BUILT AND SIMILAR)
+    -- ENTITY REGISTRATION (ON_BUILT AND SIMILAR)
 ---------------------------------------------------------------------------------------------------
 -- When a thermal panel is built by any method, a string identifier* will be added to a temporary
 -- array in storage. At the end of the cycle, it will be registered into the main array, which
@@ -78,7 +87,7 @@ end
 --   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,nauvis]]",
 
 ---------------------------------------------------------------------------------------------------
-    -- ENTITY REGISTER UPDATE (ON TICK SCRIPT, RUNS PERIODICALLY)
+    -- ENTITY REGISTER UPDATE (ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
 -- To keep the main array intact during a cycle that spans several game ticks, changes have to be
 -- stored temporarily before being used to update the main array.
@@ -92,13 +101,40 @@ local function update_storage_register()
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for the next one
-    -- (they are processed on all ticks except 1 reserved for the above):
-    panels.complete = false
-    panels.batch_size = math.max(math.ceil(#panels.main / ((tick_interval - 1))),1)
+    -- (they are processed on ticks not reserved for other purposes):
+
+    panels.complete   = false
+    panels.batch_size =
+        math.max(math.ceil(#panels.main / ((tick_interval - reserved_ticks))),1)
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
+    -- SPACE AGE: SPACE PLATFORM SOLAR POWER CALCULATION (ON_TICK SCRIPT, RUNS PERIODICALLY)
+---------------------------------------------------------------------------------------------------
+-- The surface solar intensity on space platforms varies according to their location. The function
+-- below is meant to periodically calculate the current solar power for all existing platforms.
+-- Results are written to the storage table, for use with the heat generating script.
+
+local function calculate_solar_power_for_all_space_platforms()
+    for name, surface in pairs(game.surfaces) do
+        local platform = surface.platform
+        if platform == nil then goto continue end
+        if platform.space_location ~= nil then
+            storage.platforms.solar_power[name] =
+                platform.space_location.solar_power_in_space
+        else
+            local solar_power_start = platform.space_connection.from.solar_power_in_space
+            local solar_power_stop  = platform.space_connection.to.solar_power_in_space
+            local distance          = platform.distance -- 0 to 1
+            storage.platforms.solar_power[name] =
+                (solar_power_start - (solar_power_start - solar_power_stop) * distance)
+        end
+        ::continue::
+    end
+end
+
+---------------------------------------------------------------------------------------------------
+    -- HEAT GENERATION (ON_TICK SCRIPT, RUNS ON MOST TICKS)
 ---------------------------------------------------------------------------------------------------
 -- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
 -- it in proportion to current temperature above ambient level. Adjusted for quality and solar 
@@ -125,8 +161,7 @@ local function update_panel_temperature()
     local panels     = storage.panels    -- table reference
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
-    local stop       = progress + batch_size - 1
-    for i = progress, stop do
+    for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
         -- when there are no more entries to go through:
@@ -143,7 +178,12 @@ local function update_panel_temperature()
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
-        local sun_mult    = panel.surface.get_property("solar-power")/100
+        local sun_mult
+        if panel.surface.platform == nil then
+            sun_mult = panel.surface.get_property("solar-power")/100
+        else
+            sun_mult = storage.platforms.solar_power[panel.surface.name]/100
+        end
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
             light_corr * sun_mult * q_factor
@@ -158,7 +198,7 @@ local function update_panel_temperature()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- MAKESHIFT SUNLIGHT INDICATOR (ON GUI OPENED/CLOSED)
+    -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)
 ---------------------------------------------------------------------------------------------------
 -- Script that emulates a solar level indicator by filling the panel with a custom fluid when the
 -- gui is opened, and removing it again when the gui is closed.
@@ -233,9 +273,11 @@ end)
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
-        update_storage_register()  -- within 1 tick
-    elseif not storage.panels.complete then
-        update_panel_temperature() -- within all but the 1 tick above
+        update_storage_register() -- within 1 tick
+    elseif event.tick % tick_interval == 4 and ACTIVE_MODS.SPACE_AGE then -- not 0 etc.
+        calculate_solar_power_for_all_space_platforms() -- within 1 tick
+    elseif not storage.panels.complete then -- when cycle has yet to be completed
+        update_panel_temperature() -- within all but the 2 ticks above
     end
 end)
 
@@ -302,12 +344,12 @@ end
 -- Table to be populated with functions, each with a name matching a command parameter.
 local COMMAND_parameters = {}
 
--- "help": Describes the most important console commands or groups thereof.
+-- "help": Describes all console commands provides by this mod.
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
         clr("info",1)..  ": Provides some helpful info relevant to the current surface.",
         clr("check",1).. ": Checks storage, counts thermal panels on all surfaces and within "
-        .."storage.",
+      .."storage.",
         clr("dump",1)..  ": Dumps contents of thermal panel ID list into log file.",
         clr("reset",1).. ": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
         clr("clear",1).. ": Clears the panel ID table of its contents.",
@@ -317,8 +359,12 @@ end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local surface_name   = pl.surface.name
-    local sun_mult       = pl.surface.get_property("solar-power")/100
+    local sun_mult
+    if pl.surface.platform == nil then
+        sun_mult = pl.surface.get_property("solar-power")/100
+    else
+        sun_mult = storage.platforms.solar_power[pl.surface.name]/100
+    end
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_adj       = SETTING.exchanger_temp - env.ambient_temp
@@ -334,8 +380,8 @@ COMMAND_parameters.info = function(pl)
 
     local console = {}
 
-    console.surface_name        = clr(surface_name,2)
-    console.sun_mult            = clr(sun_mult * 100 .. "%",2)
+    console.surface_name        = clr(pl.surface.name,2)
+    console.sun_mult            = clr(round_number(sun_mult * 100,2) .. "%",2)
 
     if daylength_sec > 0 and daylength_sec ~= nil then
         console.daylength_sec = clr(daylength_sec .. " seconds",2)

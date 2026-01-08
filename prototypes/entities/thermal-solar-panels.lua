@@ -93,7 +93,7 @@ local ThermalPanel = {
     },
 	connection_patches_connected    = {sheet = hr_panel_connection_sprites},
 	connection_patches_disconnected = {sheet = hr_panel_disconnection_sprites},
-    --no heat connection patches, because they actually make the panels look worse.
+    --no heat connection patches, a heating effect would actually make the panels look worse.
     open_sound = sounds.metal_small_open,
     close_sound = sounds.metal_small_close
 }

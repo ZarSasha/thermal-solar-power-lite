@@ -2,7 +2,9 @@
 Version: 2.2.2
 Date: 2026-01-08
   Bugfixes:
-    - TODO: Fix solar power not applying to thermal panels in space.
+    - Thermal solar panels: Fixed that the heat output did not vary in space.
+  Info:
+    - Updated info command.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.1
 Date: 2025-12-27

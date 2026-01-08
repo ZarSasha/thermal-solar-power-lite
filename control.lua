@@ -98,20 +98,19 @@ local function update_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
--- 
+-- SPACE PLATFORM SOLAR POWER CALCULATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
 ---------------------------------------------------------------------------------------------------
--- Needed for calculation of solar power in space (varies during space travel).
 
-
+-- Function to calculate the current solar power for all existing space platforms.
 local function calculate_solar_power_for_all_space_platforms()
-    local all_platforms_current_solar_power = {}
+    local platforms_current_solar_power = {}
     for name, surface in pairs(game.surfaces) do
         if not surface.valid then goto continue end
         local platform = surface.platform
         if platform == nil then goto continue end
         if not platform.valid then goto continue end
         if platform.space_location then
-            all_platforms_current_solar_power[name] =
+            platforms_current_solar_power[name] =
                 platform.space_location.solar_power_in_space
         else
             local solar_power = {
@@ -119,13 +118,15 @@ local function calculate_solar_power_for_all_space_platforms()
                 stop  = platform.space_connection.to.solar_power_in_space
             }
             local distance = platform.distance -- 0 to 1
-            all_platforms_current_solar_power[name] =
+            platforms_current_solar_power[name] =
                 (solar_power.start - (solar_power.start - solar_power.stop) * distance)
         end
         ::continue::
     end
-    return all_platforms_current_solar_power
+    return platforms_current_solar_power
 end
+
+local platforms_current_solar_power
 
 ---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
@@ -148,8 +149,6 @@ if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     panel_param.q_scaling = 0
 end
-
-local platforms_current_solar_power
 
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for
 -- time slicing. Generally writes to storage as little as possible, for better performance.

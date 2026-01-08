@@ -109,25 +109,16 @@ local function update_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
--- SURFACE REGISTRATION
+-- SPACE PLATFORM SOLAR POWER CALCULATION (ON-TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- Updates list of 
+-- Calculates the current solar power for all existing space platforms in Space Age. Results are
+-- written to the storage table.
 
-
----------------------------------------------------------------------------------------------------
--- SPACE PLATFORM SOLAR POWER CALCULATION (ON TICK SCRIPT, RUNS PERIODICALLY)
----------------------------------------------------------------------------------------------------
-
--- COMPATIBILITY: Space Age --
--- Function to calculate the current solar power for all existing space platforms.
--- Stores result.
 local function calculate_solar_power_for_all_space_platforms()
     for name, surface in pairs(game.surfaces) do
-        if not surface.valid then goto continue end
         local platform = surface.platform
         if platform == nil then goto continue end
-        if not platform.valid then goto continue end
-        if platform.space_location then
+        if platform.space_location ~= nil then
             storage.platforms.solar_power[name] =
                 platform.space_location.solar_power_in_space
         else
@@ -142,7 +133,7 @@ local function calculate_solar_power_for_all_space_platforms()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
+    -- HEAT GENERATION (ON-TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
 ---------------------------------------------------------------------------------------------------
 -- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
 -- it in proportion to current temperature above ambient level. Adjusted for quality and solar 
@@ -282,13 +273,12 @@ end)
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
-        update_storage_register()  -- within 1 tick
-    elseif event.tick % tick_interval == 4 and ACTIVE_MODS.SPACE_AGE then
-        calculate_solar_power_for_all_space_platforms()
-    elseif not storage.panels.complete then
+        update_storage_register() -- within 1 tick
+    elseif event.tick % tick_interval == 4 and ACTIVE_MODS.SPACE_AGE then -- not 0 etc.
+        calculate_solar_power_for_all_space_platforms() -- within 1 tick
+    elseif not storage.panels.complete then -- when cycle has yet to be completed
         update_panel_temperature() -- within all but the 2 ticks above
     end
-
 end)
 
 -- Function set to run when a GUI is opened.

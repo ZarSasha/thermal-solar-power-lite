@@ -98,6 +98,38 @@ local function update_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
+-- 
+---------------------------------------------------------------------------------------------------
+-- Needed for calculation of solar power in space (varies during space travel).
+
+
+local function calculate_solar_power_for_all_space_platforms()
+    local all_platforms_current_solar_power = {}
+    for _, surface in pairs(game.surfaces) do
+        if not surface.valid then goto continue end
+        local platform = surface.platform
+        if platform == nil then goto continue end
+        if not platform.valid then goto continue end
+        if platform.space_location then
+            all_platforms_current_solar_power[surface.name] =
+                platform.space_location.solar_power_in_space
+        else
+            local solar_power = {
+                start = platform.space_connection.from.solar_power_in_space,
+                stop  = platform.space_connection.to.solar_power_in_space
+            }
+            local distance = platform.distance -- 0 to 1
+            all_platforms_current_solar_power[platform.name] =
+                (solar_power.start - (solar_power.start - solar_power.stop) * distance)
+        end
+        ::continue::
+    end
+    return all_platforms_current_solar_power
+end
+
+local platforms_current_solar_power = calculate_solar_power_for_all_space_platforms()
+
+---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
 ---------------------------------------------------------------------------------------------------
 -- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
@@ -143,7 +175,12 @@ local function update_panel_temperature()
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
-        local sun_mult    = panel.surface.get_property("solar-power")/100
+        local sun_mult
+        if panel.surface.planet then
+            sun_mult = panel.surface.get_property("solar-power")/100
+        else
+            sun_mult = platforms_current_solar_power[panel.surface.name]/100
+        end
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
             light_corr * sun_mult * q_factor
@@ -236,6 +273,9 @@ script.on_event({defines.events.on_tick}, function(event)
         update_storage_register()  -- within 1 tick
     elseif not storage.panels.complete then
         update_panel_temperature() -- within all but the 1 tick above
+    end
+    if event.tick % tick_interval == 2 then
+        calculate_solar_power_for_all_space_platforms()
     end
 end)
 

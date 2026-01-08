@@ -127,8 +127,6 @@ local function calculate_solar_power_for_all_space_platforms()
     return all_platforms_current_solar_power
 end
 
-local platforms_current_solar_power = calculate_solar_power_for_all_space_platforms()
-
 ---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
 ---------------------------------------------------------------------------------------------------
@@ -150,6 +148,8 @@ if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     panel_param.q_scaling = 0
 end
+
+local platforms_current_solar_power
 
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for
 -- time slicing. Generally writes to storage as little as possible, for better performance.
@@ -274,8 +274,8 @@ script.on_event({defines.events.on_tick}, function(event)
     elseif not storage.panels.complete then
         update_panel_temperature() -- within all but the 1 tick above
     end
-    if event.tick % tick_interval == 2 then
-        calculate_solar_power_for_all_space_platforms()
+    if event.tick % tick_interval == 0 then
+        platforms_current_solar_power = calculate_solar_power_for_all_space_platforms()
     end
 end)
 

@@ -20,6 +20,7 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
 local tick_interval = 60
 local tick_frequency = (tick_interval/60)
+local reserved_ticks = 2
 
 -- Environmental parameters (set by game):
 local env = {
@@ -35,6 +36,7 @@ local panel_param = {
 }
 
 local ACTIVE_MODS = {
+    SPACE_AGE            = script.active_mods["space-age"],
     PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
     MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
 }
@@ -47,13 +49,20 @@ local ACTIVE_MODS = {
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
-    if storage.panels               == nil then storage.panels               =    {} end
-    if storage.panels.main          == nil then storage.panels.main          =    {} end
-    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
-    if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
-    if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
-    if storage.panels.progress      == nil then storage.panels.progress      =     1 end
-    if storage.panels.complete      == nil then storage.panels.complete      = false end
+    if storage.panels                == nil then storage.panels                =    {} end
+    if storage.panels.main           == nil then storage.panels.main           =    {} end
+    if storage.panels.to_be_added    == nil then storage.panels.to_be_added    =    {} end
+    if storage.panels.to_be_removed  == nil then storage.panels.to_be_removed  =    {} end
+    if storage.panels.batch_size     == nil then storage.panels.batch_size     =    10 end
+    if storage.panels.progress       == nil then storage.panels.progress       =     1 end
+    if storage.panels.complete       == nil then storage.panels.complete       = false end
+    if storage.platforms             == nil then storage.platforms             =    {} end
+    if storage.platforms.solar_power == nil then
+        storage.platforms.solar_power = {}
+        for name, _ in pairs(game.surfaces) do
+            storage.platforms.solar_power[name] = 100
+        end
+    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -92,41 +101,39 @@ local function update_storage_register()
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for the next one
-    -- (they are processed on all ticks except 1 reserved for the above):
-    panels.complete = false
-    panels.batch_size = math.max(math.ceil(#panels.main / ((tick_interval - 1))),1)
+    -- (they are processed on ticks not reserved for other purposes):
+
+    panels.complete   = false
+    panels.batch_size =
+        math.max(math.ceil(#panels.main / ((tick_interval - reserved_ticks))),1)
 end
 
 ---------------------------------------------------------------------------------------------------
--- SPACE PLATFORM SOLAR POWER CALCULATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
+-- SPACE PLATFORM SOLAR POWER CALCULATION (ON TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
 
+-- COMPATIBILITY: Space Age --
 -- Function to calculate the current solar power for all existing space platforms.
+-- Stores result.
 local function calculate_solar_power_for_all_space_platforms()
-    local platforms_current_solar_power = {}
     for name, surface in pairs(game.surfaces) do
         if not surface.valid then goto continue end
         local platform = surface.platform
         if platform == nil then goto continue end
         if not platform.valid then goto continue end
         if platform.space_location then
-            platforms_current_solar_power[name] =
+            storage.platforms.solar_power[name] =
                 platform.space_location.solar_power_in_space
         else
-            local solar_power = {
-                start = platform.space_connection.from.solar_power_in_space,
-                stop  = platform.space_connection.to.solar_power_in_space
-            }
-            local distance = platform.distance -- 0 to 1
-            platforms_current_solar_power[name] =
-                (solar_power.start - (solar_power.start - solar_power.stop) * distance)
+            local solar_power_start = platform.space_connection.from.solar_power_in_space
+            local solar_power_stop  = platform.space_connection.to.solar_power_in_space
+            local distance          = platform.distance -- 0 to 1
+            storage.platforms.solar_power[name] =
+                (solar_power_start - (solar_power_start - solar_power_stop) * distance)
         end
         ::continue::
     end
-    return platforms_current_solar_power
 end
-
-local platforms_current_solar_power
 
 ---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON TICK SCRIPT, RUNS ON ALL BUT ONE TICK)
@@ -178,7 +185,7 @@ local function update_panel_temperature()
         if panel.surface.planet then
             sun_mult = panel.surface.get_property("solar-power")/100
         else
-            sun_mult = platforms_current_solar_power[panel.surface.name]/100
+            sun_mult = platforms.current_solar_power[panel.surface.name]/100
         end
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
@@ -270,12 +277,12 @@ end)
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
         update_storage_register()  -- within 1 tick
+    elseif event.tick % tick_interval == 4 and ACTIVE_MODS.SPACE_AGE then
+        calculate_solar_power_for_all_space_platforms()
     elseif not storage.panels.complete then
-        update_panel_temperature() -- within all but the 1 tick above
+        update_panel_temperature() -- within all but the 2 ticks above
     end
-    if event.tick % tick_interval == 0 then
-        platforms_current_solar_power = calculate_solar_power_for_all_space_platforms()
-    end
+
 end)
 
 -- Function set to run when a GUI is opened.

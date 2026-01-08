@@ -380,7 +380,7 @@ COMMAND_parameters.info = function(pl)
     local console = {}
 
     console.surface_name        = clr(surface_name,2)
-    console.sun_mult            = clr(sun_mult * 100 .. "%",2)
+    console.sun_mult            = clr(round_number(sun_mult * 100,2) .. "%",2)
 
     if daylength_sec > 0 and daylength_sec ~= nil then
         console.daylength_sec = clr(daylength_sec .. " seconds",2)

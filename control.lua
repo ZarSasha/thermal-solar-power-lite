@@ -182,10 +182,10 @@ local function update_panel_temperature()
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
         local sun_mult
-        if panel.surface.planet then
+        if panel.surface.platform == nil then
             sun_mult = panel.surface.get_property("solar-power")/100
         else
-            sun_mult = platforms.current_solar_power[panel.surface.name]/100
+            sun_mult = storage.platforms.solar_power[panel.surface.name]/100
         end
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *

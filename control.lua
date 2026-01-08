@@ -368,7 +368,7 @@ COMMAND_parameters.info = function(pl)
     if pl.surface.planet then
         sun_mult = pl.surface.get_property("solar-power")/100
     else
-        sun_mult = platforms_current_solar_power[pl.surface.name]/100
+        sun_mult = storage.platforms.solar_power[pl.surface.name]/100
     end
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult

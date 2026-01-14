@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.3
+Date: 2026-01-14
+  Changes:
+    - Improved code related to space platforms, likely making it more robust to crashes.
+  Info:
+    - Corrected v2.2.0 changelog entry.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-01-08
   Bugfixes:
@@ -26,11 +33,6 @@ Date: 2025-12-24
     - NB: The setting for thermal panel heat output is no longer compensated but reflects nominal
       output at the lowest temperature (15°C). The default value was thus changed from 67.5kW to
       105kW. Easier to work with and less weird with Space Age.
-    - Pyanodon Coal Processing: Now automatically adjusts heat output from script (technically by
-      doubling the heat capacity) to compensate for halved steam conversion efficiency.
-  Balancing:
-    - AAI Industry: Lowered tech cost a bit again because I prefer it.
-  Scripting:
     - NB: Changed a variable within the storage table, created a proper migration script.
     - Added a migration message for the console, providing some advice in case of trouble.
     - Improved performance by dynamically distributing calculations for the heat generating script
@@ -40,11 +42,16 @@ Date: 2025-12-24
       processing entities over several game ticks.
     - Now simply unregisters entities from storage table when detected to be invalid. It fits the
       simple needs of the mod, and requires a lot less code and tracking of events.
-    - Pyanodon Coal Processing: The compat option allows for steam production at 250°C with the
-      same efficiency (this time simply by lowering the rate of heat loss), thus matching the
-      boiler and better utilizing the steam engine. Also adjusted for greater accuracy.
+    - Pyanodon Coal Processing:
+      - Now automatically adjusts heat output from script (technically by doubling the heat
+        capacity) to compensate for halved steam conversion efficiency.
+      - The compat option allows for steam production at 250°C with the same efficiency (this time
+        simply by lowering the rate of heat loss), thus matching the boiler and better utilizing
+        the steam engine. Also adjusted for greater accuracy.
     - More Quality Scaling: Entity names are now simply recognized by a base string expected to
       appear in the name of any clones, so providing compatibility requires much less code.
+  Balancing:
+    - AAI Industry: Lowered tech cost a bit again because I prefer it.
   Info:
     - Improved descriptions. Removed a lot of the capitalization.
     - The basic heat exchanger now displays the correct temperature target (as defined in startup

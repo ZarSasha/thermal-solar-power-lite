@@ -56,13 +56,9 @@ local function create_storage_table_keys()
     if storage.panels.batch_size     == nil then storage.panels.batch_size     =    10 end
     if storage.panels.progress       == nil then storage.panels.progress       =     1 end
     if storage.panels.complete       == nil then storage.panels.complete       = false end
+    -- Needed for Space Age:
     if storage.platforms             == nil then storage.platforms             =    {} end
-    if storage.platforms.solar_power == nil then
-        storage.platforms.solar_power = {}
-        for name, _ in pairs(game.surfaces) do
-            storage.platforms.solar_power[name] = 100
-        end
-    end
+    if storage.platforms.solar_power == nil then storage.platforms.solar_power =    {} end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -73,7 +69,7 @@ end
 -- contains references to all the panels that the scripts further below should apply to.
 
 -- Function to register entity string ID into temporary "to_be_added" array in storage.
-local function register_entity(event)
+local function register_panel_entity(event)
     local panels = storage.panels
     local entity = event.entity or event.destination
     if not string.find(entity.name, panel_name_base, 1, true) then return end
@@ -93,7 +89,7 @@ end
 -- stored temporarily before being used to update the main array.
 
 -- Function to update contents of "main" array and adjust process batch size for next cycle:
-local function update_storage_register()
+local function update_panel_storage_register()
     local panels = storage.panels
     -- Updates main array, clears temporary arrays:
     array_append_elements(panels.main, panels.to_be_added)
@@ -102,7 +98,6 @@ local function update_storage_register()
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for the next one
     -- (they are processed on ticks not reserved for other purposes):
-
     panels.complete   = false
     panels.batch_size =
         math.max(math.ceil(#panels.main / ((tick_interval - reserved_ticks))),1)
@@ -111,26 +106,49 @@ end
 ---------------------------------------------------------------------------------------------------
     -- SPACE AGE: SPACE PLATFORM SOLAR POWER CALCULATION (ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- The surface solar intensity on space platforms varies according to their location. The function
--- below is meant to periodically calculate the current solar power for all existing platforms.
--- Results are written to the storage table, for use with the heat generating script.
+-- The surface solar intensity on space platforms varies according to their location. The functions
+-- below are used to periodically calculate their current solar power. Writes results to storage.
 
-local function calculate_solar_power_for_all_space_platforms()
+-- Function to calculate current solar power of a platform surface.
+local function calculate_solar_power_for_space_platform(surface)
+    local current_solar_power
+    local platform = surface.platform
+    if platform.space_location then
+        current_solar_power =
+            platform.space_location.solar_power_in_space
+    else
+        local solar_power_start = platform.space_connection.from.solar_power_in_space
+        local solar_power_stop  = platform.space_connection.to.solar_power_in_space
+        local distance          = platform.distance -- 0 to 1
+        current_solar_power =
+            (solar_power_start - (solar_power_start - solar_power_stop) * distance)
+    end
+    return current_solar_power
+end
+
+-- Function to register all platform surfaces into storage along with calculated solar power.
+local function update_space_platform_storage_register()
+    if not ACTIVE_MODS.SPACE_AGE then return end
     for name, surface in pairs(game.surfaces) do
-        local platform = surface.platform
-        if platform == nil then goto continue end
-        if platform.space_location ~= nil then
-            storage.platforms.solar_power[name] =
-                platform.space_location.solar_power_in_space
-        else
-            local solar_power_start = platform.space_connection.from.solar_power_in_space
-            local solar_power_stop  = platform.space_connection.to.solar_power_in_space
-            local distance          = platform.distance -- 0 to 1
-            storage.platforms.solar_power[name] =
-                (solar_power_start - (solar_power_start - solar_power_stop) * distance)
-        end
+        if not surface.platform then goto continue end
+        storage.platforms.solar_power[name] =
+            calculate_solar_power_for_space_platform(surface)
         ::continue::
     end
+end
+
+-- Note: The code does not store a table of surface platform references, but directly iterates over
+-- game.surfaces since the number of surfaces is so low. There should be no performance issues.
+
+---------------------------------------------------------------------------------------------------
+    -- SPACE AGE: SPACE PLATFORM DEREGISTRATION (ON_PRE_SURFACE_DELETED)
+---------------------------------------------------------------------------------------------------
+
+-- Function to deregister a space platform from storage table upon deletion. Just clean-up.
+local function deregister_space_platform(event)
+    if not ACTIVE_MODS.SPACE_AGE then return end
+    local surface_name = game.surfaces[event.surface_index].name
+    storage.platforms.solar_power[surface_name] = nil
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -182,7 +200,7 @@ local function update_panel_temperature()
         if panel.surface.platform == nil then
             sun_mult = panel.surface.get_property("solar-power")/100
         else
-            sun_mult = storage.platforms.solar_power[panel.surface.name]/100
+            sun_mult = storage.platforms.solar_power[panel.surface.name]/100 or 100
         end
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
@@ -267,15 +285,21 @@ script.on_event({
     defines.events.on_entity_cloned                -- event.destination (not a normal event) *
     -- * Event is raised for every single entity created from cloned area as well.
 },  function(event)
-    register_entity(event)
+    register_panel_entity(event)
+end)
+
+-- Function set to run on surface deleted (triggers 5 minutes after a platform is marked for
+-- deletion and immediately on platform destruction caused by damage).
+script.on_event({defines.events.on_pre_surface_deleted}, function(event)
+    deregister_space_platform(event) -- just clean-up, not critical
 end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
-        update_storage_register() -- within 1 tick
-    elseif event.tick % tick_interval == 4 and ACTIVE_MODS.SPACE_AGE then -- not 0 etc.
-        calculate_solar_power_for_all_space_platforms() -- within 1 tick
+        update_panel_storage_register() -- within 1 tick
+    elseif event.tick % tick_interval == 4 then -- not 0 etc.
+        update_space_platform_storage_register() -- within 1 tick
     elseif not storage.panels.complete then -- when cycle has yet to be completed
         update_panel_temperature() -- within all but the 2 ticks above
     end
@@ -348,9 +372,8 @@ local COMMAND_parameters = {}
 COMMAND_parameters.help = function(pl)
     mPrint(pl, {
         clr("info",1)..  ": Provides some helpful info relevant to the current surface.",
-        clr("check",1).. ": Checks storage, counts thermal panels on all surfaces and within "
-      .."storage.",
-        clr("dump",1)..  ": Dumps contents of thermal panel ID list into log file.",
+        clr("check",1).. ": Counts thermal panels on all surfaces and within storage.",
+        clr("dump",1)..  ": Dumps contents of storage into log file.",
         clr("reset",1).. ": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
         clr("clear",1).. ": Clears the panel ID table of its contents.",
         clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
@@ -419,25 +442,12 @@ end
 
 -- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
 COMMAND_parameters.check = function(pl)
-    if storage.panels ~= nil then
-        -- Storage table:
-        mPrint(pl, {"The table 'storage.panels' exists. Any missing subkeys are written here:"})
-        local subvars = {
-            "main", "to_be_added", "to_be_removed", "batch_size", "progress", "complete"
-        }
-        for _, subvar in ipairs(subvars) do
-            if storage.panels[subvar] == nil then mPrint(pl, {"  "..subvar}) end
-        end
-        -- Entity count:
-        mPrint(pl, {"Thermal solar panel entity count:"})
-        local count1 = search_and_count_thermal_panels()
-        mPrint(pl, {"  Found within world (all surfaces): "..clr(count1,2).."."})
-        if storage.panels.main ~= nil then
-            local count2 = table_length(storage.panels.main)
-            mPrint(pl, {"  Registered within storage table: "..clr(count2,2).."."})
-        end
-    else
-        mPrint(pl, {"The table 'storage.panels' does not exist!"})
+    mPrint(pl, {"Thermal solar panel entity count:"})
+    local count1 = search_and_count_thermal_panels()
+    mPrint(pl, {"  Found within world (all surfaces): "..clr(count1,2).."."})
+    if storage.panels.main ~= nil then
+        local count2 = table_length(storage.panels.main)
+        mPrint(pl, {"  Registered within storage table: "..clr(count2,2).."."})
     end
 end
 
@@ -474,10 +484,10 @@ COMMAND_parameters.unlock = function(pl)
     })
 end
 
--- DEBUG "dump": Dumps contents of panel ID table into log file (%APPDATA%/roaming/Factorio).
+-- DEBUG "dump": Dumps contents of storage table into log file (%APPDATA%/roaming/Factorio).
 COMMAND_parameters.dump = function(pl)
-    log("Mod Storage Contents: " .. serpent.block(storage.panels.main, {comment=false}))
-    mPrint(pl, {"Contents of 'storage.panels.main' was dumped to log file."})
+    log("Mod Storage Contents: " .. serpent.block(storage, {comment=false}))
+    mPrint(pl, {"Contents of storage was dumped to log file."})
 end
 
 -- CONSOLE COMMANDS -------------------------------------------------------------------------------

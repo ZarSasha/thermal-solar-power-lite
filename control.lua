@@ -249,6 +249,7 @@ end
 -- Complete list of panel variants, including any clones.
 local panel_variants = {}
 
+-- Finds all panel variants (calculated by whatever function uses the variable right above).
 for key, _ in pairs(prototypes.entity) do
     if string.find(key, panel_name_base, 1, true) then
         table.insert(panel_variants, key)
@@ -413,21 +414,21 @@ COMMAND_parameters.info = function(pl)
     local console = {}
 
     console.surface_name        = clr(pl.surface.name,2)
-    console.sun_mult            = clr(round_number(sun_mult * 100,2) .. "%",2)
+    console.sun_mult            = clr(round_number(sun_mult * 100,2).."%",2)
 
     if daylength_sec > 0 and daylength_sec ~= nil then
-        console.daylength_sec = clr(daylength_sec .. " seconds",2)
+        console.daylength_sec = clr(daylength_sec.." seconds",2)
     else
         console.daylength_sec = clr("N/A",2)
     end
 
     if max_output_kW >= 0 then
-        console.panel_max_output_kW = clr(round_number(max_output_kW,2) .. "kW",2)
+        console.panel_max_output_kW = clr(round_number(max_output_kW,2).."kW",2)
     else
-        console.panel_max_output_kW = clr(round_number(max_output_kW,2) .. "kW",3) -- red color
+        console.panel_max_output_kW = clr(round_number(max_output_kW,2).."kW",3) -- red color
     end
 
-    console.panel_nom_output_kW = clr(round_number(nom_output_kW,2) .. "kW",2)
+    console.panel_nom_output_kW = clr(round_number(nom_output_kW,2).."kW",2)
 
     if max_efficiency > 0 then
         console.panels_ratio = clr(round_number(panels_num, 2),2).." : "..clr("1",2)

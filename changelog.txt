@@ -5,6 +5,8 @@ Date: 2026-01-14
     - Improved code related to space platforms, likely making it more robust to crashes.
   Info:
     - Corrected v2.2.0 changelog entry.
+  Debug:
+    - Improved several commands used for debugging.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-01-08

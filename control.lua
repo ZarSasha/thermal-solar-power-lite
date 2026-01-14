@@ -198,7 +198,7 @@ local function update_panel_temperature()
         if panel.surface.platform == nil then
             sun_mult = panel.surface.get_property("solar-power")/100
         else
-            sun_mult = (storage.platforms.solar_power[panel.surface.name]/100) or 100
+            sun_mult = (storage.platforms.solar_power[panel.surface.name]/100) or 1
         end
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *

@@ -35,15 +35,11 @@ local panel_param = {
     quality_scaling  = 0.15   -- may be changed
 }
 
----------------------------------------------------------------------------------------------------
--- CHECK FOR PRESENCE OF OTHER MODS (ON_INIT, ON_CONFIGURATION_CHANGED, RESET)
----------------------------------------------------------------------------------------------------
-
-local function check_for_presence_of_mods()
-    storage.active_mods.SPACE_AGE            = script.active_mods["space-age"]
-    storage.active_mods.PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"]
-    storage.active_mods.MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
-end
+local ACTIVE_MODS = {
+    SPACE_AGE            = script.active_mods["space-age"],
+    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
+    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
+}
 
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
@@ -63,8 +59,6 @@ local function create_storage_table_keys()
     -- Needed for Space Age:
     if storage.platforms             == nil then storage.platforms             =    {} end
     if storage.platforms.solar_power == nil then storage.platforms.solar_power =    {} end
-    --
-    if storage.active_mods           == nil then storage.active_mods           =    {} end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -117,7 +111,7 @@ end
 
 -- Function to calculate solar power for all solar platforms and store results.
 local function calculate_and_store_solar_power_for_platforms()
-    if not storage.active_mods.SPACE_AGE then return end
+    if not ACTIVE_MODS.SPACE_AGE then return end
     for name, surface in pairs(game.surfaces) do
         if not surface.platform then goto continue end
         local platform = surface.platform
@@ -147,7 +141,7 @@ end
 
 -- Function to deregister a space platform from storage table upon deletion.
 local function deregister_space_platform(event)
-    if not storage.active_mods.SPACE_AGE then return end
+    if not ACTIVE_MODS.SPACE_AGE then return end
     local surface_name = game.surfaces[event.surface_index].name
     storage.platforms.solar_power[surface_name] = nil
 end
@@ -160,7 +154,7 @@ end
 -- intensity, has compatibility for some mods.
 
 -- COMPATIBILITY: Pyanodon Coal Processing --
-if storage.active_mods.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Also
     -- accounts for doubled heat capacity of panels, which keeps temperatures higher during night
     -- and thus slightly increases heat energy loss.
@@ -168,7 +162,7 @@ if storage.active_mods.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" t
 end
 
 -- COMPATIBILITY: More Quality Scaling --
-if storage.active_mods.MORE_QUALITY_SCALING and table_contains_value(
+if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     panel_param.q_scaling = 0
@@ -411,8 +405,8 @@ COMMAND_parameters.info = function(pl)
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
 
-    if storage.active_mods.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
-        panels_num = panels_num / 2 -- roughly accurate
+    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+        panels_num = panels_num / 2
     end
 
     local console = {}
@@ -466,17 +460,15 @@ COMMAND_parameters.check = function(pl)
 end
 
 -- DEBUG "reset": Clears storage and restores default values, rebuilds array of thermal panels
--- and table of space platforms + current solar power, resets sunlight indicator. Also checks
--- for presence of mods.
+-- and table of space platforms + current solar power, resets sunlight indicator.
 COMMAND_parameters.reset = function(pl)
-    check_for_presence_of_mods()
     reset_panels_and_platforms()
     mPrint(pl, {
         "The storage table was reset!"
     })
 end
 
--- DEBUG "clear": Clears storage and restores default values for everything related to panels.
+-- DEBUG "clear": Clears storage and restores default values.
 COMMAND_parameters.clear = function(pl)
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)

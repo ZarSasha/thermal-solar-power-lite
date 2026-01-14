@@ -444,7 +444,7 @@ COMMAND_parameters.info = function(pl)
     })
 end
 
--- DEBUG "check": Checks if thermal panel ID list exists, provides entity count.
+-- DEBUG "check": Counts number of thermal panels on all surfaces plus references within storage.
 COMMAND_parameters.check = function(pl)
     mPrint(pl, {"Thermal solar panel entity count:"})
     local count1 = search_and_count_thermal_panels()

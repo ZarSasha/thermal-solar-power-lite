@@ -113,7 +113,7 @@ end
 -- below is used to periodically calculate their current value. Writes results to storage.
 
 -- Function to calculate solar power for all solar platforms and store results.
-local function calculate_and_store_platform_solar_power()
+local function calculate_and_store_solar_power_for_platforms()
     if not ACTIVE_MODS.SPACE_AGE then return end
     for name, surface in pairs(game.surfaces) do
         if not surface.platform then goto continue end
@@ -198,7 +198,7 @@ local function update_panel_temperature()
         if panel.surface.platform == nil then
             sun_mult = panel.surface.get_property("solar-power")/100
         else
-            sun_mult = (storage.platforms.solar_power[panel.surface.name]/100) or 1
+            sun_mult = (storage.platforms.solar_power[panel.surface.name]/100)
         end
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
@@ -268,6 +268,7 @@ local function reset_panels_and_platforms()
     storage.panels.batch_size = 10
     storage.panels.progress   = 1
     storage.panels.complete   = false
+    -- Rebuilds array of thermal panels in storage:
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(storage.panels.main, panel)
@@ -276,7 +277,7 @@ local function reset_panels_and_platforms()
     end
     -- Clears storage of space platforms and recalculates their current solar power:
     table_clear(storage.platforms.solar_power)
-    calculate_and_store_platform_solar_power()
+    calculate_and_store_solar_power_for_platforms()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -307,7 +308,7 @@ script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
         update_panel_storage_register() -- within 1 tick
     elseif event.tick % tick_interval == 4 then -- not 0 etc.
-        calculate_and_store_platform_solar_power() -- within 1 tick
+        calculate_and_store_solar_power_for_platforms() -- within 1 tick
     elseif not storage.panels.complete then -- when cycle has yet to be completed
         update_panel_temperature() -- within all but the 2 ticks above
     end
@@ -464,6 +465,7 @@ end
 -- DEBUG "reset": Clears storage and restores default values, rebuilds array of thermal panels
 -- and table of space platforms + current solar power, resets sunlight indicator.
 COMMAND_parameters.reset = function(pl)
+    check_for_presence_of_mods()
     reset_panels_and_platforms()
     mPrint(pl, {
         "The storage table was reset!"
@@ -472,7 +474,6 @@ end
 
 -- DEBUG "clear": Clears storage and restores default values.
 COMMAND_parameters.clear = function(pl)
-    if not address_not_nil(storage.panels.main) then return end
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)
     table_clear(storage.panels.to_be_removed)

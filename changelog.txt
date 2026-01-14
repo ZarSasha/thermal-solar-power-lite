@@ -6,8 +6,6 @@ Date: 2026-01-14
     - No longer tries to initialize storage variables with "on_configuration_changed", will instead
       rely on migration script if a new version makes any changes to them.
     - Created migration script for new storage variables.
-    - Now searches for presence of other mods with "on_init" and "on_configuration_changed" during
-      runtime and caches the results in storage for better performance.
   Info:
     - Corrected v2.2.0 changelog entry.
   Debug:

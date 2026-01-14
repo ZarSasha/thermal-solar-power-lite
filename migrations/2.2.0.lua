@@ -4,6 +4,7 @@
 -- The new time slicing feature needs several variables to be stored within the storage table. The
 -- main table that holds the string identifiers also needs to be replaced with a simple array.
 
+-- New storage table variables:
 if storage.panels               == nil then storage.panels               =    {} end
 if storage.panels.main          == nil then storage.panels.main          =    {} end
 if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
@@ -12,6 +13,7 @@ if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10
 if storage.panels.progress      == nil then storage.panels.progress      =     1 end
 if storage.panels.complete      == nil then storage.panels.complete      = false end
 
+-- Transfer of data from old storage variable to new one:
 if storage.tspl_thermal_panel_table ~= nil then
     for _, v in pairs(storage.tspl_thermal_panel_table) do
         table.insert(storage.panels.main, v)
@@ -24,6 +26,7 @@ if storage.tspl_thermal_panel_table ~= nil then
     )
 end
 
+-- Message to console:
 game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
 game.print("  Regarding update to v2.2.0: It is recommended to read the changelog!")
 game.print("  If panels don't work, please report the issue on the Mod Portal or on GitHub.")
@@ -32,7 +35,3 @@ game.print("  However, writing '/tspl reset' in the console should quickly resol
 ---------------------------------------------------------------------------------------------------
 -- END NOTES:
 ---------------------------------------------------------------------------------------------------
-
--- Looking back, it should have been sufficient to just initialize panels and panels.main in
--- storage during the migration stage to allow the contents of tspl_thermal_panel_table to be
--- transferred. A reset rather than transfer could also have worked.

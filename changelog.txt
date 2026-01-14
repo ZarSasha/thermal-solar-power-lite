@@ -3,6 +3,11 @@ Version: 2.2.3
 Date: 2026-01-14
   Changes:
     - Improved code related to space platforms, likely making it more robust to crashes.
+    - No longer tries to initialize storage variables with "on_configuration_changed", will instead
+      rely on migration script if a new version makes any changes to them.
+    - Created migration script due to new storage variables.
+    - Now searches for presence of other mods with "on_init" and "on_configuration_changed" and
+      caches the results.
   Info:
     - Corrected v2.2.0 changelog entry.
   Debug:

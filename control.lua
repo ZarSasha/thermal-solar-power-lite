@@ -35,11 +35,14 @@ local panel_param = {
     quality_scaling  = 0.15   -- may be changed
 }
 
-local ACTIVE_MODS = {
-    SPACE_AGE            = script.active_mods["space-age"],
-    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
-    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
-}
+local ACTIVE_MODS = {}
+
+-- Checks for presence of other mods (meant to trigger on_init and on_configuration_changed).
+local function check_for_presence_of_mods()
+    ACTIVE_MODS.SPACE_AGE            = script.active_mods["space-age"]
+    ACTIVE_MODS.PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"]
+    ACTIVE_MODS.MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
+end
 
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
@@ -321,14 +324,16 @@ end)
 
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
-    create_storage_table_keys()
+    check_for_presence_of_mods()
+    create_storage_table_keys() -- essential
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    create_storage_table_keys()
+    check_for_presence_of_mods()
+    --create_storage_table_keys() -- better to use migration when relevant
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since

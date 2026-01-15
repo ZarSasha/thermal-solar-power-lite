@@ -18,9 +18,9 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local tick_interval = 15 -- must be at least 3
+local tick_interval = 15
 local tick_frequency = (tick_interval/60)
-local reserved_ticks = 2
+local reserved_ticks = 3
 
 -- Environmental parameters (set by game):
 local env = {
@@ -78,6 +78,7 @@ local function create_storage_table_keys()
     if storage.panels.main          == nil then storage.panels.main          =    {} end
     if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
     if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
+    if storage.panels.count         == nil then storage.panels.count         =     0 end
     if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
     if storage.panels.progress      == nil then storage.panels.progress      =     1 end
     if storage.panels.complete      == nil then storage.panels.complete      = false end
@@ -121,9 +122,11 @@ local function update_panel_storage_register()
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for the next one
-    -- (panels are processed on all ticks that are not reserved for other purposes):
+    -- (panels are processed on ticks that are not reserved for other purposes):
+    local count = #panels.main
+    panels.count = count
     panels.complete   = false
-    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks)))
+    panels.batch_size = math.ceil(count / ((tick_interval - reserved_ticks)))
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -184,9 +187,16 @@ local function update_panel_temperature()
     local surfaces   = storage.surfaces
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
-    local stop       = #panels.main
+    local stop       = panels.count
     for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
+        -- Resets progress and prevents activation of function till next cycle,
+        -- when there are no more entries to go through:
+        if panel == nil then
+            panels.progress = 1
+            panels.complete = true
+            break
+        end
         -- Marks entry for deregistration and skips it, if not valid:
         if not panel.valid then
             table.insert(panels.to_be_removed, panel)
@@ -203,13 +213,7 @@ local function update_panel_temperature()
              (panel_param.temp_loss_factor * tick_frequency) *
              (panel.temperature - env.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
-        -- Resets progress and prevents activation of function till next cycle,
-        -- when there are no more entries to go through:
-        if i == stop then
-            panels.progress = 1
-            panels.complete = true
-            break
-        end
+
         ::continue::
     end
     -- Stores current progress, if cycle is not yet finished:

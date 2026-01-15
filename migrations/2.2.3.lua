@@ -10,6 +10,7 @@ if address_not_nil(storage, "platforms", "solar_power") then
 end
 
 -- New storage table variables.
+storage.panels.count = 0
 storage.surfaces = {}
 storage.surfaces.solar_power = {}
 

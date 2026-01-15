@@ -1,9 +1,9 @@
 ---------------------------------------------------------------------------------------------------
--- MIGRATIONS FOR V2.2.2
+-- MIGRATIONS FOR V2.2.3
 ---------------------------------------------------------------------------------------------------
 
 -- Removal of old storage variables.
-if address_not_nil(storage.platforms.solar_power) then
+if storage.platforms and storage.platforms.solar_power then
     table_clear(storage.platforms.solar_power)
     storage.platforms.solar_power = nil
     storage.platforms             = nil

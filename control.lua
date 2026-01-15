@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local tick_interval = 60
+local tick_interval = 30
 local tick_frequency = (tick_interval/60)
 local reserved_ticks = 2
 
@@ -31,33 +31,33 @@ local env = {
 -- Parameters pertaining to the thermal solar panels:
 local panel_param = {
     heat_cap_kJ      = 50,    -- default value, will not change
-    temp_loss_factor = 0.005, -- may be changed
-    quality_scaling  = 0.15   -- may be changed
+    temp_loss_factor = 0.005, -- updated during startup
+    quality_scaling  = 0.15   -- updated during startup
 }
 
 -- Checks for presence of mods through independent script (no need to tie to event).
 local ACTIVE_MODS = {
-    SPACE_AGE            = false,
-    PY_COAL_PROCESSING   = false,
-    MORE_QUALITY_SCALING = false
+    SPACE_AGE            = false, -- 
+    PY_COAL_PROCESSING   = false, -- updated during startup
+    MORE_QUALITY_SCALING = false  --
 }
 
 ---------------------------------------------------------------------------------------------------
     -- MOD CHECK AND COMPATIBILITY
 ---------------------------------------------------------------------------------------------------
 
-local function check_for_presence_of_other_mods_adjust_values()
-    ACTIVE_MODS.SPACE_AGE            = script.active_mods["space-age"]
+local function check_for_presence_of_other_mods_and_adjust_values()
+    -- Check for presence of mods:
+    --ACTIVE_MODS.SPACE_AGE            = script.active_mods["space-age"] -- not needed right now
     ACTIVE_MODS.PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"]
     ACTIVE_MODS.MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
     -- COMPATIBILITY: Pyanodon Coal Processing --
     if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
-        -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Also
-        -- accounts for doubled heat capacity of panels, which keeps temperatures higher during night
-        -- and thus slightly increases heat energy loss.
+        -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
+        -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
+        -- during night and thus slightly increases heat energy loss.
         panel_param.temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
     end
-
     -- COMPATIBILITY: More Quality Scaling --
     if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
         {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
@@ -281,7 +281,7 @@ local function reset_panels_and_platforms()
     end
     -- Clears storage of all surfaces, then rebuilds contents.
     table_clear(storage.surfaces.solar_power)
-    check_for_presence_of_other_mods_adjust_values()
+    check_for_presence_of_other_mods_and_adjust_values()
     calculate_solar_power_for_all_surfaces()
 end
 
@@ -332,7 +332,7 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
-    check_for_presence_of_other_mods_adjust_values()
+    check_for_presence_of_other_mods_and_adjust_values()
     calculate_solar_power_for_all_surfaces()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -341,7 +341,7 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- maybe better to use migration when relevant
-    check_for_presence_of_other_mods_adjust_values()
+    check_for_presence_of_other_mods_and_adjust_values()
     calculate_solar_power_for_all_surfaces()
 end)
 

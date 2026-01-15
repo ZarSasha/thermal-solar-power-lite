@@ -8,6 +8,7 @@
 -- the rest are used for debugging). The heat script uses time slicing to distribute calculations
 -- across many game ticks. Also works with space platforms in Space Age.
 ---------------------------------------------------------------------------------------------------
+require "functions"
 require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- THERMAL SOLAR PANEL SCRIPTS

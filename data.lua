@@ -4,6 +4,7 @@
 --  ┻┛┛┗ ┻ ┛┗
 ---------------------------------------------------------------------------------------------------
 -- Indirect requirements:
+require "functions"
 require "shared.all-stages"
 require "shared.first-stages"
 -- Direct requirements:

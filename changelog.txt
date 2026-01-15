@@ -5,7 +5,6 @@ Date: 2026-01-14
     - Improved code related to space platforms, likely making it more robust to crashes.
     - No longer tries to initialize storage variables with "on_configuration_changed", will instead
       rely on migration script if a new version makes any changes to them.
-    - Created migration script for new storage variables.
   Info:
     - Corrected v2.2.0 changelog entry.
   Debug:

@@ -192,7 +192,7 @@ local function update_panel_temperature()
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
         local sun_mult
-        if panel.surface.platform == nil then
+        if not panel.surface.platform == nil then
             sun_mult = panel.surface.get_property("solar-power")/100
         else
             sun_mult = (storage.platforms.solar_power[panel.surface.name]/100)

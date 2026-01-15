@@ -123,7 +123,7 @@ local function update_panel_storage_register()
     -- Resets status for completion of cycle, calculates batch size for the next one
     -- (panels are processed on all ticks that are not reserved for other purposes):
     panels.complete   = false
-    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks - 1)))
+    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks)))
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -184,15 +184,9 @@ local function update_panel_temperature()
     local surfaces   = storage.surfaces
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
+    local stop       = #panels.main
     for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
-        -- Resets progress and prevents activation of function till next cycle,
-        -- when there are no more entries to go through:
-        if panel == nil then
-            panels.progress = 1
-            panels.complete = true
-            break
-        end
         -- Marks entry for deregistration and skips it, if not valid:
         if not panel.valid then
             table.insert(panels.to_be_removed, panel)
@@ -209,6 +203,13 @@ local function update_panel_temperature()
              (panel_param.temp_loss_factor * tick_frequency) *
              (panel.temperature - env.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
+        -- Resets progress and prevents activation of function till next cycle,
+        -- when there are no more entries to go through:
+        if i == stop then
+            panels.progress = 1
+            panels.complete = true
+            break
+        end
         ::continue::
     end
     -- Stores current progress, if cycle is not yet finished:
@@ -313,8 +314,10 @@ script.on_event({defines.events.on_tick}, function(event)
         update_panel_storage_register()
     elseif event.tick % tick_interval == 1 then
         calculate_solar_power_for_all_surfaces()
-    elseif not storage.panels.complete then
-        update_panel_temperature()
+    else
+        if not storage.panels.complete then
+            update_panel_temperature()
+        end
     end
 end)
 

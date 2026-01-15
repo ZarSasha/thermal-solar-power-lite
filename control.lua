@@ -168,18 +168,12 @@ if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
     panel_param.q_scaling = 0
 end
 
-
-
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for
 -- time slicing. Generally writes to storage as little as possible, for better performance.
 local function update_panel_temperature()
     local panels     = storage.panels    -- table reference
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
-    local panel_base_temp_gain =
-        (SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ
-    local panel_base_temp_loss =
-        panel_param.temp_loss_factor * tick_frequency
     for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
         -- Resets progress and prevents activation of function till next cycle,
@@ -198,8 +192,12 @@ local function update_panel_temperature()
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
         local sun_mult    = storage.surfaces.solar_power[panel.surface.name] -- nil -> crash
-        local temp_gain   = panel_base_temp_gain * light_corr * sun_mult * q_factor
-        local temp_loss   = panel_base_temp_loss * (panel.temperature - env.ambient_temp)
+        local temp_gain   =
+            ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
+            light_corr * sun_mult * q_factor
+        local temp_loss   =
+             (panel_param.temp_loss_factor * tick_frequency) *
+             (panel.temperature - env.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end

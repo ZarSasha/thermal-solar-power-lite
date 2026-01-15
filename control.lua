@@ -381,7 +381,8 @@ end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local sun_mult       = storage.surfaces.solar_power[pl.surface.name]/100
+    calculate_solar_power_for_all_surfaces()
+    local sun_mult       = storage.surfaces.solar_power[pl.surface.name]
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_adj       = SETTING.exchanger_temp - env.ambient_temp

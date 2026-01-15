@@ -3,9 +3,11 @@
 ---------------------------------------------------------------------------------------------------
 
 -- Removal of old storage variables.
-table_clear(storage.platforms.solar_power)
-storage.platforms.solar_power = nil
-storage.platforms             = nil
+if address_not_nil(storage.platforms.solar_power) then
+    table_clear(storage.platforms.solar_power)
+    storage.platforms.solar_power = nil
+    storage.platforms             = nil
+end
 
 -- New storage table variables.
 storage.surfaces = {}

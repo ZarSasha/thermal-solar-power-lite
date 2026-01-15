@@ -36,11 +36,28 @@ local panel_param = {
 }
 
 -- Checks for presence of mods through independent script (no need to tie to event).
-ACTIVE_MODS = {
+local ACTIVE_MODS = {
     SPACE_AGE            = script.active_mods["space-age"],
     PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
     MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
 }
+
+-- COMPATIBILITY: Pyanodon Coal Processing --
+local function compatibility_update_values()
+    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+        -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Also
+        -- accounts for doubled heat capacity of panels, which keeps temperatures higher during night
+        -- and thus slightly increases heat energy loss.
+        panel_param.temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
+    end
+
+    -- COMPATIBILITY: More Quality Scaling --
+    if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
+        {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
+        -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
+        panel_param.quality_scaling = 0
+    end
+end
 
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
@@ -150,24 +167,9 @@ end
 ---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON_TICK SCRIPT, RUNS ON MOST TICKS)
 ---------------------------------------------------------------------------------------------------
--- Script that increases temperature of thermal panel in proportion to sunlight, but also decreases
--- it in proportion to current temperature above ambient level. Adjusted for quality and solar 
--- intensity, has compatibility for some mods.
-
--- COMPATIBILITY: Pyanodon Coal Processing --
-if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
-    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Also
-    -- accounts for doubled heat capacity of panels, which keeps temperatures higher during night
-    -- and thus slightly increases heat energy loss.
-    panel_param.temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
-end
-
--- COMPATIBILITY: More Quality Scaling --
-if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
-    {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
-    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
-    panel_param.q_scaling = 0
-end
+-- Here is the main script that increases temperature of thermal panel in proportion to sunlight,
+-- while decreases it in proportion to current temperature above ambient level. It has been
+-- adjusted for quality and solar intensity, and has compatibility for some mods.
 
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for
 -- time slicing. Generally writes to storage as little as possible, for better performance.
@@ -214,7 +216,8 @@ end
 -- gui is opened, and removing it again when the gui is closed.
 
 -- Function to clear fluid content and then insert new solar-fluid (on GUI opened).
-local function activate_sunlight_indicator(entity)
+local function activate_sunlight_indicator(event)
+    local entity = event.entity
     if entity == nil then return end -- checks that GUI is associated with an entity!
     if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
@@ -230,7 +233,8 @@ local function activate_sunlight_indicator(entity)
 end
 
 -- Function to remove solar-fluid (on GUI closed).
-local function deactivate_sunlight_indicator(entity)
+local function deactivate_sunlight_indicator(event)
+    local entity = event.entity
     if entity == nil then return end -- same as above
     if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
@@ -270,6 +274,7 @@ local function reset_panels_and_platforms()
     end
     -- Clears storage of all surfaces, then rebuilds contents.
     table_clear(storage.surfaces.solar_power)
+    compatibility_update_values()
     calculate_solar_power_for_all_surfaces()
 end
 
@@ -309,17 +314,18 @@ end)
 
 -- Function set to run when a GUI is opened.
 script.on_event({defines.events.on_gui_opened}, function(event)
-    activate_sunlight_indicator(event.entity)
+    activate_sunlight_indicator(event)
 end)
 
 -- Function set to run when a GUI is closed.
 script.on_event({defines.events.on_gui_closed}, function(event)
-    deactivate_sunlight_indicator(event.entity)
+    deactivate_sunlight_indicator(event)
 end)
 
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
+    compatibility_update_values()
     calculate_solar_power_for_all_surfaces()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -328,6 +334,7 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- maybe better to use migration when relevant
+    compatibility_update_values()
     calculate_solar_power_for_all_surfaces()
 end)
 

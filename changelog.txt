@@ -4,10 +4,14 @@ Date: 2026-01-15
   Changes:
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Now removes a surface from storage register when it is deleted, to prevent bloat.
-    - Improved performance of heat generating script by caching solar power for all surfaces ahead
-      of time. NB: There may be a one second update delay whenever surface solar power is modified
-      at runtime.
+    - Improved performance of heat generating script by retrieving/calculating and caching solar
+      power for all surfaces ahead of a cycle. NB: There will be 0-1 second update delay whenever
+      solar power of a surface is modified at runtime.
     - Created a migration script for changed storage variables.
+    - Mod compat: Certain values are now updated and cached in local variables depending on
+      presence of other mods. Improves performance.
+  Bugfixes:
+    - More Quality Scaling: Fixed a wrong variable name leading to wrong calculations.
   Info:
     - Corrected v2.2.0 changelog entry.
   Debug:

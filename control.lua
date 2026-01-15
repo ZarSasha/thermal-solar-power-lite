@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local tick_interval = 15
+local tick_interval = 60
 local tick_frequency = (tick_interval/60)
 local reserved_ticks = 2
 

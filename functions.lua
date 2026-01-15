@@ -66,6 +66,7 @@ function array_remove_elements(table, elements)
 end
 
 -- Checks if a table address exists. Seems to return table value or nil.
+-- Arguments: Main table, followed by subvariable names (string format).
 function address_not_nil(t, ...)
     for i = 1, select("#", ...) do
         if t == nil then return nil end

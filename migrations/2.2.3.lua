@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 
 -- Removal of old storage variables.
-if storage.platforms and storage.platforms.solar_power then
+if address_not_nil(storage, "platforms", "solar_power") then
     table_clear(storage.platforms.solar_power)
     storage.platforms.solar_power = nil
     storage.platforms             = nil

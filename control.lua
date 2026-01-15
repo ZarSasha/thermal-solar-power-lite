@@ -105,30 +105,34 @@ end
 ---------------------------------------------------------------------------------------------------
     -- SURFACE SOLAR POWER CALCULATION (MAINLY ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
+-- Script for calculating and caching solar power for all surfaces, including those of platforms.
+
+local function calculate_solar_power_for_surface(name, surface)
+    local platform = surface.platform
+    -- Just retrieves solar power property if surface does not belong to a platform:
+    if not platform then
+        storage.surfaces.solar_power[name] = surface.get_property("solar-power")/100
+        return
+    end
+    -- Retrieves or calculates solar power for platform depending on location:
+    if platform.space_location then -- if stationed (orbiting planet)
+        storage.surfaces.solar_power[name] =
+            platform.space_location.solar_power_in_space
+    elseif platform.space_connection then -- if in transit
+        local solar_power_start = platform.space_connection.from.solar_power_in_space
+        local solar_power_stop  = platform.space_connection.to.solar_power_in_space
+        local distance          = platform.distance -- 0 to 1
+        storage.surfaces.solar_power[name] =
+            (solar_power_start - (solar_power_start - solar_power_stop) * distance)/100
+    else
+        log("Error! Could not identify solar power for space platform.")
+    end
+end
 
 -- Function to calculate and store solar power for all surfaces.
 local function calculate_solar_power_for_all_surfaces()
     for name, surface in pairs(game.surfaces) do
-        local platform = surface.platform
-        -- Just retrieves solar power property if surface does not belong to a platform:
-        if not platform then
-            storage.surfaces.solar_power[name] = surface.get_property("solar-power")/100
-            goto continue
-        end
-        -- Retrieves or calculates solar power for platform depending on location:
-        if platform.space_location then
-            storage.surfaces.solar_power[name] =
-                platform.space_location.solar_power_in_space
-        elseif platform.space_connection then
-            local solar_power_start = platform.space_connection.from.solar_power_in_space
-            local solar_power_stop  = platform.space_connection.to.solar_power_in_space
-            local distance          = platform.distance -- 0 to 1
-            storage.surfaces.solar_power[name] =
-                (solar_power_start - (solar_power_start - solar_power_stop) * distance)/100
-        else
-            log("Error! Could not identify solar power for space platform.")
-        end
-        ::continue::
+        calculate_solar_power_for_surface(name, surface)
     end
 end
 
@@ -249,21 +253,20 @@ end
 local function reset_panels_and_platforms()
     -- Initializes storage variables just in case they are missing:
     create_storage_table_keys()
-    -- Clears storage of all thermal panels and resets related values:
+    -- Clears storage of all thermal panels and resets related values, then rebuilds contents:
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)
     table_clear(storage.panels.to_be_removed)
     storage.panels.batch_size = 10
     storage.panels.progress   = 1
     storage.panels.complete   = false
-    -- Rebuilds array of thermal panels in storage:
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(storage.panels.main, panel)
             panel.clear_fluid_inside()
         end
     end
-    -- Clears storage of space platforms and recalculates their current solar power:
+    -- Clears storage of all surfaces, then rebuilds contents.
     table_clear(storage.surfaces.solar_power)
     calculate_solar_power_for_all_surfaces()
 end
@@ -381,7 +384,7 @@ end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    calculate_solar_power_for_all_surfaces()
+    calculate_solar_power_for_surface(pl.surface.name, pl.surface) -- just in case
     local sun_mult       = storage.surfaces.solar_power[pl.surface.name]
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
@@ -446,8 +449,7 @@ COMMAND_parameters.check = function(pl)
     end
 end
 
--- DEBUG "reset": Clears storage and restores default values, rebuilds array of thermal panels
--- and table of space platforms + current solar power, resets sunlight indicator.
+-- DEBUG "reset": Resets contents of storage.
 COMMAND_parameters.reset = function(pl)
     reset_panels_and_platforms()
     mPrint(pl, {
@@ -455,7 +457,7 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears storage and restores default values.
+-- DEBUG "clear": Clears storage variables related to panels and restores default values.
 COMMAND_parameters.clear = function(pl)
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)
@@ -465,7 +467,7 @@ COMMAND_parameters.clear = function(pl)
     storage.panels.progress   = 1
     storage.panels.complete   = false
     mPrint(pl, {
-        "The storage table was cleared of its contents or had values reset to default."
+        "storage.panels' subtables were cleared of their contents or had values reset to default."
     })
 end
 

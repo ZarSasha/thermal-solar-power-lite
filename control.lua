@@ -35,16 +35,16 @@ local panel_param = {
     quality_scaling  = 0.15   -- updated during startup
 }
 
+---------------------------------------------------------------------------------------------------
+    -- MOD CHECK AND COMPATIBILITY
+---------------------------------------------------------------------------------------------------
+
 -- Checks for presence of mods through independent script (no need to tie to event).
 local ACTIVE_MODS = {
     SPACE_AGE            = false, -- 
     PY_COAL_PROCESSING   = false, -- updated during startup
     MORE_QUALITY_SCALING = false  --
 }
-
----------------------------------------------------------------------------------------------------
-    -- MOD CHECK AND COMPATIBILITY
----------------------------------------------------------------------------------------------------
 
 local function check_for_presence_of_other_mods_and_adjust_values()
     -- Check for presence of mods:
@@ -123,8 +123,7 @@ local function update_panel_storage_register()
     -- Resets status for completion of cycle, calculates batch size for the next one
     -- (panels are processed on all ticks that are not reserved for other purposes):
     panels.complete   = false
-    panels.batch_size =
-        math.max(math.ceil(#panels.main / ((tick_interval - reserved_ticks - 1))),1)
+    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks - 1)))
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -192,7 +191,7 @@ local function update_panel_temperature()
         if panel == nil then
             panels.progress = 1
             panels.complete = true
-            return
+            break
         end
         -- Marks entry for deregistration and skips it, if not valid:
         if not panel.valid then
@@ -314,10 +313,8 @@ script.on_event({defines.events.on_tick}, function(event)
         update_panel_storage_register()
     elseif event.tick % tick_interval == 1 then
         calculate_solar_power_for_all_surfaces()
-    else
-        if not storage.panels.complete then
-            update_panel_temperature()
-        end
+    elseif not storage.panels.complete then
+        update_panel_temperature()
     end
 end)
 

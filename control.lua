@@ -8,7 +8,6 @@
 -- the rest are used for debugging). The heat script uses time slicing to distribute calculations
 -- across many game ticks. Also works with space platforms in Space Age.
 ---------------------------------------------------------------------------------------------------
-require "functions"
 require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- THERMAL SOLAR PANEL SCRIPTS
@@ -201,7 +200,7 @@ local function update_panel_temperature()
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
-    -- Updates progress, if cycle is not yet finished:
+    -- Stores current progress, if cycle is not yet finished:
     if not panels.complete then panels.progress = progress + batch_size end
 end
 
@@ -404,7 +403,7 @@ COMMAND_parameters.info = function(pl)
     console.surface_name        = clr(pl.surface.name,2)
     console.sun_mult            = clr(round_number(sun_mult * 100,2).."%",2)
 
-    if daylength_sec > 0 and daylength_sec ~= nil then
+    if daylength_sec ~= nil and daylength_sec > 0 then
         console.daylength_sec = clr(daylength_sec.." seconds",2)
     else
         console.daylength_sec = clr("N/A",2)

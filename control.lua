@@ -35,6 +35,13 @@ local panel_param = {
     quality_scaling  = 0.15   -- may be changed
 }
 
+-- Checks for presence of mods through independent script (no need to tie to event).
+ACTIVE_MODS = {
+    SPACE_AGE            = script.active_mods["space-age"],
+    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
+    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
+}
+
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
 ---------------------------------------------------------------------------------------------------
@@ -52,19 +59,6 @@ local function create_storage_table_keys()
     if storage.panels.complete      == nil then storage.panels.complete      = false end
     if storage.surfaces             == nil then storage.surfaces             =    {} end
     if storage.surfaces.solar_power == nil then storage.surfaces.solar_power =    {} end
-    if storage.active_mods          == nil then storage.active_mods          =    {} end
-end
-
----------------------------------------------------------------------------------------------------
-    -- CHECK FOR PRESENCE OF OTHER MODS (ON_INIT AND ON_CONFIGURATION_CHANGED)
----------------------------------------------------------------------------------------------------
-
--- Checks for presence of mods and stores result.
-local function check_for_active_mods()
-    local active_mods = storage.active_mods
-    active_mods.SPACE_AGE            = script.active_mods["space-age"]
-    active_mods.PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"]
-    active_mods.MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -161,7 +155,7 @@ end
 -- intensity, has compatibility for some mods.
 
 -- COMPATIBILITY: Pyanodon Coal Processing --
-if storage.active_mods.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Also
     -- accounts for doubled heat capacity of panels, which keeps temperatures higher during night
     -- and thus slightly increases heat energy loss.
@@ -169,7 +163,7 @@ if storage.active_mods.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" t
 end
 
 -- COMPATIBILITY: More Quality Scaling --
-if storage.active_mods.MORE_QUALITY_SCALING and table_contains_value(
+if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     panel_param.q_scaling = 0
@@ -326,7 +320,6 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
-    check_for_active_mods()
     calculate_solar_power_for_all_surfaces()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -335,7 +328,6 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- maybe better to use migration when relevant
-    check_for_active_mods()
     calculate_solar_power_for_all_surfaces()
 end)
 
@@ -405,7 +397,7 @@ COMMAND_parameters.info = function(pl)
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
 
-    if storage.active_mods.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
         panels_num = panels_num / 2
     end
 

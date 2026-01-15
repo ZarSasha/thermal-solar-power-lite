@@ -20,7 +20,7 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
 local tick_interval = 15
 local tick_frequency = (tick_interval/60)
-local reserved_ticks = 3
+local reserved_ticks = 2
 
 -- Environmental parameters (set by game):
 local env = {
@@ -126,7 +126,7 @@ local function update_panel_storage_register()
     local count = #panels.main
     panels.count = count
     panels.complete   = false
-    panels.batch_size = math.ceil(count / ((tick_interval - reserved_ticks)))
+    panels.batch_size = math.ceil(count / ((tick_interval - reserved_ticks - 1)))
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -219,6 +219,9 @@ local function update_panel_temperature()
     -- Stores current progress, if cycle is not yet finished:
     if not panels.complete then panels.progress = progress + batch_size end
 end
+
+-- Note: If the number of panels perfectly match batch size, an extra cycle will be needed to tell
+-- that the array has been fully traversed. Find better solution than providing an extra tick?
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)

@@ -43,16 +43,16 @@ local panel_param = {
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
-    if storage.panels                == nil then storage.panels                =    {} end
-    if storage.panels.main           == nil then storage.panels.main           =    {} end
-    if storage.panels.to_be_added    == nil then storage.panels.to_be_added    =    {} end
-    if storage.panels.to_be_removed  == nil then storage.panels.to_be_removed  =    {} end
-    if storage.panels.batch_size     == nil then storage.panels.batch_size     =    10 end
-    if storage.panels.progress       == nil then storage.panels.progress       =     1 end
-    if storage.panels.complete       == nil then storage.panels.complete       = false end
-    if storage.surfaces              == nil then storage.surfaces              =    {} end
-    if storage.surfaces.solar_power  == nil then storage.surfaces.solar_power  =    {} end
-    storage.active_mods = {}
+    if storage.panels               == nil then storage.panels               =    {} end
+    if storage.panels.main          == nil then storage.panels.main          =    {} end
+    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
+    if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
+    if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
+    if storage.panels.progress      == nil then storage.panels.progress      =     1 end
+    if storage.panels.complete      == nil then storage.panels.complete      = false end
+    if storage.surfaces             == nil then storage.surfaces             =    {} end
+    if storage.surfaces.solar_power == nil then storage.surfaces.solar_power =    {} end
+    if storage.active_mods          == nil then storage.active_mods          =    {} end
 end
 
 ---------------------------------------------------------------------------------------------------

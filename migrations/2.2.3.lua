@@ -9,7 +9,7 @@ if address_not_nil(storage, "platforms", "solar_power") then
     storage.platforms             = nil
 end
 
--- New storage table variables. Will be rebuild with event "on_configuration_changed".
+-- New storage table variables.
 storage.surfaces = {}
 storage.surfaces.solar_power = {}
 

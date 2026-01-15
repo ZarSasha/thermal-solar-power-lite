@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.3
-Date: 2026-01-14
+Date: 2026-01-15
   Changes:
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Improved performance a little bit by caching solar power for all surfaces. NB: There may be a

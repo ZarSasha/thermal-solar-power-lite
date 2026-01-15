@@ -187,7 +187,7 @@ local function update_panel_temperature()
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
-        local sun_mult    = storage.surfaces.solar_power[panel.surface.name]
+        local sun_mult    = storage.surfaces.solar_power[panel.surface.name] -- nil -> crash
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
             light_corr * sun_mult * q_factor

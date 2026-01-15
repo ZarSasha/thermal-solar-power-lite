@@ -117,7 +117,7 @@ local function calculate_solar_power_for_surface(name, surface)
     -- Retrieves or calculates solar power for platform depending on location:
     if platform.space_location then -- if stationed (orbiting planet)
         storage.surfaces.solar_power[name] =
-            platform.space_location.solar_power_in_space
+            platform.space_location.solar_power_in_space/100
     elseif platform.space_connection then -- if in transit
         local solar_power_start = platform.space_connection.from.solar_power_in_space
         local solar_power_stop  = platform.space_connection.to.solar_power_in_space

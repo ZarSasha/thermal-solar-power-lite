@@ -56,9 +56,8 @@ local function create_storage_table_keys()
     if storage.panels.batch_size     == nil then storage.panels.batch_size     =    10 end
     if storage.panels.progress       == nil then storage.panels.progress       =     1 end
     if storage.panels.complete       == nil then storage.panels.complete       = false end
-    -- Needed for Space Age:
-    if storage.platforms             == nil then storage.platforms             =    {} end
-    if storage.platforms.solar_power == nil then storage.platforms.solar_power =    {} end
+    if storage.surfaces              == nil then storage.surfaces              =    {} end
+    if storage.surfaces.solar_power  == nil then storage.surfaces.solar_power  =    {} end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -104,46 +103,43 @@ local function update_panel_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- SPACE AGE: SPACE PLATFORM SOLAR POWER CALCULATION (ON_TICK SCRIPT, RUNS PERIODICALLY)
+    -- SURFACE SOLAR POWER CALCULATION (MAINLY ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- The surface solar intensity on space platforms varies according to their location. The function
--- below is used to periodically calculate their current value. Writes results to storage.
 
--- Function to calculate solar power for all solar platforms and store results.
-local function calculate_and_store_solar_power_for_platforms()
-    if not ACTIVE_MODS.SPACE_AGE then return end
+-- Function to calculate and store solar power for all surfaces.
+local function calculate_solar_power_for_all_surfaces()
     for name, surface in pairs(game.surfaces) do
-        if not surface.platform then goto continue end
         local platform = surface.platform
+        -- Just retrieves solar power property if surface does not belong to a platform:
+        if not platform then
+            storage.surfaces.solar_power[name] = surface.get_property("solar-power")/100
+            goto continue
+        end
+        -- Retrieves or calculates solar power for platform depending on location:
         if platform.space_location then
-            storage.platforms.solar_power[name] =
+            storage.surfaces.solar_power[name] =
                 platform.space_location.solar_power_in_space
-        else
+        elseif platform.space_connection then
             local solar_power_start = platform.space_connection.from.solar_power_in_space
             local solar_power_stop  = platform.space_connection.to.solar_power_in_space
             local distance          = platform.distance -- 0 to 1
-            storage.platforms.solar_power[name] =
-                (solar_power_start - (solar_power_start - solar_power_stop) * distance)
+            storage.surfaces.solar_power[name] =
+                (solar_power_start - (solar_power_start - solar_power_stop) * distance)/100
+        else
+            log("Error! Could not identify solar power for space platform.")
         end
         ::continue::
     end
 end
 
--- Note: The code does not store a table of references (string IDs), but directly iterates over
--- game.surfaces since the number of surfaces is low. There should be no performance issues.
-
 ---------------------------------------------------------------------------------------------------
-    -- SPACE AGE: SPACE PLATFORM SURFACE DEREGISTRATION (ON_PRE_SURFACE_DELETED)
+    -- SURFACE DEREGISTRATION (ON_PRE_SURFACE_DELETED)
 ---------------------------------------------------------------------------------------------------
--- Entries for platform surfaces remain after they have been deleted, either 5 minutes after being
--- marked for deletion or immediately upon destruction through damage. This is a trivial issue, but
--- will nonetheless be handled with the function below.
 
--- Function to deregister a space platform from storage table upon deletion.
-local function deregister_space_platform(event)
-    if not ACTIVE_MODS.SPACE_AGE then return end
+-- Function to deregister a surface from storage table upon deletion (just to prevent bloat).
+local function deregister_surface(event)
     local surface_name = game.surfaces[event.surface_index].name
-    storage.platforms.solar_power[surface_name] = nil
+    storage.surfaces.solar_power[surface_name] = nil
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -191,13 +187,7 @@ local function update_panel_temperature()
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
-        local sun_mult
-        if not panel.surface.platform == nil then
-            sun_mult = panel.surface.get_property("solar-power")/100
-        else
-            sun_mult = (storage.platforms.solar_power[panel.surface.name]/100)
-            -- storage entry must exist or game crashes, fallback won't help
-        end
+        local sun_mult    = storage.surfaces.solar_power[panel.surface.name]
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
             light_corr * sun_mult * q_factor
@@ -274,8 +264,8 @@ local function reset_panels_and_platforms()
         end
     end
     -- Clears storage of space platforms and recalculates their current solar power:
-    table_clear(storage.platforms.solar_power)
-    calculate_and_store_solar_power_for_platforms()
+    table_clear(storage.surfaces.solar_power)
+    calculate_solar_power_for_all_surfaces()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -298,7 +288,7 @@ end)
 -- Function set to run on surface deleted (triggers 5 minutes after a platform is marked for
 -- deletion and immediately on platform destruction).
 script.on_event({defines.events.on_pre_surface_deleted}, function(event)
-    deregister_space_platform(event) -- just clean-up, not critical
+    deregister_surface(event) -- just clean-up, not critical
 end)
 
 -- Function set to run perpetually with a given frequency.
@@ -306,7 +296,7 @@ script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 3 then -- not 0, to reduce risk over overlap
         update_panel_storage_register() -- within 1 tick
     elseif event.tick % tick_interval == 4 then -- not 0 etc.
-        calculate_and_store_solar_power_for_platforms() -- within 1 tick
+        calculate_solar_power_for_all_surfaces() -- within 1 tick
     elseif not storage.panels.complete then -- when cycle has yet to be completed
         update_panel_temperature() -- within all but the 2 ticks above
     end
@@ -325,13 +315,15 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
+    calculate_solar_power_for_all_surfaces()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    --create_storage_table_keys() -- better to use migration when relevant
+    create_storage_table_keys() -- maybe better to use migration when relevant
+    calculate_solar_power_for_all_surfaces()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
@@ -389,12 +381,7 @@ end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local sun_mult
-    if pl.surface.platform == nil then
-        sun_mult = pl.surface.get_property("solar-power")/100
-    else
-        sun_mult = storage.platforms.solar_power[pl.surface.name]/100
-    end
+    local sun_mult       = storage.surfaces.solar_power[pl.surface.name]/100
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_adj       = SETTING.exchanger_temp - env.ambient_temp
@@ -472,7 +459,7 @@ COMMAND_parameters.clear = function(pl)
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)
     table_clear(storage.panels.to_be_removed)
-    table_clear(storage.platforms.solar_power)
+    table_clear(storage.surfaces.solar_power)
     storage.panels.batch_size = 10
     storage.panels.progress   = 1
     storage.panels.complete   = false

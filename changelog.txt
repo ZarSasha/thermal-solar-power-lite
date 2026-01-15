@@ -3,8 +3,9 @@ Version: 2.2.3
 Date: 2026-01-14
   Changes:
     - Improved code related to space platforms, likely making it more robust to crashes.
-    - No longer tries to initialize storage variables with "on_configuration_changed", will instead
-      rely on migration script if a new version makes any changes to them.
+    - Improved performance a little bit by caching solar power for all surfaces. NB: There may be a
+      one second update delay whenever surface solar power is modified at runtime.
+    - Created a migration script for changed storage variables.
   Info:
     - Corrected v2.2.0 changelog entry.
   Debug:

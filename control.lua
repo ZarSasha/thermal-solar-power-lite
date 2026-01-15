@@ -37,13 +37,20 @@ local panel_param = {
 
 -- Checks for presence of mods through independent script (no need to tie to event).
 local ACTIVE_MODS = {
-    SPACE_AGE            = script.active_mods["space-age"],
-    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
-    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
+    SPACE_AGE            = false,
+    PY_COAL_PROCESSING   = false,
+    MORE_QUALITY_SCALING = false
 }
 
--- COMPATIBILITY: Pyanodon Coal Processing --
-local function compatibility_update_values()
+---------------------------------------------------------------------------------------------------
+    -- MOD CHECK AND COMPATIBILITY
+---------------------------------------------------------------------------------------------------
+
+local function check_for_presence_of_other_mods_adjust_values()
+    ACTIVE_MODS.SPACE_AGE            = script.active_mods["space-age"]
+    ACTIVE_MODS.PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"]
+    ACTIVE_MODS.MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
+    -- COMPATIBILITY: Pyanodon Coal Processing --
     if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
         -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Also
         -- accounts for doubled heat capacity of panels, which keeps temperatures higher during night
@@ -274,7 +281,7 @@ local function reset_panels_and_platforms()
     end
     -- Clears storage of all surfaces, then rebuilds contents.
     table_clear(storage.surfaces.solar_power)
-    compatibility_update_values()
+    check_for_presence_of_other_mods_adjust_values()
     calculate_solar_power_for_all_surfaces()
 end
 
@@ -325,7 +332,7 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
-    compatibility_update_values()
+    check_for_presence_of_other_mods_adjust_values()
     calculate_solar_power_for_all_surfaces()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -334,7 +341,7 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- maybe better to use migration when relevant
-    compatibility_update_values()
+    check_for_presence_of_other_mods_adjust_values()
     calculate_solar_power_for_all_surfaces()
 end)
 

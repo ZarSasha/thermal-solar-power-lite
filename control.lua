@@ -124,7 +124,7 @@ local function update_panel_storage_register()
     -- (panels are processed on all ticks that are not reserved for other purposes):
     panels.complete   = false
     panels.batch_size =
-        math.max(math.ceil(#panels.main / ((tick_interval - reserved_ticks))),1)
+        math.max(math.ceil(#panels.main / ((tick_interval - reserved_ticks - 1))),1)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -310,13 +310,13 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % tick_interval == 0 then -- not 0, to reduce risk over overlap
-        update_panel_storage_register() -- within 1 tick
-    elseif event.tick % tick_interval == 1 then -- not 0 etc.
-        calculate_solar_power_for_all_surfaces() -- within 1 tick
+    if event.tick % tick_interval == 0 then
+        update_panel_storage_register()
+    elseif event.tick % tick_interval == 1 then
+        calculate_solar_power_for_all_surfaces()
     else
-        if not storage.panels.complete then -- when cycle has yet to be completed
-            update_panel_temperature() -- within all but the 2 ticks above
+        if not storage.panels.complete then
+            update_panel_temperature()
         end
     end
 end)

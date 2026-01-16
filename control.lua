@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local tick_interval = 15
+local tick_interval = 30
 local tick_frequency = (tick_interval/60)
 local reserved_ticks = 2
 
@@ -137,7 +137,7 @@ local function calculate_solar_power_for_surface(name, surface)
     if platform.space_location then -- stationed (orbiting planet)
         storage.surfaces.solar_power[name] =
             platform.space_location.solar_power_in_space/100
-    else -- in transit (assumes linear change)
+    else -- in transit (intensity change is linear, similar to that of solar panels)
         local solar_power_start = platform.space_connection.from.solar_power_in_space
         local solar_power_stop  = platform.space_connection.to.solar_power_in_space
         local distance          = platform.distance -- 0 to 1
@@ -167,7 +167,7 @@ end
     -- HEAT GENERATION (ON_TICK SCRIPT, RUNS ON MOST TICKS)
 ---------------------------------------------------------------------------------------------------
 -- Here is the main script that increases temperature of thermal panel in proportion to sunlight,
--- while decreases it in proportion to current temperature above ambient level. It has been
+-- while decreasing it in proportion to current temperature above ambient level. It has been
 -- adjusted for quality and solar intensity, and has compatibility for some mods.
 
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for

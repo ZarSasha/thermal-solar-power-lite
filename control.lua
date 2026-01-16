@@ -41,29 +41,28 @@ local panel_param = {
 
 -- Checks for presence of mods through independent script (no need to tie to event).
 local ACTIVE_MODS = {
-    SPACE_AGE            = false, -- 
-    PY_COAL_PROCESSING   = false, -- updated during startup
-    MORE_QUALITY_SCALING = false  --
+    SPACE_AGE            = script.active_mods["pycoalprocessing"],
+    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
+    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
 }
 
-local function check_for_presence_of_other_mods_and_adjust_values()
-    -- Check for presence of mods:
-    --ACTIVE_MODS.SPACE_AGE            = script.active_mods["space-age"] -- not needed right now
-    ACTIVE_MODS.PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"]
-    ACTIVE_MODS.MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
-    -- COMPATIBILITY: Pyanodon Coal Processing --
-    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
-        -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
-        -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
-        -- during night and thus slightly increases heat energy loss.
-        panel_param.temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
-    end
-    -- COMPATIBILITY: More Quality Scaling --
-    if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
-        {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
-        -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
-        panel_param.quality_scaling = 0
-    end
+-- Test
+if ACTIVE_MODS.SPACE_AGE then
+    panel_param.heat_cap_kJ = 1000000
+end
+
+-- Pyanodon Coal Processing:
+if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
+    -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
+    -- during night and thus slightly increases heat energy loss.
+    panel_param.temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
+end
+-- More Quality Scaling:
+if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
+    {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
+    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
+    panel_param.quality_scaling = 0
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -78,7 +77,6 @@ local function create_storage_table_keys()
     if storage.panels.main          == nil then storage.panels.main          =    {} end
     if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
     if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
-    if storage.panels.count         == nil then storage.panels.count         =     0 end
     if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
     if storage.panels.progress      == nil then storage.panels.progress      =     1 end
     if storage.panels.complete      == nil then storage.panels.complete      = false end
@@ -123,10 +121,9 @@ local function update_panel_storage_register()
     table_clear(panels.to_be_removed)
     -- Resets status for completion of cycle, calculates batch size for the next one
     -- (panels are processed on ticks that are not reserved for other purposes):
-    local count = #panels.main
-    panels.count = count
     panels.complete   = false
-    panels.batch_size = math.ceil(count / ((tick_interval - reserved_ticks - 1)))
+    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks - 1)))
+    -- Note: One additional tick reserved for detecting that traversal was completed.
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -187,13 +184,10 @@ local function update_panel_temperature()
     local surfaces   = storage.surfaces
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
-    local stop       = panels.count
     for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
-        -- Resets progress and prevents activation of function till next cycle,
-        -- when there are no more entries to go through:
+        -- Marks cycle as completed when there are no more array entries to go through:
         if panel == nil then
-            panels.progress = 1
             panels.complete = true
             break
         end
@@ -213,11 +207,10 @@ local function update_panel_temperature()
              (panel_param.temp_loss_factor * tick_frequency) *
              (panel.temperature - env.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
-
         ::continue::
     end
-    -- Stores current progress, if cycle is not yet finished:
-    if not panels.complete then panels.progress = progress + batch_size end
+    -- Stores current progress if cycle is not yet finished, otherwise resets:
+    panels.progress = panels.complete and 1 or progress + batch_size
 end
 
 -- Note: If the number of panels perfectly match batch size, an extra cycle will be needed to tell
@@ -288,7 +281,6 @@ local function reset_panels_and_platforms()
     end
     -- Clears storage of all surfaces, then rebuilds contents.
     table_clear(storage.surfaces.solar_power)
-    check_for_presence_of_other_mods_and_adjust_values()
     calculate_solar_power_for_all_surfaces()
 end
 
@@ -341,7 +333,6 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
-    check_for_presence_of_other_mods_and_adjust_values()
     calculate_solar_power_for_all_surfaces()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -350,7 +341,6 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- maybe better to use migration when relevant
-    check_for_presence_of_other_mods_and_adjust_values()
     calculate_solar_power_for_all_surfaces()
 end)
 

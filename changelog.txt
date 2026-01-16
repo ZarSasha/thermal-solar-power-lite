@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.3
-Date: 2026-01-15
+Date: 2026-01-16
   Changes:
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Now removes a surface from storage register when it is deleted, to prevent bloat.
@@ -9,9 +9,9 @@ Date: 2026-01-15
       solar power of a surface is modified at runtime.
     - Created a migration script for changed storage variables.
     - Mod compat: Certain values are now updated and cached in local variables depending on
-      presence of other mods. Improves performance.
+      presence of other mods. Slightly improves performance.
   Bugfixes:
-    - More Quality Scaling: Fixed a wrong variable name leading to wrong calculations.
+    - More Quality Scaling: Fixed a wrong variable name leading to wrong scaling.
   Info:
     - Corrected v2.2.0 changelog entry.
   Debug:

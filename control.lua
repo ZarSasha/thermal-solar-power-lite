@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local tick_interval = 30
+local tick_interval = 60
 local tick_frequency = (tick_interval/60)
 local reserved_ticks = 3 -- for other scripts + 1 (just in case)
 
@@ -302,11 +302,11 @@ end)
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 0 then
-        calculate_solar_power_for_all_surfaces()
+        calculate_solar_power_for_all_surfaces() -- 1 tick, low impact
     elseif event.tick % tick_interval == 1 then
-        update_panel_storage_register()
+        update_panel_storage_register()          -- 1 tick, high impact
     elseif not storage.panels.complete then
-        update_panel_temperature()
+        update_panel_temperature()               -- all other ticks, moderate impact
     end
 end)
 

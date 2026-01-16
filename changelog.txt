@@ -2,9 +2,6 @@
 Version: 2.2.3
 Date: 2026-01-16
   Changes:
-    - Increased frequency of heat generating script to twice a second, matching the tooltip display
-      update rate (typical time usage for each tick is still lower than the periodic spike at the
-      beginning of a new cycle).
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Now removes a surface from storage register when it is deleted, to prevent bloat.
     - Improved performance of heat generating script by retrieving/calculating and caching solar

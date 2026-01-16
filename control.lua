@@ -20,7 +20,7 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
 local tick_interval = 15
 local tick_frequency = (tick_interval/60)
-local reserved_ticks = 1
+local reserved_ticks = 3 -- for other scripts + 1 (just in case)
 
 -- Environmental parameters (set by game):
 local env = {
@@ -118,7 +118,6 @@ local function update_panel_storage_register()
     -- (panels are processed on ticks that are not reserved for other purposes):
     panels.complete   = false
     panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks)))
-    -- Note: One additional tick reserved for detecting that traversal was completed.
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -306,10 +305,9 @@ script.on_event({defines.events.on_tick}, function(event)
         calculate_solar_power_for_all_surfaces()
     elseif event.tick % tick_interval == 1 then
         update_panel_storage_register()
-    elseif event.tick % tick_interval ~= 1 and not storage.panels.complete then
+    elseif not storage.panels.complete then
         update_panel_temperature()
     end
-    -- Note: Calculating solar power is cheap, so heat script will run on that tick too.
 end)
 
 -- Function set to run when a GUI is opened.

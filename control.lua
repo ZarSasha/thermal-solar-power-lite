@@ -41,15 +41,10 @@ local panel_param = {
 
 -- Checks for presence of mods through independent script (no need to tie to event).
 local ACTIVE_MODS = {
-    SPACE_AGE            = script.active_mods["space-age"],
+  --SPACE_AGE            = script.active_mods["space-age"],
     PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
     MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
 }
-
--- Test
-if ACTIVE_MODS.SPACE_AGE then
-    panel_param.heat_cap_kJ = 1000000
-end
 
 -- Pyanodon Coal Processing:
 if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
@@ -139,17 +134,15 @@ local function calculate_solar_power_for_surface(name, surface)
         return
     end
     -- Retrieves or calculates solar power for platform depending on location:
-    if platform.space_location then -- if stationed (orbiting planet)
+    if platform.space_location then -- stationed (orbiting planet)
         storage.surfaces.solar_power[name] =
             platform.space_location.solar_power_in_space/100
-    elseif platform.space_connection then -- if in transit
+    else -- in transit (assumes linear change)
         local solar_power_start = platform.space_connection.from.solar_power_in_space
         local solar_power_stop  = platform.space_connection.to.solar_power_in_space
         local distance          = platform.distance -- 0 to 1
         storage.surfaces.solar_power[name] =
             (solar_power_start - (solar_power_start - solar_power_stop) * distance)/100
-    else
-        log("Error! Could not identify solar power for space platform.")
     end
 end
 

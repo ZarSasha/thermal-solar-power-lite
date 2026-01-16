@@ -301,9 +301,9 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % tick_interval == 0 and storage.panels.complete then -- extra condition, for testing
+    if event.tick % tick_interval == 0 then
         calculate_solar_power_for_all_surfaces() -- 1 tick, very low impact
-    elseif event.tick % tick_interval == 1 and storage.panels.complete then -- extra condition, for testing
+    elseif event.tick % tick_interval == 1 then
         update_panel_storage_register()          -- 1 tick, high impact
     elseif not storage.panels.complete then
         update_panel_temperature()               -- all other ticks, moderate impact

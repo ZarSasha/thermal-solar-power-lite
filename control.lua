@@ -20,7 +20,7 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
 local tick_interval = 20
 local tick_frequency = (tick_interval/60)
-local reserved_ticks = 3 -- for other scripts + 1 (just in case)
+local reserved_ticks = 2
 
 -- Environmental parameters (set by game):
 local env = {
@@ -117,16 +117,16 @@ local function update_panel_storage_register()
     -- Resets status for completion of cycle, calculates batch size for the next one
     -- (panels are processed on ticks that are not reserved for other purposes):
     panels.complete   = false
-    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks)))
+    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks - 1)))
 end
 
 ---------------------------------------------------------------------------------------------------
     -- SURFACE SOLAR POWER CALCULATION (MAINLY ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- Script for calculating and caching solar power for all surfaces, including those of space
--- platforms in Space Age. Storing values also improves performance a bit in general.
+-- Script for calculating and caching solar power for all surfaces (max. during day), including
+-- those of space platforms. Storing values also improves performance a bit in general.
 
--- Function to calculate solar power of a surface, depending on various factors.
+-- Function to calculate max. solar power of a surface, depending on various factors.
 local function calculate_solar_power_for_surface(surface)
     local platform = surface.platform
     -- Just retrieves solar power property if surface does not belong to a platform:

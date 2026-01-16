@@ -123,32 +123,31 @@ end
 ---------------------------------------------------------------------------------------------------
     -- SURFACE SOLAR POWER CALCULATION (MAINLY ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- Script for calculating and caching solar power for all surfaces, including those of platforms.
+-- Script for calculating and caching solar power for all surfaces, including those of space
+-- platforms in Space Age. Storing values also improves performance a bit in general.
 
-local function calculate_solar_power_for_surface(name, surface)
+-- Function to calculate solar power of a surface, depending on various factors.
+local function calculate_solar_power_for_surface(surface)
     local platform = surface.platform
     -- Just retrieves solar power property if surface does not belong to a platform:
     if not platform then
-        storage.surfaces.solar_power[name] = surface.get_property("solar-power")/100
-        return
+        return surface.get_property("solar-power")/100
     end
     -- Retrieves or calculates solar power for platform depending on location:
     if platform.space_location then -- stationed (orbiting planet)
-        storage.surfaces.solar_power[name] =
-            platform.space_location.solar_power_in_space/100
+        return platform.space_location.solar_power_in_space/100
     else -- in transit (intensity change is linear, similar to that of solar panels)
         local solar_power_start = platform.space_connection.from.solar_power_in_space
         local solar_power_stop  = platform.space_connection.to.solar_power_in_space
         local distance          = platform.distance -- 0 to 1
-        storage.surfaces.solar_power[name] =
-            (solar_power_start - (solar_power_start - solar_power_stop) * distance)/100
+        return (solar_power_start - (solar_power_start - solar_power_stop) * distance)/100
     end
 end
 
 -- Function to calculate and store solar power for all surfaces.
-local function calculate_solar_power_for_all_surfaces()
+local function update_surface_solar_power_storage_register()
     for name, surface in pairs(game.surfaces) do
-        calculate_solar_power_for_surface(name, surface)
+        storage.surfaces.solar_power[name] = calculate_solar_power_for_surface(surface)
     end
 end
 
@@ -165,15 +164,14 @@ end
 ---------------------------------------------------------------------------------------------------
     -- HEAT GENERATION (ON_TICK SCRIPT, RUNS ON MOST TICKS)
 ---------------------------------------------------------------------------------------------------
--- Here is the main script that increases temperature of thermal panel in proportion to sunlight,
--- while decreasing it in proportion to current temperature above ambient level. It has been
--- adjusted for quality and solar intensity, and has compatibility for some mods.
+-- Main script for thermal panel heat generation. Temperature increases in proportion to sunlight,
+-- but decreases in proportion to current temperature above ambient level. It has been adjusted for
+-- entity quality and surface solar intensity, and has compatibility for some mods.
 
 -- Function to update temperature of all thermal panels according to circumstances. Adapted for
--- time slicing. Generally writes to storage as little as possible, for better performance.
-local function update_panel_temperature()
+-- time slicing by manually iterating over one segment at a time of an indexed array.
+local function update_temperature_for_all_panels()
     local panels     = storage.panels    -- table reference
-    local surfaces   = storage.surfaces
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
     for i = progress, progress + batch_size - 1 do
@@ -191,13 +189,13 @@ local function update_panel_temperature()
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
-        local sun_mult    = surfaces.solar_power[panel.surface.name] -- nil -> crash
+        local sun_mult    = storage.surfaces.solar_power[panel.surface.name] -- no key -> crash
         local temp_gain   =
             ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
             light_corr * sun_mult * q_factor
         local temp_loss   =
-             (panel_param.temp_loss_factor * tick_frequency) *
-             (panel.temperature - env.ambient_temp)
+            (panel_param.temp_loss_factor * tick_frequency) *
+            (panel.temperature - env.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
@@ -273,7 +271,7 @@ local function reset_panels_and_platforms()
     end
     -- Clears storage of all surfaces, then rebuilds contents.
     table_clear(storage.surfaces.solar_power)
-    calculate_solar_power_for_all_surfaces()
+    update_surface_solar_power_storage_register()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -302,11 +300,11 @@ end)
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if event.tick % tick_interval == 0 then
-        calculate_solar_power_for_all_surfaces() -- 1 tick, very low impact
+        update_surface_solar_power_storage_register() -- 1 tick, very low impact
     elseif event.tick % tick_interval == 1 then
-        update_panel_storage_register()          -- 1 tick, high impact
+        update_panel_storage_register()               -- 1 tick, high impact
     elseif not storage.panels.complete then
-        update_panel_temperature()               -- all other ticks, moderate impact
+        update_temperature_for_all_panels()           -- all other ticks, moderate impact
     end
     -- Note: Sometimes larger than expected spikes, worse with higher script frequency. Why?
 end)
@@ -324,7 +322,7 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
-    calculate_solar_power_for_all_surfaces()
+    update_surface_solar_power_storage_register()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
@@ -332,7 +330,7 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- maybe better to use migration when relevant
-    calculate_solar_power_for_all_surfaces()
+    update_surface_solar_power_storage_register()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
@@ -365,9 +363,9 @@ local function mPrint(player, console_lines)
     end
 end
 
--- Colors text.
+-- Colors text with custom hues that are easier to read than the in-built ones.
 local function clr(text, colorIndex)
-    colors = {"66B2FF", "FFB366", "FF6666"} -- custom hues of blue, orange and red (easier to read)
+    colors = {"66B2FF", "FFB366", "FF6666"} -- blue, orange and red
     return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
@@ -381,17 +379,16 @@ COMMAND_parameters.help = function(pl)
     mPrint(pl, {
         clr("info",1)..  ": Provides some helpful info relevant to the current surface.",
         clr("check",1).. ": Counts thermal panels on all surfaces and within storage.",
-        clr("dump",1)..  ": Dumps contents of storage into log file.",
-        clr("reset",1).. ": Rebuilds thermal panel ID list. Resets sunlight indicator as well.",
+        clr("reset",1).. ": Rebuilds tables within storage, resets sunlight indicator as well.",
         clr("clear",1).. ": Clears the panel ID table of its contents.",
-        clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research."
+        clr("unlock",1)..": Forcefully unlocks all content from this mod, circumventing research.",
+        clr("dump",1)..  ": Dumps contents of storage into log file."
     })
 end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    calculate_solar_power_for_surface(pl.surface.name, pl.surface) -- just in case
-    local sun_mult       = storage.surfaces.solar_power[pl.surface.name]
+    sun_mult = storage.surfaces.solar_power[pl.surface.name] -- no key -> crash
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_param.heat_cap_kJ) * sun_mult
     local temp_adj       = SETTING.exchanger_temp - env.ambient_temp

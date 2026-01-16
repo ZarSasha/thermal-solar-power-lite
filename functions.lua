@@ -67,7 +67,7 @@ end
 
 -- Checks if a table address exists. Seems to return table value or nil.
 -- Arguments: Main table, followed by subvariable names (string format).
-function address_not_nil(t, ...)
+function address_exists(t, ...)
     for i = 1, select("#", ...) do
         if t == nil then return nil end
         t = t[select(i, ...)]

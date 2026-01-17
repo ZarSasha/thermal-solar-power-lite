@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local tick_interval  = 15
+local tick_interval  = 20
 local tick_frequency = (tick_interval/60)
 local reserved_ticks = 3
 
@@ -106,19 +106,21 @@ end
 -- To keep the main array intact during a cycle that spans several game ticks, changes have to be
 -- stored temporarily before being used to update the main array.
 
--- Function to update contents of "main" array, clearing temporary arrays:
-local function update_panel_storage_register()
-    local panels = storage.panels
-    array_append_elements(panels.main, panels.to_be_added)
-    array_remove_elements(panels.main, panels.to_be_removed)
-    table_clear(panels.to_be_added)
-    table_clear(panels.to_be_removed)
-
+-- Function to update contents of "main" array, removes LuaEntity references:
+local function update_panel_storage_register_1()
+    array_remove_elements(storage.panels.main, storage.panels.to_be_removed)
 end
 
--- Function to reset value marking completion of a cycle, calculates new batch size for the next
--- one (panels are processed on ticks that are not reserved for other purposes).
-local function prepare_new_cycle()
+-- Function to update contents of "main" array, adds new LuaEntity references:
+local function update_panel_storage_register_2()
+    array_append_elements(storage.panels.main, storage.panels.to_be_added)
+end
+
+-- Function to clear temporary arrays of LuaEntity references, reset completion status, and
+-- calculate batch size for next cycle.
+local function update_panel_storage_register_3()
+    table_clear(storage.panels.to_be_removed)
+    table_clear(storage.panels.to_be_added)
     storage.panels.complete   = false
     storage.panels.batch_size =
         math.ceil(#storage.panels.main / (tick_interval - reserved_ticks - 1))
@@ -305,16 +307,16 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % tick_interval == 0 then     -- 1 tick, very low impact
-        update_surface_solar_power_storage_register()
-    elseif event.tick % tick_interval == 1 then -- 1 tick, high impact
-        update_panel_storage_register()
-    elseif event.tick % tick_interval == 2 then -- 1 tick
-        prepare_new_cycle()
-    elseif not storage.panels.complete then     -- all other ticks, moderate impact
-        update_temperature_for_all_panels()
+    if event.tick % tick_interval == 1 then           -- 1 tick:
+        update_panel_storage_register_1()             -- high impact
+    elseif event.tick % tick_interval == 2 then       -- 1 tick:
+        update_panel_storage_register_2()             -- high impact
+    elseif event.tick % tick_interval == 3 then       -- 1 tick:
+        update_panel_storage_register_3()             -- very low impact
+        update_surface_solar_power_storage_register() -- very low impact
+    elseif not storage.panels.complete then           -- 56-57 ticks:
+        update_temperature_for_all_panels()           -- moderate impact
     end
-    -- Note: Sometimes larger than expected spikes, worse with higher script frequency. Why?
 end)
 
 -- Function set to run when a GUI is opened.

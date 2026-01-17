@@ -117,16 +117,16 @@ local function update_panel_storage_register()
     -- Resets status for completion of cycle, calculates batch size for the next one
     -- (panels are processed on ticks that are not reserved for other purposes):
     panels.complete   = false
-    panels.batch_size = math.ceil(#panels.main / ((tick_interval - reserved_ticks - 1)))
+    panels.batch_size = math.ceil(#panels.main / (tick_interval - reserved_ticks - 1))
 end
 
 ---------------------------------------------------------------------------------------------------
     -- SURFACE SOLAR POWER CALCULATION (MAINLY ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- Script for calculating and caching solar power for all surfaces (max. during day), including
+-- Script for calculating and caching solar power (max. during day) for all surfaces, including
 -- those of space platforms. Storing values also improves performance a bit in general.
 
--- Function to calculate max. solar power of a surface, depending on various factors.
+-- Function to calculate max. solar power of a surface, using a string ID LuaSurface reference.
 local function calculate_solar_power_for_surface(surface)
     local platform = surface.platform
     -- Just retrieves solar power property if surface does not belong to a platform:
@@ -136,7 +136,7 @@ local function calculate_solar_power_for_surface(surface)
     -- Retrieves or calculates solar power for platform depending on location:
     if platform.space_location then -- stationed (orbiting planet)
         return platform.space_location.solar_power_in_space/100
-    else -- in transit (intensity change is linear, similar to that of solar panels)
+    else -- in transit (linear change, similar to that of solar panels)
         local solar_power_start = platform.space_connection.from.solar_power_in_space
         local solar_power_stop  = platform.space_connection.to.solar_power_in_space
         local distance          = platform.distance -- 0 to 1
@@ -168,8 +168,9 @@ end
 -- but decreases in proportion to current temperature above ambient level. It has been adjusted for
 -- entity quality and surface solar intensity, and has compatibility for some mods.
 
--- Function to update temperature of all thermal panels according to circumstances. Adapted for
--- time slicing by manually iterating over one segment at a time of an indexed array.
+-- Function to update temperature of all thermal panels according to circumstances. Relies on
+-- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
+-- segment at a time.
 local function update_temperature_for_all_panels()
     local panels     = storage.panels    -- table reference
     local batch_size = panels.batch_size -- number copy
@@ -204,7 +205,7 @@ local function update_temperature_for_all_panels()
 end
 
 -- Note: If the number of panels perfectly match batch size, an extra cycle will be needed to tell
--- that the array has been fully traversed. Find better solution than providing an extra tick?
+-- that the array has been fully traversed.
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)

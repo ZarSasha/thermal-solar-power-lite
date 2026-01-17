@@ -106,18 +106,23 @@ end
 -- To keep the main array intact during a cycle that spans several game ticks, changes have to be
 -- stored temporarily before being used to update the main array.
 
--- Function to update contents of "main" array and adjust process batch size for the next cycle:
+-- Function to update contents of "main" array, clearing temporary arrays:
 local function update_panel_storage_register()
     local panels = storage.panels
-    -- Updates main array, clears temporary arrays:
     array_append_elements(panels.main, panels.to_be_added)
     array_remove_elements(panels.main, panels.to_be_removed)
     table_clear(panels.to_be_added)
     table_clear(panels.to_be_removed)
-    -- Resets status for completion of cycle, calculates batch size for the next one
-    -- (panels are processed on ticks that are not reserved for other purposes):
-    panels.complete   = false
-    panels.batch_size = math.ceil(#panels.main / (tick_interval - reserved_ticks - 1))
+
+end
+
+-- Function to reset value marking completion of a cycle, calculates new batch size for the next
+-- one (panels are processed on ticks that are not reserved for other purposes).
+local function prepare_new_cycle()
+    storage.panels.complete   = false
+    storage.panels.batch_size =
+        math.ceil(#storage.panels.main / (tick_interval - reserved_ticks - 1))
+    -- Note: One extra tick allowed for detecting that traversal has completed, just in case.
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -300,12 +305,13 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % tick_interval == 0 then
-        update_surface_solar_power_storage_register() -- 1 tick, very low impact
-    elseif event.tick % tick_interval == 1 then
-        update_panel_storage_register()               -- 1 tick, high impact
-    elseif not storage.panels.complete then
-        update_temperature_for_all_panels()           -- all other ticks, moderate impact
+    if event.tick % tick_interval == 0 then     -- 1 tick, low impact
+        prepare_new_cycle()
+        update_surface_solar_power_storage_register()
+    elseif event.tick % tick_interval == 1 then -- 1 tick, high impact
+        update_panel_storage_register()
+    elseif not storage.panels.complete then     -- all other ticks, moderate impact
+        update_temperature_for_all_panels()
     end
     -- Note: Sometimes larger than expected spikes, worse with higher script frequency. Why?
 end)

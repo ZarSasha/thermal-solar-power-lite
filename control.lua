@@ -307,7 +307,7 @@ end)
 
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
-    if event.tick % tick_interval == 1 then           -- 1 tick:
+    if     event.tick % tick_interval == 1 then       -- 1 tick:
         update_panel_storage_register_1()             -- high impact
     elseif event.tick % tick_interval == 2 then       -- 1 tick:
         update_panel_storage_register_2()             -- high impact

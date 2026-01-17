@@ -51,6 +51,7 @@ end
 -- Removes several entries from an array (indexed table) and moves the rest up, all in one pass.
 -- Efficient. Requires another standard function above.
 function array_remove_elements(table, elements)
+    if next(elements) == nil then return end
     local j, n = 1, #table
     for i=1,n do
         if table_contains_value(elements, table[i]) then

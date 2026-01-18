@@ -211,8 +211,8 @@ local function update_temperature_for_all_panels()
     panels.progress = panels.complete and 1 or progress + batch_size
 end
 
--- Note: If the number of panels perfectly match batch size, an extra cycle will be needed to tell
--- that the array has been fully traversed.
+-- Note: If the number of panels is perfectly divisible by batch size, an extra cycle will be
+-- needed to tell that the array has been fully traversed.
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)

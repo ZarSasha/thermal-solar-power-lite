@@ -106,7 +106,7 @@ end
 -- To keep the main array intact during a cycle that spans several game ticks, changes have to be
 -- stored temporarily before being used to update the main array.
 
--- Function to update contents of "main" array, removes LuaEntity references:
+-- Function to update contents of "main" array, cleans up deleted LuaEntity references:
 local function update_panel_storage_register_1()
     if storage.panels.removed_flag == false then return end
     array_remove_elements_by_value_filter(storage.panels.main, false)
@@ -118,8 +118,7 @@ local function update_panel_storage_register_2()
     array_move_elements(storage.panels.main, storage.panels.to_be_added)
 end
 
--- Function to clear temporary arrays of LuaEntity references, reset completion status, and
--- calculate batch size for next cycle.
+-- Function to reset completion status, and calculate batch size for next cycle.
 local function update_panel_storage_register_3()
     storage.panels.complete   = false
     storage.panels.batch_size =

@@ -189,11 +189,9 @@ local function update_temperature_for_all_panels()
         if panel == nil then
             panels.complete = true
             break
-        elseif panel == false then
-            goto continue
         elseif not panel.valid then
-            panel = false
-            panels.removed_flag = true
+            panel = false -- cleaned up later
+            panels.removed_flag = true -- schedules cleanup
             goto continue
         end
         -- Calculates and applies temperature change to panel:

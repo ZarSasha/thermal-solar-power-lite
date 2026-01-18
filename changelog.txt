@@ -2,15 +2,15 @@
 Version: 2.2.3
 Date: 2026-01-17
   Changes:
-    - Improved performance when deleting thermal panels.
+    - Created a migration script for changed storage variables.
+  Optimizations:
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Now removes a surface from storage register when it is deleted, to prevent bloat.
+    - Improved performance when deleting thermal panels by using a simpler check (now sets invalid
+      panel references in storage to false and then removes them later based on that value).
     - Improved performance of heat generating script by retrieving/calculating and caching solar
       power for all surfaces ahead of a cycle. NB: There will be 0-1 second update delay whenever
       solar power of a surface is modified at runtime.
-    - Created a migration script for changed storage variables.
-    - Mod compat: Certain values are now updated and cached in local variables depending on
-      presence of other mods. Slightly improves performance.
   Bugfixes:
     - More Quality Scaling: Fixed a wrong variable name leading to wrong scaling.
   Info:
@@ -47,6 +47,13 @@ Date: 2025-12-24
       105kW. Easier to work with and less weird with Space Age.
     - NB: Changed a variable within the storage table, created a proper migration script.
     - Added a migration message for the console, providing some advice in case of trouble.
+    - Pyanodon Coal Processing:
+      - Now automatically adjusts heat output from script (technically by doubling the heat
+        capacity) to compensate for halved steam conversion efficiency.
+      - The compat option allows for steam production at 250°C with the same efficiency (this time
+        simply by lowering the rate of heat loss), thus matching the boiler and better utilizing
+        the steam engine. Also adjusted for greater accuracy.
+  Optimizations:
     - Improved performance by dynamically distributing calculations for the heat generating script
       over potentially all game ticks. Example: 3125 large panels (~1GW power) would produce a
       spike of ~8.5ms every second, now reduced to <0.9ms, with an average impact of ~0.2ms/tick.
@@ -54,12 +61,6 @@ Date: 2025-12-24
       processing entities over several game ticks.
     - Now simply unregisters entities from storage table when detected to be invalid. It fits the
       simple needs of the mod, and requires a lot less code and tracking of events.
-    - Pyanodon Coal Processing:
-      - Now automatically adjusts heat output from script (technically by doubling the heat
-        capacity) to compensate for halved steam conversion efficiency.
-      - The compat option allows for steam production at 250°C with the same efficiency (this time
-        simply by lowering the rate of heat loss), thus matching the boiler and better utilizing
-        the steam engine. Also adjusted for greater accuracy.
     - More Quality Scaling: Entity names are now simply recognized by a base string expected to
       appear in the name of any clones, so providing compatibility requires much less code.
   Balancing:

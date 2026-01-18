@@ -18,7 +18,7 @@ require "shared.all-stages"
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Frequency with which on-tick scripts will run (the game runs at 60 ticks/s).
-local tick_interval  = 30
+local tick_interval  = 60
 local tick_frequency = (tick_interval/60)
 local reserved_ticks = 3
 
@@ -107,19 +107,19 @@ end
 -- stored temporarily before being used to update the main array.
 
 -- Function to update contents of "main" array, cleans up deleted LuaEntity references:
-local function update_panel_storage_register_1()
+local function update_panel_storage_register_1_removals()
     if storage.panels.removed_flag == false then return end
     array_remove_elements_by_value_filter(storage.panels.main, false)
 end
 
 -- Function to update contents of "main" array, adds new LuaEntity references:
-local function update_panel_storage_register_2()
+local function update_panel_storage_register_2_additions()
     if next(storage.panels.to_be_added) == nil then return end
     array_move_elements(storage.panels.main, storage.panels.to_be_added)
 end
 
 -- Function to reset completion status, and calculate batch size for next cycle.
-local function update_panel_storage_register_3()
+local function update_panel_storage_register_3_cycle_reset()
     storage.panels.complete   = false
     storage.panels.batch_size =
         math.ceil(#storage.panels.main / (tick_interval - reserved_ticks - 1))
@@ -140,7 +140,7 @@ local function calculate_solar_power_for_surface(surface)
         return surface.get_property("solar-power")/100
     end
     -- Retrieves or calculates solar power for platform depending on location:
-    if platform.space_location then -- stationed (orbiting planet)
+    if platform.space_location then -- stationed (typically near planet)
         return platform.space_location.solar_power_in_space/100
     else -- in transit (linear change, similar to that of solar panels)
         local solar_power_start = platform.space_connection.from.solar_power_in_space
@@ -300,17 +300,17 @@ script.on_event({defines.events.on_pre_surface_deleted}, function(event)
     deregister_surface(event) -- just clean-up, not critical
 end)
 
--- Function set to run perpetually with a given frequency.
+-- Function set to run perpetually with a given frequency (using modulus).
 script.on_event({defines.events.on_tick}, function(event)
     if     event.tick % tick_interval == 1 then       -- 1 tick:
-        update_panel_storage_register_1()             -- 
+        update_panel_storage_register_1_removals()    -- potentially high impact
     elseif event.tick % tick_interval == 2 then       -- 1 tick:
-        update_panel_storage_register_2()             -- 
+        update_panel_storage_register_2_additions()   -- low impact
     elseif event.tick % tick_interval == 3 then       -- 1 tick:
-        update_panel_storage_register_3()             -- 
-        update_surface_solar_power_storage_register() -- 
-    elseif not storage.panels.complete then           -- 26-27 ticks:
-        update_temperature_for_all_panels()           -- 
+        update_panel_storage_register_3_cycle_reset() -- low impact
+        update_surface_solar_power_storage_register() -- low impact
+    elseif not storage.panels.complete then           -- 57 ticks:
+        update_temperature_for_all_panels()           -- moderate impact
     end
 end)
 

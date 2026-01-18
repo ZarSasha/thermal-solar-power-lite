@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.3
-Date: 2026-01-16
+Date: 2026-01-17
   Changes:
+    - Improved performance when deleting thermal panels.
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Now removes a surface from storage register when it is deleted, to prevent bloat.
     - Improved performance of heat generating script by retrieving/calculating and caching solar

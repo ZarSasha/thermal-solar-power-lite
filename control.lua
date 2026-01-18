@@ -71,7 +71,7 @@ local function create_storage_table_keys()
     if storage.panels               == nil then storage.panels               =    {} end
     if storage.panels.main          == nil then storage.panels.main          =    {} end
     if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
-    if storage.panels.to_be_removed == nil then storage.panels.to_be_removed =    {} end
+    if storage.panels.removed_flag  == nil then storage.panels.removed_flag  = false end
     if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
     if storage.panels.progress      == nil then storage.panels.progress      =     1 end
     if storage.panels.complete      == nil then storage.panels.complete      = false end
@@ -108,19 +108,19 @@ end
 
 -- Function to update contents of "main" array, removes LuaEntity references:
 local function update_panel_storage_register_1()
-    array_remove_elements(storage.panels.main, storage.panels.to_be_removed)
+    if storage.panels.removed_flag == false then return end
+    array_remove_elements_by_value_filter(storage.panels.main, false)
 end
 
 -- Function to update contents of "main" array, adds new LuaEntity references:
 local function update_panel_storage_register_2()
-    array_append_elements(storage.panels.main, storage.panels.to_be_added)
+    if next(storage.panels.to_be_added) == nil then return end
+    array_move_elements(storage.panels.main, storage.panels.to_be_added)
 end
 
 -- Function to clear temporary arrays of LuaEntity references, reset completion status, and
 -- calculate batch size for next cycle.
 local function update_panel_storage_register_3()
-    table_clear(storage.panels.to_be_removed)
-    table_clear(storage.panels.to_be_added)
     storage.panels.complete   = false
     storage.panels.batch_size =
         math.ceil(#storage.panels.main / (tick_interval - reserved_ticks - 1))
@@ -179,31 +179,29 @@ end
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
 -- segment at a time.
 local function update_temperature_for_all_panels()
-    local panels     = storage.panels    -- table reference
-    local batch_size = panels.batch_size -- number copy
-    local progress   = panels.progress   -- number copy
+    local panels         = storage.panels    -- table reference
+    local batch_size     = panels.batch_size -- number copy
+    local progress       = panels.progress   -- number copy
+    local base_temp_gain = (SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ
+    local base_temp_loss = panel_param.temp_loss_factor * tick_frequency
     for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
-        -- Marks cycle as completed when there are no more array entries to go through:
         if panel == nil then
             panels.complete = true
             break
-        end
-        -- Marks entry for deregistration and skips it, if not valid:
-        if not panel.valid then
-            table.insert(panels.to_be_removed, panel)
+        elseif panel == false then
+            goto continue
+        elseif not panel.valid then
+            panel = false
+            panels.removed_flag = true
             goto continue
         end
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_param.quality_scaling)
         local light_corr  = (env.light_const - panel.surface.darkness) / env.light_const
         local sun_mult    = storage.surfaces.solar_power[panel.surface.name] -- no key -> crash
-        local temp_gain   =
-            ((SETTING.panel_output_kW * tick_frequency) / panel_param.heat_cap_kJ) *
-            light_corr * sun_mult * q_factor
-        local temp_loss   =
-            (panel_param.temp_loss_factor * tick_frequency) *
-            (panel.temperature - env.ambient_temp)
+        local temp_gain   = base_temp_gain * light_corr * sun_mult * q_factor
+        local temp_loss   = base_temp_loss * (panel.temperature - env.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
@@ -267,10 +265,10 @@ local function reset_panels_and_platforms()
     -- Clears storage of all thermal panels and resets related values, then rebuilds contents:
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)
-    table_clear(storage.panels.to_be_removed)
-    storage.panels.batch_size = 10
-    storage.panels.progress   = 1
-    storage.panels.complete   = false
+    storage.panels.removed_flag = false
+    storage.panels.batch_size   = 10
+    storage.panels.progress     = 1
+    storage.panels.complete     = false
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(storage.panels.main, panel)
@@ -308,14 +306,14 @@ end)
 -- Function set to run perpetually with a given frequency.
 script.on_event({defines.events.on_tick}, function(event)
     if     event.tick % tick_interval == 1 then       -- 1 tick:
-        update_panel_storage_register_1()             -- high impact
+        update_panel_storage_register_1()             -- 
     elseif event.tick % tick_interval == 2 then       -- 1 tick:
-        update_panel_storage_register_2()             -- high impact
+        update_panel_storage_register_2()             -- 
     elseif event.tick % tick_interval == 3 then       -- 1 tick:
-        update_panel_storage_register_3()             -- very low impact
-        update_surface_solar_power_storage_register() -- very low impact
-    elseif not storage.panels.complete then           -- 56-57 ticks:
-        update_temperature_for_all_panels()           -- moderate impact
+        update_panel_storage_register_3()             -- 
+        update_surface_solar_power_storage_register() -- 
+    elseif not storage.panels.complete then           -- 26-27 ticks:
+        update_temperature_for_all_panels()           -- 
     end
 end)
 
@@ -474,11 +472,11 @@ end
 COMMAND_parameters.clear = function(pl)
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)
-    table_clear(storage.panels.to_be_removed)
     table_clear(storage.surfaces.solar_power)
-    storage.panels.batch_size = 10
-    storage.panels.progress   = 1
-    storage.panels.complete   = false
+    storage.panels.removed_flag = false
+    storage.panels.batch_size   = 10
+    storage.panels.progress     = 1
+    storage.panels.complete     = false
     mPrint(pl, {
         "storage.panels' subtables were cleared of their contents or had values reset to default."
     })

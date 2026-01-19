@@ -267,14 +267,10 @@ for key, _ in pairs(prototypes.entity) do
     end
 end
 
--- Function to reset storage table. Rebuilds array of thermal panels and removes any solar-fluid;
--- rebuilds table of space platform names + current solar power.
+-- Completely clears storage, then rebuilds contents.
 local function reset_panels_and_platforms()
-    -- Clears storage of all thermal panels and resets related values, then rebuilds contents:
-    table_clear(storage.panels.main_register)
-    table_clear(storage.panels.to_be_added)
-    storage.panels.removal_flag = false
-    storage.cycle.progress     = 1
+    storage = {}
+    create_storage_table_keys()
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(storage.panels.main_register, panel)

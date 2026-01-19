@@ -9,12 +9,13 @@ Date: 2026-01-19
     - Greatly improved performance when deleting thermal panels by using a simpler check (now
       replaces invalid panel references in storage with a boolean "false" and then removes them
       later based on that value).
-    - Improved performance of heat generating script by ~25% by retrieving/calculating and caching
-      solar power for all surfaces ahead of a cycle.
+    - Improved performance of heat generating script by ~33%, probably mainly by retrieving or
+      calculating and then caching solar power for all surfaces ahead of a cycle.
   Bugfixes:
     - Created a migration script that completely resets storage and recalculates contents of all
       tables and values in order to fix an issue with accumulating, obsolete data overlooked during
-      migration of earlier mod versions. May reduce savegame file size.
+      migration of earlier mod versions. May reduce savegame file size. (Note: It is too difficult
+      to figure out if it pertains to any released version or just experimental branches.)
     - More Quality Scaling: Fixed a wrong variable name leading to wrong scaling.
   Info:
     - Corrected v2.2.0 changelog entry.

@@ -1,6 +1,31 @@
 ---------------------------------------------------------------------------------------------------
 -- MIGRATIONS FOR V2.2.3
 ---------------------------------------------------------------------------------------------------
+
+-- New storage variables:
+storage.panels.main_register  = storage.panels.main
+storage.panels.removal_flag   = false
+storage.surfaces              = {}
+storage.surfaces.solar_mult   = {} -- updated below
+storage.cycle                 = {}
+storage.cycle.batch_size      = storage.panels.batch_size
+storage.cycle.progress        = storage.panels.progress
+storage.cycle.complete        = storage.panels.complete
+
+-- Removed storage variables:
+storage.panels.main           = nil
+storage.panels.to_be_removed  = nil
+storage.panels.batch_size     = nil
+storage.panels.progress       = nil
+storage.panels.complete       = nil
+storage.platforms.solar_power = nil
+storage.platforms             = nil
+
+for name, surface in pairs(game.surfaces) do
+    storage.surfaces.solar_mult[name] = 100 -- temporary value
+end
+
+--[[
 -- Complete clean-up of storage table, since old variables may have accumulated in a way that was
 -- not properly accounted for through migration scripts. Too complicated to correctly identify them
 -- all, so contents of tables and values will just be recalculated.
@@ -75,7 +100,7 @@ game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
 game.print("  Regarding update to v2.2.3: Stored mod data was completely reset! Fixes issue with")
 game.print("  possible accummulation of obsolete data. Report any issues on the Mod Portal or on")
 game.print("  GitHub. Writing '/tspl reset' in the console may help.")
-
+]]
 ---------------------------------------------------------------------------------------------------
 -- END NOTES
 ---------------------------------------------------------------------------------------------------

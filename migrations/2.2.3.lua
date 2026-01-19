@@ -3,27 +3,27 @@
 ---------------------------------------------------------------------------------------------------
 
 -- New storage variables:
-storage.panels.main_register  = storage.panels.main
+storage.panels.main_register  = storage.panels.main or {}
 storage.panels.removal_flag   = false
 storage.surfaces              = {}
-storage.surfaces.solar_mult   = {} -- updated below
+storage.surfaces.solar_mult   = {} -- filled below
 storage.cycle                 = {}
-storage.cycle.batch_size      = storage.panels.batch_size
-storage.cycle.progress        = storage.panels.progress
-storage.cycle.complete        = storage.panels.complete
+storage.cycle.batch_size      = storage.panels.batch_size or 1
+storage.cycle.progress        = storage.panels.progress or 1
+storage.cycle.complete        = storage.panels.complete or false
+
+for name, surface in pairs(game.surfaces) do
+    storage.surfaces.solar_mult[name] = 1 -- temporary value, to keep things simple
+end
 
 -- Removed storage variables:
 storage.panels.main           = nil
-storage.panels.to_be_removed  = nil
+storage.panels.to_be_removed  = nil -- any invalid panels will be detected in the next cycle
 storage.panels.batch_size     = nil
 storage.panels.progress       = nil
 storage.panels.complete       = nil
 storage.platforms.solar_power = nil
 storage.platforms             = nil
-
-for name, surface in pairs(game.surfaces) do
-    storage.surfaces.solar_mult[name] = 1 -- temporary value
-end
 
 --[[
 -- Complete clean-up of storage table, since old variables may have accumulated in a way that was
@@ -111,4 +111,5 @@ storage.thermal.panels = nil
 storage.q_scaling = nil
 storage.heat_loss_X = nil
 storage.temp_gain = nil
+-- These are all likely from unreleased branches!
 ]]

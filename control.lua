@@ -463,7 +463,7 @@ COMMAND_parameters.check = function(pl)
     end
 end
 
--- DEBUG "reset": Resets contents of storage.
+-- DEBUG "reset": Completely resets contents of storage.
 COMMAND_parameters.reset = function(pl)
     reset_panels_and_platforms()
     mPrint(pl, {

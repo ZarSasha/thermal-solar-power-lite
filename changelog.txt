@@ -10,18 +10,16 @@ Date: 2026-01-19
       replaces invalid panel references in storage with a boolean "false" and then removes them
       later based on that value).
     - Improved performance of heat generating script by ~33%, probably mainly by retrieving or
-      calculating and then caching solar power for all surfaces ahead of a cycle.
+      calculating and then caching the solar power factor for all surfaces ahead of a cycle.
   Bugfixes:
-    - Created a migration script that completely resets storage and recalculates contents of all
-      tables and values in order to fix an issue with accumulating, obsolete data overlooked during
-      migration of earlier mod versions. May reduce savegame file size. (Note: It is too difficult
-      to figure out if it pertains to any released version or just experimental branches.)
     - More Quality Scaling: Fixed a wrong variable name leading to wrong scaling.
   Info:
     - Corrected v2.2.0 changelog entry.
-    - Added a migration message notifying user of the storage table reset.
   Debug:
-    - Improved or updated several commands used for debugging.
+    - Improved or updated several commands used for debugging. In particular, the reset command
+      now completely empties storage before rebuilding contents. This can be important for
+      preventing bloat when experimenting, when rolling back from a newer mod version, or when
+      migration scripts turn out to have incomplete clean-up of old variables in storage.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-01-08

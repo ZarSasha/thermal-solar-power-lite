@@ -13,13 +13,14 @@ require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- FACTORIO CONSTANTS
 ---------------------------------------------------------------------------------------------------
+-- Don't change!
 
 -- Time:
-local ticks_pr_sec = 15
+local ticks_pr_sec = 60
 
 -- Environment:
-local light_const  = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
-local ambient_temp = 15   -- Default ambient temperature
+local light_const  = 0.85 -- highest level of "surface darkness" (default range: 0-0.85)
+local ambient_temp = 15   -- default ambient temperature
 
 ---------------------------------------------------------------------------------------------------
 -- THERMAL SOLAR PANEL HEAT GENERATION
@@ -29,8 +30,8 @@ local ambient_temp = 15   -- Default ambient temperature
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters related to timing of heat-generating script:
-local tick_interval  = 60 -- Cycle length
-local reserved_ticks = 2  -- Reserved for cycle reset scripts
+local tick_interval  = 15 -- cycle length
+local reserved_ticks = 2  -- reserved for cycle reset scripts
 local tick_frequency = tick_interval / ticks_pr_sec
 
 -- Parameters pertaining to the thermal solar panels:

@@ -179,7 +179,7 @@ end
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
 -- segment at a time.
 local function update_temperature_for_all_panels()
-    local panels         = storage.panels
+    local panels         = storage.panels    -- table reference
     if panels.complete then return end
     local batch_size     = panels.batch_size -- number copy
     local progress       = panels.progress   -- number copy
@@ -210,6 +210,8 @@ end
 
 -- Note: If the number of panels is perfectly divisible by batch size, an extra tick will be
 -- needed to tell that the array has been fully traversed.
+
+-- Note: time usage spike late (4/5) in traversal. Why?
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)
@@ -307,7 +309,7 @@ script.on_event({defines.events.on_tick}, function(event)
         update_panel_storage_register_2_additions()   -- low impact
         update_panel_storage_register_3_cycle_reset() -- low impact
         update_surface_solar_power_storage_register() -- low impact
-    elseif not storage.panels.complete then           -- 58 ticks:
+    else                                              -- 58 ticks:
         update_temperature_for_all_panels()           -- moderate impact
     end
 end)

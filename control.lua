@@ -16,7 +16,7 @@ require "shared.all-stages"
 -- Don't change!
 
 -- Time:
-local ticks_pr_sec = 60
+local ticks_pr_sec = 60   -- game ticks pr. second
 
 -- Environment:
 local light_const  = 0.85 -- highest level of "surface darkness" (default range: 0-0.85)
@@ -76,14 +76,15 @@ end
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
     if storage.panels               == nil then storage.panels               =    {} end
-    if storage.panels.main          == nil then storage.panels.main          =    {} end
+    if storage.panels.main_register == nil then storage.panels.main_register =    {} end
     if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
-    if storage.panels.removed_flag  == nil then storage.panels.removed_flag  = false end
-    if storage.panels.batch_size    == nil then storage.panels.batch_size    =    10 end
-    if storage.panels.progress      == nil then storage.panels.progress      =     1 end
-    if storage.panels.complete      == nil then storage.panels.complete      = false end
+    if storage.panels.removal_flag  == nil then storage.panels.removal_flag  = false end
     if storage.surfaces             == nil then storage.surfaces             =    {} end
     if storage.surfaces.solar_power == nil then storage.surfaces.solar_power =    {} end
+    if storage.cycle                == nil then storage.cycle                =    {} end
+    if storage.cycle.batch_size     == nil then storage.cycle.batch_size     =     1 end
+    if storage.cycle.progress       == nil then storage.cycle.progress       =     1 end
+    if storage.cycle.complete       == nil then storage.cycle.complete       = false end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -105,30 +106,32 @@ end
 
 -- * A string ID is used to reference a Lua object and gain access to its properties. Example:
 --   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,nauvis]]"
+--   May be replaced with "[INVALID LuaEntity]".
 
 ---------------------------------------------------------------------------------------------------
     -- PANEL ENTITY REGISTER UPDATE (ON_TICK SCRIPT, RUNS PERIODICALLY)
 ---------------------------------------------------------------------------------------------------
--- To keep the main array intact during a cycle that spans several game ticks, changes have to be
--- stored temporarily before being used to update the main array.
+-- The main array is processed over several game ticks, so to keep it intact, it will only be
+-- updated at the end of a full cycle.
 
--- Function to update contents of "main" array, cleans up deleted LuaEntity references:
-local function update_panel_storage_register_1_removals()
+-- Function to clear up entries marked for deletion within "main" array. Uses a special function
+-- that efficiently moves entries in one pass, to preserve contiguous indexing of the array.
+local function update_storage_panel_removals()
     if storage.panels.removed_flag == false then return end
-    array_remove_elements_by_filter(storage.panels.main, false)
+    array_remove_elements_by_filter(storage.panels.main_register, false)
 end
 
--- Function to update contents of "main" array, adds new LuaEntity references:
-local function update_panel_storage_register_2_additions()
+-- Function to adds new LuaEntity references to the end of the "main" array:
+local function update_storage_panel_additions()
     if next(storage.panels.to_be_added) == nil then return end
-    array_move_elements(storage.panels.main, storage.panels.to_be_added)
+    array_move_elements(storage.panels.main_register, storage.panels.to_be_added)
 end
 
--- Function to reset completion status, and calculate batch size for next cycle.
-local function update_panel_storage_register_3_cycle_reset()
-    storage.panels.complete   = false
-    storage.panels.batch_size =
-        math.ceil(#storage.panels.main / (tick_interval - reserved_ticks - 1))
+-- Function to reset completion status and calculate batch size for the next cycle.
+local function update_storage_cycle_variables()
+    storage.cycle.complete   = false
+    storage.cycle.batch_size =
+        math.ceil(#storage.panels.main_register / (tick_interval - reserved_ticks - 1))
     -- Note: One extra tick allowed for detecting that traversal has completed, just in case.
 end
 
@@ -157,7 +160,7 @@ local function calculate_solar_power_for_surface(surface)
 end
 
 -- Function to calculate and store solar power for all surfaces.
-local function update_surface_solar_power_storage_register()
+local function update_storage_surface_solar_power()
     for name, surface in pairs(game.surfaces) do
         storage.surfaces.solar_power[name] = calculate_solar_power_for_surface(surface)
     end
@@ -182,21 +185,22 @@ end
 
 -- Function to update temperature of all thermal panels according to circumstances. Relies on
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
--- segment at a time.
+-- segment of pre-calculated size at a time.
 local function update_temperature_for_all_panels()
-    local panels     = storage.panels    -- table reference
+    local panels     = storage.panels   -- table reference
     if panels.complete then return end
-    local batch_size = panels.batch_size -- number copy
-    local progress   = panels.progress   -- number copy
-    local surfaces   = storage.surfaces  -- table reference
+    local surfaces   = storage.surfaces -- table reference
+    local cycle      = storage.cycle    -- table reference
+    local batch_size = cycle.batch_size -- number copy
+    local progress   = cycle.progress   -- number copy
     for i = progress, progress + batch_size - 1 do
-        local panel = panels.main[i]
+        local panel = panels.main_register[i]
         if panel == nil then -- check relies on contiguous array
-            panels.complete = true
+            cycle.complete = true
             break
         elseif not panel.valid then
             panel = false
-            panels.removed_flag = true -- schedules cleanup at end of cycle
+            cycle.removal_flag = true -- schedules cleanup at end of cycle
             goto continue
         end
         -- Calculates and applies temperature change to panel:
@@ -209,14 +213,14 @@ local function update_temperature_for_all_panels()
         ::continue::
     end
     -- Stores current progress if cycle is not yet finished, otherwise resets:
-    panels.progress = panels.complete and 1 or progress + batch_size
+    cycle.progress = (cycle.complete and 1) or (progress + batch_size)
 end
 
--- Note: If the number of panels is perfectly divisible by batch size, an extra tick will be
--- needed to tell that the array has been fully traversed.
+-- Note: If the number of panels is perfectly divisible by batch size, an extra tick will be needed
+-- to tell that the array has been fully traversed.
 
--- Note: time usage spike every so often. Probably garbage collection. Triggering it manually
--- every second only seems to produce a worse spike.
+-- Note: Time usage spikes every so often. Probably garbage collection. Seems to often be lower
+-- with general activity (building and removing any entities).
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)
@@ -267,20 +271,20 @@ end
 -- rebuilds table of space platform names + current solar power.
 local function reset_panels_and_platforms()
     -- Clears storage of all thermal panels and resets related values, then rebuilds contents:
-    table_clear(storage.panels.main)
+    table_clear(storage.panels.main_register)
     table_clear(storage.panels.to_be_added)
-    storage.panels.removed_flag = false
-    storage.panels.progress     = 1
+    storage.panels.removal_flag = false
+    storage.cycle.progress     = 1
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
-            table.insert(storage.panels.main, panel)
+            table.insert(storage.panels.main_register, panel)
             panel.clear_fluid_inside()
         end
     end
-    update_panel_storage_register_3_cycle_reset()
+    update_storage_cycle_variables()
     -- Clears storage of all surfaces, then rebuilds contents.
     table_clear(storage.surfaces.solar_power)
-    update_surface_solar_power_storage_register()
+    update_storage_surface_solar_power()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -309,11 +313,11 @@ end)
 -- Function set to run perpetually with a given frequency (using modulus).
 script.on_event({defines.events.on_tick}, function(event)
     if     event.tick % tick_interval == 1 then       -- 1 tick:
-        update_panel_storage_register_1_removals()    -- potentially high impact
+        update_storage_panel_removals()               -- potentially high impact
     elseif event.tick % tick_interval == 2 then       -- 1 tick:
-        update_panel_storage_register_2_additions()   -- low impact
-        update_panel_storage_register_3_cycle_reset() -- low impact
-        update_surface_solar_power_storage_register() -- low impact
+        update_storage_panel_additions()              -- low impact
+        update_storage_cycle_variables()              -- low impact
+        update_storage_surface_solar_power()          -- low impact
     else                                              -- 58 ticks:
         update_temperature_for_all_panels()           -- moderate impact
     end
@@ -332,7 +336,7 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys() -- essential
-    update_surface_solar_power_storage_register()
+    update_storage_surface_solar_power()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
@@ -340,7 +344,7 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys() -- maybe better to use migration when relevant
-    update_surface_solar_power_storage_register()
+    update_storage_surface_solar_power()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
@@ -456,7 +460,7 @@ COMMAND_parameters.check = function(pl)
     mPrint(pl, {"Thermal solar panel entity count:"})
     local count1 = search_and_count_thermal_panels()
     mPrint(pl, {"  Found within world (all surfaces): "..clr(count1,2).."."})
-    if storage.panels.main ~= nil then
+    if storage.panels.main_register ~= nil then
         local count2 = table_length(storage.panels.main)
         mPrint(pl, {"  Registered within storage table: "..clr(count2,2).."."})
     end
@@ -472,15 +476,15 @@ end
 
 -- DEBUG "clear": Clears storage variables or restores their default values.
 COMMAND_parameters.clear = function(pl)
-    table_clear(storage.panels.main)
+    table_clear(storage.panels.main_register)
     table_clear(storage.panels.to_be_added)
+    storage.panels.removal_flag = false
     table_clear(storage.surfaces.solar_power)
-    storage.panels.removed_flag = false
-    storage.panels.batch_size   = 10
-    storage.panels.progress     = 1
-    storage.panels.complete     = false
+    storage.cycle.batch_size   = 1
+    storage.cycle.progress     = 1
+    storage.cycle.complete     = false
     mPrint(pl, {
-        "Storage subtables were cleared of their contents or had values reset to default."
+        "Storage subtables were cleared of their contents or had their values reset to default."
     })
 end
 

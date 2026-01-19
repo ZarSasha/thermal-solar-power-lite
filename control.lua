@@ -117,7 +117,7 @@ end
 -- Function to clear up entries marked for deletion within "main" array. Uses a special function
 -- that efficiently moves entries in one pass, to preserve contiguous indexing of the array.
 local function update_storage_panel_removals()
-    if storage.panels.removed_flag == false then return end
+    if storage.panels.removal_flag == false then return end
     array_remove_elements_by_filter(storage.panels.main_register, false)
 end
 
@@ -141,8 +141,8 @@ end
 -- Script for calculating and caching solar power (max. during day) for all surfaces, including
 -- those of space platforms. Storing values also improves performance a bit in general.
 
--- Function to calculate max. solar power of a surface, using a string ID LuaSurface reference.
-local function calculate_solar_power_for_surface(surface)
+-- Function to calculate max. solar power multiplier for a surface, using a LuaSurface reference.
+local function calculate_solar_mult_for_surface(surface)
     local platform = surface.platform
     -- Just retrieves solar power property if surface does not belong to a platform:
     if not platform then
@@ -162,7 +162,7 @@ end
 -- Function to calculate and store solar power for all surfaces.
 local function update_storage_surface_solar_power()
     for name, surface in pairs(game.surfaces) do
-        storage.surfaces.solar_mult[name] = calculate_solar_power_for_surface(surface)
+        storage.surfaces.solar_mult[name] = calculate_solar_mult_for_surface(surface)
     end
 end
 

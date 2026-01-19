@@ -212,11 +212,11 @@ local function update_temperature_for_all_panels()
     panels.progress = panels.complete and 1 or progress + batch_size
 end
 
-
 -- Note: If the number of panels is perfectly divisible by batch size, an extra tick will be
 -- needed to tell that the array has been fully traversed.
 
--- Note: time usage spike during traversal every so often. Why? Maybe garbage collection?
+-- Note: time usage spike every so often. Probably garbage collection. Triggering it manually
+-- every second only seems to produce a worse spike.
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)
@@ -309,12 +309,11 @@ end)
 -- Function set to run perpetually with a given frequency (using modulus).
 script.on_event({defines.events.on_tick}, function(event)
     if     event.tick % tick_interval == 1 then       -- 1 tick:
-        update_panel_storage_register_1_removals()    -- high impact
+        update_panel_storage_register_1_removals()    -- potentially high impact
     elseif event.tick % tick_interval == 2 then       -- 1 tick:
         update_panel_storage_register_2_additions()   -- low impact
         update_panel_storage_register_3_cycle_reset() -- low impact
-        update_surface_solar_power_storage_register() -- low impact
-        collectgarbage()
+        update_surface_solar_power_storage_register() -- low impact 
     else                                              -- 58 ticks:
         update_temperature_for_all_panels()           -- moderate impact
     end

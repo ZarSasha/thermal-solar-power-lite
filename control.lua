@@ -39,6 +39,10 @@ local panel_heat_cap_kJ      = 50    -- default value, will not change
 local panel_temp_loss_factor = 0.005 -- updated during startup
 local panel_quality_scaling  = 0.15  -- updated during startup
 
+-- Basic values for gain/loss of temperature, derived from settings and the above parameters:
+local base_temp_gain = (SETTING.panel_output_kW * tick_frequency) / panel_heat_cap_kJ
+local base_temp_loss = panel_temp_loss_factor * tick_frequency
+
 ---------------------------------------------------------------------------------------------------
     -- MOD CHECK AND COMPATIBILITY
 ---------------------------------------------------------------------------------------------------
@@ -180,14 +184,14 @@ end
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
 -- segment at a time.
 local function update_temperature_for_all_panels()
-    local panels         = storage.panels    -- table reference
+    local panels     = storage.panels    -- table reference
     if panels.complete then return end
-    local batch_size     = panels.batch_size -- number copy
-    local progress       = panels.progress   -- number copy
-    local base_temp_gain = (SETTING.panel_output_kW * tick_frequency) / panel_heat_cap_kJ
-    local base_temp_loss = panel_temp_loss_factor * tick_frequency
+    local main       = panels.main       -- array reference
+    local batch_size = panels.batch_size -- number copy
+    local progress   = panels.progress   -- number copy
+    local surfaces   = storage.surfaces  -- table reference
     for i = progress, progress + batch_size - 1 do
-        local panel = panels.main[i]
+        local panel = main[i]
         if panel == nil then -- check relies on contiguous array
             panels.complete = true
             break
@@ -199,7 +203,7 @@ local function update_temperature_for_all_panels()
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_quality_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
-        local sun_mult    = storage.surfaces.solar_power[panel.surface.name] -- no key -> crash
+        local sun_mult    = surfaces.solar_power[panel.surface.name] -- no key -> crash
         local temp_gain   = base_temp_gain * light_corr * sun_mult * q_factor
         local temp_loss   = base_temp_loss * (panel.temperature - ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss

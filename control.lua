@@ -314,7 +314,6 @@ script.on_event({defines.events.on_tick}, function(event)
         update_panel_storage_register_2_additions()   -- low impact
         update_panel_storage_register_3_cycle_reset() -- low impact
         update_surface_solar_power_storage_register() -- low impact
-        collectgarbage("step")
     else                                              -- 58 ticks:
         update_temperature_for_all_panels()           -- moderate impact
     end

@@ -54,7 +54,7 @@ end
 function array_remove_elements_by_filter(table, filter)
     local j, n = 1, #table
     for i=1,n do
-        if i == filter then
+        if table[i] == filter then
             table[i] = nil
         else
             if (i ~= j) then

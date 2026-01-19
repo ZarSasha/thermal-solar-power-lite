@@ -118,7 +118,7 @@ end
 -- that efficiently moves entries in one pass, to preserve contiguous indexing of the array.
 local function update_storage_panel_removals()
     if storage.panels.removal_flag == false then return end
-    array_remove_elements_by_filter(storage.panels.main_register, false)
+    array_remove_elements_by_filter(storage.panels.main_register, "delete")
 end
 
 -- Function to adds new LuaEntity references to the end of the "main" array:
@@ -200,7 +200,7 @@ local function update_temperature_for_all_panels()
             break
         end
         if not panel.valid then
-            panel = false
+            panel = "delete"
             panels.removal_flag = true -- schedules cleanup at end of cycle
             goto continue
         end
@@ -475,9 +475,9 @@ COMMAND_parameters.clear = function(pl)
     table_clear(storage.panels.to_be_added)
     storage.panels.removal_flag = false
     table_clear(storage.surfaces.solar_mult)
-    storage.cycle.batch_size   = 1
-    storage.cycle.progress     = 1
-    storage.cycle.complete     = false
+    storage.cycle.batch_size    = 1
+    storage.cycle.progress      = 1
+    storage.cycle.complete      = false
     mPrint(pl, {
         "Storage subtables were cleared of their contents or had their values reset to default."
     })

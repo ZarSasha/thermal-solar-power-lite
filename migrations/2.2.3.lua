@@ -2,8 +2,8 @@
 -- MIGRATIONS FOR V2.2.3
 ---------------------------------------------------------------------------------------------------
 -- Complete clean-up of storage table, since old variables may have accumulated in a way that was
--- not properly accounted for through migration scripts. Too complicated to identify them all, so
--- contents of tables and values will just be recalculated.
+-- not properly accounted for through migration scripts. Too complicated to correctly identify them
+-- all, so contents of tables and values will just be recalculated.
 
 -- Creates new storage variables:
 storage = {
@@ -13,7 +13,7 @@ storage = {
         removal_flag  = false,
     },
     surfaces = {
-        solar_power = {}
+        solar_mult = {}
     },
     cycle = {
         batch_size = 1,
@@ -25,7 +25,6 @@ storage = {
 -- Repopulates list of thermal panels:
 do
     local panel_name_base = "tspl-thermal-solar-panel"
-
     local panel_variants = {}
 
     for key, _ in pairs(prototypes.entity) do
@@ -36,7 +35,7 @@ do
 
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
-            table.insert(storage.panels.main, panel)
+            table.insert(storage.panels.main_register, panel)
             panel.clear_fluid_inside()
         end
     end
@@ -60,7 +59,7 @@ do
     end
 
     for name, surface in pairs(game.surfaces) do
-        storage.surfaces.solar_power[name] = calculate_solar_power_for_surface(surface)
+        storage.surfaces.solar_mult[name] = calculate_solar_power_for_surface(surface)
     end
 end
 
@@ -68,13 +67,14 @@ do
     local tick_interval  = 60
     local reserved_ticks = 2
     storage.panels.batch_size =
-        math.ceil(#storage.panels.main / (tick_interval - reserved_ticks - 1))
+        math.ceil(#storage.panels.main_register / (tick_interval - reserved_ticks - 1))
 end
 
--- Message printed to console:
+-- Prints message to console:
 game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
 game.print("  Regarding update to v2.2.3: Stored mod data was completely reset! Fixes issue with")
-game.print("  possible accummulation of obsolete data. Everything should work as normal.")
+game.print("  possible accummulation of obsolete data. Report any issues on the Mod Portal or on")
+game.print("  GitHub. Writing '/tspl reset' in the console may help.")
 
 ---------------------------------------------------------------------------------------------------
 -- END NOTES
@@ -86,4 +86,4 @@ storage.thermal.panels = nil
 storage.q_scaling = nil
 storage.heat_loss_X = nil
 storage.temp_gain = nil
- ]]
+]]

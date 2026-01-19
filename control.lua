@@ -80,7 +80,7 @@ local function create_storage_table_keys()
     if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
     if storage.panels.removal_flag  == nil then storage.panels.removal_flag  = false end
     if storage.surfaces             == nil then storage.surfaces             =    {} end
-    if storage.surfaces.solar_power == nil then storage.surfaces.solar_power =    {} end
+    if storage.surfaces.solar_mult  == nil then storage.surfaces.solar_mult  =    {} end
     if storage.cycle                == nil then storage.cycle                =    {} end
     if storage.cycle.batch_size     == nil then storage.cycle.batch_size     =     1 end
     if storage.cycle.progress       == nil then storage.cycle.progress       =     1 end
@@ -162,7 +162,7 @@ end
 -- Function to calculate and store solar power for all surfaces.
 local function update_storage_surface_solar_power()
     for name, surface in pairs(game.surfaces) do
-        storage.surfaces.solar_power[name] = calculate_solar_power_for_surface(surface)
+        storage.surfaces.solar_mult[name] = calculate_solar_power_for_surface(surface)
     end
 end
 
@@ -173,7 +173,7 @@ end
 -- Function to deregister a surface from storage table upon deletion (just to prevent bloat).
 local function deregister_surface(event)
     local surface_name = game.surfaces[event.surface_index].name
-    storage.surfaces.solar_power[surface_name] = nil
+    storage.surfaces.solar_mult[surface_name] = nil
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ local function update_temperature_for_all_panels()
         -- Calculates and applies temperature change to panel:
         local q_factor    = 1 + (panel.quality.level * panel_quality_scaling)
         local light_corr  = (light_const - panel.surface.darkness) / light_const
-        local sun_mult    = surfaces.solar_power[panel.surface.name] -- no key -> crash
+        local sun_mult    = surfaces.solar_mult[panel.surface.name] -- no key -> crash
         local temp_gain   = base_temp_gain * light_corr * sun_mult * q_factor
         local temp_loss   = base_temp_loss * (panel.temperature - ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
@@ -283,7 +283,7 @@ local function reset_panels_and_platforms()
     end
     update_storage_cycle_variables()
     -- Clears storage of all surfaces, then rebuilds contents.
-    table_clear(storage.surfaces.solar_power)
+    table_clear(storage.surfaces.solar_mult)
     update_storage_surface_solar_power()
 end
 
@@ -402,7 +402,7 @@ end
 
 -- "info": Provides some info about the thermal solar panels on the current surface.
 COMMAND_parameters.info = function(pl)
-    local sun_mult       = storage.surfaces.solar_power[pl.surface.name] -- no key -> crash
+    local sun_mult       = storage.surfaces.solar_mult[pl.surface.name] -- no key -> crash
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / panel_heat_cap_kJ) * sun_mult
     local temp_adj       = SETTING.exchanger_temp - ambient_temp
@@ -479,7 +479,7 @@ COMMAND_parameters.clear = function(pl)
     table_clear(storage.panels.main_register)
     table_clear(storage.panels.to_be_added)
     storage.panels.removal_flag = false
-    table_clear(storage.surfaces.solar_power)
+    table_clear(storage.surfaces.solar_mult)
     storage.cycle.batch_size   = 1
     storage.cycle.progress     = 1
     storage.cycle.complete     = false

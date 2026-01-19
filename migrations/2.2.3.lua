@@ -22,7 +22,7 @@ storage.platforms.solar_power = nil
 storage.platforms             = nil
 
 for name, surface in pairs(game.surfaces) do
-    storage.surfaces.solar_mult[name] = 100 -- temporary value
+    storage.surfaces.solar_mult[name] = 1 -- temporary value
 end
 
 --[[

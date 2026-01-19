@@ -278,8 +278,6 @@ local function reset_panels_and_platforms()
         end
     end
     update_storage_cycle_variables()
-    -- Clears storage of all surfaces, then rebuilds contents.
-    table_clear(storage.surfaces.solar_mult)
     update_storage_surface_solar_power()
 end
 

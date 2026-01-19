@@ -461,7 +461,7 @@ COMMAND_parameters.check = function(pl)
     local count1 = search_and_count_thermal_panels()
     mPrint(pl, {"  Found within world (all surfaces): "..clr(count1,2).."."})
     if storage.panels.main_register ~= nil then
-        local count2 = table_length(storage.panels.main)
+        local count2 = #storage.panels.main_register
         mPrint(pl, {"  Registered within storage table: "..clr(count2,2).."."})
     end
 end

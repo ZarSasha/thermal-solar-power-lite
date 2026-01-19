@@ -34,13 +34,6 @@ function table_contains_key(table, element)
     return false
 end
 
--- Checks the number of items in a table.
-function table_length(tbl)
-    local count = 0
-    for _ in pairs(tbl) do count = count + 1 end
-    return count
-end
-
 -- Adds all entries from one array (indexed table) to the end of another.
 function array_append_elements(destination, source) -- table, table
     for _, value in pairs(source) do

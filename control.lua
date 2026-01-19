@@ -257,8 +257,6 @@ end
 -- Function to reset storage table. Rebuilds array of thermal panels and removes any solar-fluid;
 -- rebuilds table of space platform names + current solar power.
 local function reset_panels_and_platforms()
-    -- Initializes storage variables just in case they are missing:
-    create_storage_table_keys()
     -- Clears storage of all thermal panels and resets related values, then rebuilds contents:
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)

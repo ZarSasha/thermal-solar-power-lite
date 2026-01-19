@@ -187,10 +187,10 @@ end
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
 -- segment of pre-calculated size at a time.
 local function update_temperature_for_all_panels()
-    local panels     = storage.panels   -- table reference
-    if panels.complete then return end
-    local surfaces   = storage.surfaces -- table reference
     local cycle      = storage.cycle    -- table reference
+    if cycle.complete then return end
+    local panels     = storage.panels   -- table reference
+    local surfaces   = storage.surfaces -- table reference
     local batch_size = cycle.batch_size -- number copy
     local progress   = cycle.progress   -- number copy
     for i = progress, progress + batch_size - 1 do
@@ -201,7 +201,7 @@ local function update_temperature_for_all_panels()
         end
         if not panel.valid then
             panel = false
-            cycle.removal_flag = true -- schedules cleanup at end of cycle
+            panels.removal_flag = true -- schedules cleanup at end of cycle
             goto continue
         end
         -- Calculates and applies temperature change to panel:

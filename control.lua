@@ -198,7 +198,8 @@ local function update_temperature_for_all_panels()
         if panel == nil then -- check relies on contiguous array
             cycle.complete = true
             break
-        elseif not panel.valid then
+        end
+        if not panel.valid then
             panel = false
             cycle.removal_flag = true -- schedules cleanup at end of cycle
             goto continue

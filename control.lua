@@ -470,7 +470,7 @@ COMMAND_parameters.reset = function(pl)
     })
 end
 
--- DEBUG "clear": Clears storage variables related to panels and restores default values.
+-- DEBUG "clear": Clears storage variables or restores their default values.
 COMMAND_parameters.clear = function(pl)
     table_clear(storage.panels.main)
     table_clear(storage.panels.to_be_added)
@@ -480,7 +480,7 @@ COMMAND_parameters.clear = function(pl)
     storage.panels.progress     = 1
     storage.panels.complete     = false
     mPrint(pl, {
-        "storage.panels' subtables were cleared of their contents or had values reset to default."
+        "Storage subtables were cleared of their contents or had values reset to default."
     })
 end
 

@@ -30,7 +30,7 @@ local ambient_temp = 15   -- default ambient temperature
 local panel_name_base = "tspl-thermal-solar-panel"
 
 -- Parameters related to timing of heat-generating script:
-local tick_interval  = 15 -- cycle length
+local tick_interval  = 60 -- cycle length
 local reserved_ticks = 2  -- reserved for cycle reset scripts
 local tick_frequency = tick_interval / ticks_pr_sec
 

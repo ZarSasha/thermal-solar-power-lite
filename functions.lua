@@ -48,6 +48,7 @@ function array_append_elements(destination, source) -- table, table
     end
 end
 
+-- Moves entries from one array (indexed table) to the end of another.
 function array_move_elements(destination, source)
     for k,v in ipairs(source) do
         table.insert(destination, v)
@@ -55,25 +56,9 @@ function array_move_elements(destination, source)
     end
 end
 
--- Removes several entries from an array (indexed table) and moves the rest up, all in one pass.
--- Efficient. Requires another standard function above.
-function array_remove_elements(table, elements)
-    if next(elements) == nil then return end
-    local j, n = 1, #table
-    for i=1,n do
-        if table_contains_value(elements, table[i]) then
-            table[i] = nil
-        else
-            if (i ~= j) then
-                table[j] = table[i]
-                table[i] = nil
-            end
-            j = j + 1
-        end
-    end
-end
-
-function array_remove_elements_by_value_filter(table, filter)
+-- Removes several entries from an array (indexed table) on the basis of a simple value filter
+-- and moves the rest up, all in one pass. Efficient.
+function array_remove_elements_by_filter(table, filter)
     local j, n = 1, #table
     for i=1,n do
         if i == filter then

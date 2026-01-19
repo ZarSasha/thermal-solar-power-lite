@@ -90,10 +90,9 @@ end
 
 -- Function to register entity string ID into temporary "to_be_added" array in storage.
 local function register_panel_entity(event)
-    local panels = storage.panels
     local entity = event.entity or event.destination
     if not string.find(entity.name, panel_name_base, 1, true) then return end
-    table.insert(panels.to_be_added, entity)
+    table.insert(storage.panels.to_be_added, entity)
 end
 
 -- Note: An entity will simply be deregistered when found to be invalid during an update cycle
@@ -111,7 +110,7 @@ end
 -- Function to update contents of "main" array, cleans up deleted LuaEntity references:
 local function update_panel_storage_register_1_removals()
     if storage.panels.removed_flag == false then return end
-    array_remove_elements_by_value_filter(storage.panels.main, false)
+    array_remove_elements_by_filter(storage.panels.main, false)
 end
 
 -- Function to update contents of "main" array, adds new LuaEntity references:
@@ -188,7 +187,7 @@ local function update_temperature_for_all_panels()
     local base_temp_loss = panel_temp_loss_factor * tick_frequency
     for i = progress, progress + batch_size - 1 do
         local panel = panels.main[i]
-        if panel == nil then
+        if panel == nil then -- check relies on contiguous array
             panels.complete = true
             break
         elseif not panel.valid then

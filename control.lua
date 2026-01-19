@@ -186,12 +186,11 @@ end
 local function update_temperature_for_all_panels()
     local panels     = storage.panels    -- table reference
     if panels.complete then return end
-    local main       = panels.main       -- array reference
     local batch_size = panels.batch_size -- number copy
     local progress   = panels.progress   -- number copy
     local surfaces   = storage.surfaces  -- table reference
     for i = progress, progress + batch_size - 1 do
-        local panel = main[i]
+        local panel = panels.main[i]
         if panel == nil then -- check relies on contiguous array
             panels.complete = true
             break
@@ -213,10 +212,11 @@ local function update_temperature_for_all_panels()
     panels.progress = panels.complete and 1 or progress + batch_size
 end
 
+
 -- Note: If the number of panels is perfectly divisible by batch size, an extra tick will be
 -- needed to tell that the array has been fully traversed.
 
--- Note: time usage spike during traversal. Why? Maybe garbage collection?
+-- Note: time usage spike during traversal every so often. Why? Maybe garbage collection?
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)
@@ -314,6 +314,7 @@ script.on_event({defines.events.on_tick}, function(event)
         update_panel_storage_register_2_additions()   -- low impact
         update_panel_storage_register_3_cycle_reset() -- low impact
         update_surface_solar_power_storage_register() -- low impact
+        collectgarbage()
     else                                              -- 58 ticks:
         update_temperature_for_all_panels()           -- moderate impact
     end

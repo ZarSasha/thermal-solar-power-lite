@@ -118,7 +118,7 @@ end
 -- that efficiently moves entries in one pass, to preserve contiguous indexing of the array.
 local function update_storage_panel_removals()
     if storage.panels.removal_flag == false then return end
-    array_remove_elements_by_filter(storage.panels.main_register, "delete")
+    array_remove_elements_by_filter(storage.panels.main_register, false)
 end
 
 -- Function to adds new LuaEntity references to the end of the "main" array:
@@ -190,17 +190,18 @@ local function update_temperature_for_all_panels()
     local cycle      = storage.cycle    -- table reference
     if cycle.complete then return end
     local panels     = storage.panels   -- table reference
+    local register   = panels.main_register
     local surfaces   = storage.surfaces -- table reference
     local batch_size = cycle.batch_size -- number copy
     local progress   = cycle.progress   -- number copy
     for i = progress, progress + batch_size - 1 do
-        local panel = panels.main_register[i]
+        local panel = register[i]
         if panel == nil then -- check relies on contiguous array
             cycle.complete = true
             break
         end
         if not panel.valid then
-            panel = "delete"
+            register[i] = false
             panels.removal_flag = true -- schedules cleanup at end of cycle
             goto continue
         end

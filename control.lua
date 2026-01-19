@@ -15,7 +15,7 @@ require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 
 -- Time:
-local ticks_pr_sec = 60
+local ticks_pr_sec = 15
 
 -- Environment:
 local light_const  = 0.85 -- Highest level of "surface darkness" (default range: 0-0.85)
@@ -211,7 +211,7 @@ end
 -- Note: If the number of panels is perfectly divisible by batch size, an extra tick will be
 -- needed to tell that the array has been fully traversed.
 
--- Note: time usage spike late (4/5) in traversal. Why?
+-- Note: time usage spike during traversal. Why? Maybe garbage collection?
 
 ---------------------------------------------------------------------------------------------------
     -- MAKESHIFT SUNLIGHT INDICATOR (ON_GUI_OPENED/ON_GUI_CLOSED)

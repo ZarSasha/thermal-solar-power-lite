@@ -119,6 +119,7 @@ end
 local function update_storage_panel_removals()
     if storage.panels.removal_flag == false then return end
     array_remove_elements_by_filter(storage.panels.main_register, false)
+    storage.panels.removal_flag = false
 end
 
 -- Function to adds new LuaEntity references to the end of the "main" array:

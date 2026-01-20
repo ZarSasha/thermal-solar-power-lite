@@ -28,7 +28,7 @@ end
 
 -- Checks whether a key exists within a table. Returns true or false.
 function table_contains_key(table, element)
-    for key, value in pairs(table) do
+    for key, _ in pairs(table) do
         if key == element then return true end
     end
     return false
@@ -43,9 +43,9 @@ end
 
 -- Moves entries from one array (indexed table) to the end of another.
 function array_move_elements(destination, source)
-    for k,v in ipairs(source) do
-        table.insert(destination, v)
-        source[k] = nil
+    for key, value in ipairs(source) do
+        table.insert(destination, value)
+        source[key] = nil
     end
 end
 

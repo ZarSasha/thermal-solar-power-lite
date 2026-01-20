@@ -32,6 +32,8 @@ local tick_interval  = 60 -- cycle length
 local reserved_ticks = 2  -- reserved for cycle reset scripts
 local tick_frequency = tick_interval / const.ticks_pr_sec
 
+local min_batch_size = 3  -- 3 * 58 = 174 panels before size must increase
+
 -- Parameters pertaining to the thermal solar panels:
 local heat_cap_kJ      = 50    -- default value, will not change
 local temp_loss_factor = 0.005 -- updated during startup
@@ -79,7 +81,7 @@ local function create_storage_table_keys()
     storage.surfaces             = storage.surfaces             or {}
     storage.surfaces.solar_mult  = storage.surfaces.solar_mult  or {}
     storage.cycle                = storage.cycle                or {}
-    storage.cycle.batch_size     = storage.cycle.batch_size     or 1
+    storage.cycle.batch_size     = storage.cycle.batch_size     or min_batch_size
     storage.cycle.progress       = storage.cycle.progress       or 1
     storage.cycle.complete       = storage.cycle.complete       or false
 end
@@ -126,8 +128,8 @@ end
 -- The main array is processed over several game ticks, so to keep it intact, it will only be
 -- updated at the end of a cycle.
 
--- Function to clear up entries marked for deletion within the main register. Uses an efficient
--- method that moves other entries up in one pass, to preserve contiguousness of the array.
+-- Function to clear up entries set to "false" within the main register. Uses an efficient method
+-- that moves other entries up in one pass, to preserve contiguousness of the array.
 local function update_storage_panel_removals()
     if storage.panels.removal_flag == false then return end
     array_remove_elements_by_filter(storage.panels.main_register, false)
@@ -140,14 +142,16 @@ local function update_storage_panel_additions()
     array_move_elements(storage.panels.main_register, storage.panels.to_be_added)
 end
 
+-- Resets completion status for cycle, so it may restart.
 local function update_storage_completion_status()
     storage.cycle.complete   = false
 end
 
--- Function to reset completion status and calculate batch size for the next cycle.
+-- Function to calculate batch size for the next cycle.
 local function update_storage_cycle_batch_size()
-    storage.cycle.batch_size =
-        math.ceil(#storage.panels.main_register / (tick_interval - reserved_ticks - 1))
+    storage.cycle.batch_size = math.max(math.ceil(
+        #storage.panels.main_register / (tick_interval - reserved_ticks - 1)), min_batch_size
+    )
     -- Note: One extra tick allowed for detecting that traversal has completed, just in case.
 end
 
@@ -541,3 +545,8 @@ end
 commands.add_command("tspl", nil, new_commands) -- no help text, provided above instead
 
 ---------------------------------------------------------------------------------------------------
+-- END NOTES
+---------------------------------------------------------------------------------------------------
+
+-- Lua: Beware that the # operator is only reliable for measuring the length of arrays (that is,
+-- contiguous indexed tables)!

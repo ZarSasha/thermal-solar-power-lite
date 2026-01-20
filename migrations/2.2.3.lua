@@ -8,7 +8,7 @@ storage.panels.removal_flag   = false
 storage.surfaces              = {}
 storage.surfaces.solar_mult   = {} -- filled below
 storage.cycle                 = {}
-storage.cycle.batch_size      = storage.panels.batch_size or 1
+storage.cycle.batch_size      = storage.panels.batch_size or 3
 storage.cycle.progress        = storage.panels.progress or 1
 storage.cycle.complete        = storage.panels.complete or false
 

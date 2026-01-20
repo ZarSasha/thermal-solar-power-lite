@@ -33,5 +33,3 @@ game.print("  If panels don't work, please report the issue on the Mod Portal or
 game.print("  However, writing '/tspl reset' in the console should quickly resolve any issues.")
 
 ---------------------------------------------------------------------------------------------------
--- END NOTES:
----------------------------------------------------------------------------------------------------

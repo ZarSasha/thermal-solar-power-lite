@@ -2,7 +2,7 @@
 Version: 2.2.3
 Date: 2026-01-20
   Changes:
-    - Changed many storage variable names.
+    - Changed many storage variable names, created migration script for it.
   Optimizations:
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Now removes a surface from storage register when it is deleted, to prevent bloat.
@@ -20,6 +20,8 @@ Date: 2026-01-20
       now completely empties storage before rebuilding contents. This can be important for
       preventing bloat during development, when rolling back from a newer mod version, or when
       migration scripts turn out to have incomplete clean-up of old variables in storage.
+  Internal:
+    - Changed method of storage variable initialization.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-01-08

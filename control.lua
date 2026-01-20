@@ -454,7 +454,10 @@ COMMAND_parameters.check = function(pl)
     mPrint(pl, {"  Found within world (all surfaces): "..clr(count1,2).."."})
     if storage.panels.main_register ~= nil then
         local count2 = #storage.panels.main_register
-        mPrint(pl, {"  Registered within storage table: "..clr(count2,2).."."})
+        mPrint(pl, {
+            "  Registered within storage table: "..clr(count2,2)..".",
+            "  NB: There may be a 0-1 second delay in update."
+        })
     end
 end
 

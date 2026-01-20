@@ -1,16 +1,16 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.3
-Date: 2026-01-19
+Date: 2026-01-20
   Changes:
     - Changed many storage variable names.
   Optimizations:
     - Improved code related to space platforms, likely making it more robust to crashes.
     - Now removes a surface from storage register when it is deleted, to prevent bloat.
     - Greatly improved performance when deleting thermal panels by using a simpler check (now
-      replaces invalid panel references in storage with a boolean "false" and then removes them
+      replaces invalid entity references in storage with a boolean "false", and then removes them
       later based on that value).
-    - Improved performance of heat generating script by ~33%, probably mainly by retrieving or
-      calculating and then caching the solar power factor for all surfaces ahead of a cycle.
+    - Improved performance of the heat generating script by ~33% mainly by calculating and storing
+      the solar power factor for all surfaces ahead of a cycle.
   Bugfixes:
     - More Quality Scaling: Fixed a wrong variable name leading to wrong scaling.
   Info:
@@ -18,7 +18,7 @@ Date: 2026-01-19
   Debug:
     - Improved or updated several commands used for debugging. In particular, the reset command
       now completely empties storage before rebuilding contents. This can be important for
-      preventing bloat when experimenting, when rolling back from a newer mod version, or when
+      preventing bloat during development, when rolling back from a newer mod version, or when
       migration scripts turn out to have incomplete clean-up of old variables in storage.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2

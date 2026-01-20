@@ -18,12 +18,26 @@ end
 
 -- Removed storage variables:
 storage.panels.main           = nil
-storage.panels.to_be_removed  = nil -- any invalid panels will be detected in the next cycle
-storage.panels.batch_size     = nil
+storage.panels.to_be_removed  = nil -- <-- any remaining, invalid panels will be
+storage.panels.batch_size     = nil -- detected in the next cycle, so no worries.
 storage.panels.progress       = nil
 storage.panels.complete       = nil
 storage.platforms.solar_power = nil
 storage.platforms             = nil
+
+-- * 
+
+---------------------------------------------------------------------------------------------------
+-- END NOTES
+---------------------------------------------------------------------------------------------------
+
+-- Development note: New storage variables that were created during development and later
+-- abandonded may actually remain if a game is saved while that version is active. They have to be
+-- actively deleted! Some examples are: thermal_panels, q_scaling, heat_loss_X, temp_gain.
+
+-- General note: This and the earlier migration script *should* be complete, so the above doesn't
+-- happen with any of the variables that exist with released versions of the mod. Else, the "reset"
+-- command can help clear out storage completely from this version onwards.
 
 --[[
 -- Complete clean-up of storage table, since old variables may have accumulated in a way that was
@@ -100,16 +114,4 @@ game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
 game.print("  Regarding update to v2.2.3: Stored mod data was completely reset! Fixes issue with")
 game.print("  possible accummulation of obsolete data. Report any issues on the Mod Portal or on")
 game.print("  GitHub. Writing '/tspl reset' in the console may help.")
-]]
----------------------------------------------------------------------------------------------------
--- END NOTES
----------------------------------------------------------------------------------------------------
-
---[[
--- Old variables in storage that were overlooked during earlier migrations:
-storage.thermal.panels = nil
-storage.q_scaling = nil
-storage.heat_loss_X = nil
-storage.temp_gain = nil
--- These are all likely from unreleased branches!
 ]]

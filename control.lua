@@ -13,17 +13,15 @@ require "shared.all-stages"
 ---------------------------------------------------------------------------------------------------
 -- FACTORIO CONSTANTS
 ---------------------------------------------------------------------------------------------------
--- Don't change!
 
--- Time:
-local ticks_pr_sec = 60   -- game ticks pr. second
-
--- Environment:
-local light_const  = 0.85 -- highest level of "surface darkness" (default range: 0-0.85)
-local ambient_temp = 15   -- default ambient temperature
+local const = {
+    ticks_pr_sec = 60,   -- game ticks pr. second
+    light_const  = 0.85, -- highest level of "surface darkness" (default range: 0-0.85)
+    ambient_temp = 15    -- default ambient temperature (same for all surfaces)
+}
 
 ---------------------------------------------------------------------------------------------------
--- THERMAL SOLAR PANEL HEAT GENERATION
+-- THERMAL SOLAR PANEL HEAT GENERATION SCRIPT
 ---------------------------------------------------------------------------------------------------
 
 -- The shared string component of all thermal panel names, including those of any clones:
@@ -32,19 +30,17 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Parameters related to timing of heat-generating script:
 local tick_interval  = 60 -- cycle length
 local reserved_ticks = 2  -- reserved for cycle reset scripts
-local tick_frequency = tick_interval / ticks_pr_sec
+local tick_frequency = tick_interval / const.ticks_pr_sec
 
 -- Parameters pertaining to the thermal solar panels:
-local panel_heat_cap_kJ      = 50    -- default value, will not change
-local panel_temp_loss_factor = 0.005 -- updated during startup
-local panel_quality_scaling  = 0.15  -- updated during startup
-
--- Basic values for gain/loss of temperature, derived from settings and the above parameters:
-local base_temp_gain = (SETTING.panel_output_kW * tick_frequency) / panel_heat_cap_kJ
-local base_temp_loss = panel_temp_loss_factor * tick_frequency
+local heat_cap_kJ      = 50    -- default value, will not change
+local temp_loss_factor = 0.005 -- updated during startup
+local quality_scaling  = 0.15  -- updated during startup
+local base_temp_gain = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
+local base_temp_loss = temp_loss_factor * tick_frequency
 
 ---------------------------------------------------------------------------------------------------
-    -- MOD CHECK AND COMPATIBILITY
+    -- MOD PRESENCE CHECK & COMPATIBILITY
 ---------------------------------------------------------------------------------------------------
 
 -- Checks for presence of mods through independent script (no need to tie to event).
@@ -58,20 +54,20 @@ if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
     -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
     -- during night and thus slightly increases heat energy loss.
-    panel_temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
+    temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
 end
 -- More Quality Scaling:
 if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
-    panel_quality_scaling = 0
+    quality_scaling = 0
 end
 
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
 ---------------------------------------------------------------------------------------------------
 -- Values that are not easy or fast to recalculate on the spot should be stored so they can persist
--- through the save/load cycle. All variables below are needed for the heat-generating script.
+-- through the save/load cycle.
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
@@ -188,11 +184,10 @@ end
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
 -- segment of pre-calculated size at a time.
 local function update_temperature_for_all_panels()
-    local cycle      = storage.cycle    -- table reference
-    if cycle.complete then return end
     local panels     = storage.panels   -- table reference
     local register   = panels.main_register
     local surfaces   = storage.surfaces -- table reference
+    local cycle      = storage.cycle    -- table reference
     local batch_size = cycle.batch_size -- number copy
     local progress   = cycle.progress   -- number copy
     for i = progress, progress + batch_size - 1 do
@@ -207,11 +202,11 @@ local function update_temperature_for_all_panels()
             goto continue
         end
         -- Calculates and applies temperature change to panel:
-        local q_factor    = 1 + (panel.quality.level * panel_quality_scaling)
-        local light_corr  = (light_const - panel.surface.darkness) / light_const
+        local q_factor    = 1 + (panel.quality.level * quality_scaling)
+        local light_corr  = (const.light_const - panel.surface.darkness) / const.light_const
         local sun_mult    = surfaces.solar_mult[panel.surface.name] -- no key -> crash
         local temp_gain   = base_temp_gain * light_corr * sun_mult * q_factor
-        local temp_loss   = base_temp_loss * (panel.temperature - ambient_temp)
+        local temp_loss   = base_temp_loss * (panel.temperature - const.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
@@ -238,7 +233,7 @@ local function activate_sunlight_indicator(event)
     if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
     local light_corr =
-        (light_const - entity.surface.darkness) / light_const
+        (const.light_const - entity.surface.darkness) / const.light_const
     if light_corr <= 0 then return end
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
     entity.insert_fluid{
@@ -307,7 +302,7 @@ script.on_event({defines.events.on_pre_surface_deleted}, function(event)
     deregister_surface(event) -- just clean-up, not critical
 end)
 
--- Function set to run perpetually with a given frequency (using modulus).
+-- Function set to run perpetually with a given frequency (using modulo).
 script.on_event({defines.events.on_tick}, function(event)
     if     event.tick % tick_interval == 1 then       -- 1 tick:
         update_storage_panel_removals()               -- potentially high impact
@@ -315,7 +310,7 @@ script.on_event({defines.events.on_tick}, function(event)
         update_storage_panel_additions()              -- low impact
         update_storage_cycle_variables()              -- low impact
         update_storage_surface_solar_power()          -- low impact
-    else                                              -- 58 ticks:
+    elseif not storage.cycle.complete then            -- 58 ticks:
         update_temperature_for_all_panels()           -- moderate impact
     end
 end)
@@ -401,9 +396,9 @@ end
 COMMAND_parameters.info = function(pl)
     local sun_mult       = storage.surfaces.solar_mult[pl.surface.name] -- no key -> crash
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
-    local temp_gain_day  = (SETTING.panel_output_kW / panel_heat_cap_kJ) * sun_mult
-    local temp_adj       = SETTING.exchanger_temp - ambient_temp
-    local temp_loss_day  = panel_temp_loss_factor * temp_adj
+    local temp_gain_day  = (SETTING.panel_output_kW / heat_cap_kJ) * sun_mult
+    local temp_adj       = SETTING.exchanger_temp - const.ambient_temp
+    local temp_loss_day  = temp_loss_factor * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kW  = SETTING.panel_output_kW

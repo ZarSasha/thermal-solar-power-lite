@@ -32,7 +32,8 @@ local tick_interval  = 60 -- cycle length
 local reserved_ticks = 2  -- reserved for cycle reset scripts
 local tick_frequency = tick_interval / const.ticks_pr_sec
 
-local min_batch_size = 3  -- 3 * 58 = 174 panels before size must increase
+-- Parameter related to time slicing used for heat-generating script:
+local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
 
 -- Parameters pertaining to the thermal solar panels:
 local heat_cap_kJ      = 50    -- default value, will not change
@@ -74,30 +75,17 @@ end
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
-    storage.panels               = storage.panels               or {}
-    storage.panels.main_register = storage.panels.main_register or {}
-    storage.panels.to_be_added   = storage.panels.to_be_added   or {}
-    storage.panels.removal_flag  = storage.panels.removal_flag  or false
-    storage.surfaces             = storage.surfaces             or {}
-    storage.surfaces.solar_mult  = storage.surfaces.solar_mult  or {}
-    storage.cycle                = storage.cycle                or {}
-    storage.cycle.batch_size     = storage.cycle.batch_size     or min_batch_size
-    storage.cycle.progress       = storage.cycle.progress       or 1
-    storage.cycle.complete       = storage.cycle.complete       or false
+    if storage.panels               == nil then storage.panels               =             {} end
+    if storage.panels.main_register == nil then storage.panels.main_register =             {} end
+    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =             {} end
+    if storage.panels.removal_flag  == nil then storage.panels.removal_flag  =          false end
+    if storage.surfaces             == nil then storage.surfaces             =             {} end
+    if storage.surfaces.solar_mult  == nil then storage.surfaces.solar_mult  =             {} end
+    if storage.cycle                == nil then storage.cycle                =             {} end
+    if storage.cycle.batch_size     == nil then storage.cycle.batch_size     = min_batch_size end
+    if storage.cycle.progress       == nil then storage.cycle.progress       =              1 end
+    if storage.cycle.complete       == nil then storage.cycle.complete       =          false end
 end
-
---[[ local function create_storage_table_keys()
-    if storage.panels               == nil then storage.panels               =    {} end
-    if storage.panels.main_register == nil then storage.panels.main_register =    {} end
-    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =    {} end
-    if storage.panels.removal_flag  == nil then storage.panels.removal_flag  = false end
-    if storage.surfaces             == nil then storage.surfaces             =    {} end
-    if storage.surfaces.solar_mult  == nil then storage.surfaces.solar_mult  =    {} end
-    if storage.cycle                == nil then storage.cycle                =    {} end
-    if storage.cycle.batch_size     == nil then storage.cycle.batch_size     =     1 end
-    if storage.cycle.progress       == nil then storage.cycle.progress       =     1 end
-    if storage.cycle.complete       == nil then storage.cycle.complete       = false end
-end ]]
 
 ---------------------------------------------------------------------------------------------------
     -- PANEL ENTITY REGISTRATION (ON_BUILT AND SIMILAR)
@@ -113,8 +101,8 @@ local function register_panel_entity(event)
 end
 
 -- * A string ID is used to reference a Lua object and gain access to its properties. Example:
---   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,nauvis]]"
---   May be replaced with "[INVALID LuaEntity]".
+--   "[LuaEntity: tspl-thermal-solar-panel at [gps=10.5,2.5,nauvis]]". Will be replaced with
+--   "[INVALID LuaEntity]" by game when entity is deleted.
 
 ---------------------------------------------------------------------------------------------------
     -- PANEL ENTITY DEREGISTRATION
@@ -189,8 +177,8 @@ end
 ---------------------------------------------------------------------------------------------------
     -- SURFACE REGISTRATION
 ---------------------------------------------------------------------------------------------------
--- No real benefit to this since the number of surfaces is so low. Searching game.surfaces every
--- cycle works perfectly fine.
+-- No real benefit to adding new surfaces upon creation, since the number of surfaces is so low.
+-- Searching game.surfaces every cycle works perfectly fine.
 
 ---------------------------------------------------------------------------------------------------
     -- SURFACE DEREGISTRATION (ON_PRE_SURFACE_DELETED)
@@ -377,7 +365,7 @@ end)
 -- CONSOLE COMMANDS
 ---------------------------------------------------------------------------------------------------
 -- Execute a command by typing "/tspl " into the console, along with a parameter. Useful for
--- getting some basic info, and for debugging.
+-- getting info about the current surface, and for debugging.
 
 ---------------------------------------------------------------------------------------------------
     -- HELPER FUNCTIONS FOR CONSOLE COMMANDS
@@ -504,7 +492,7 @@ end
 COMMAND_parameters.clear = function(pl)
     clear_storage()
     mPrint(pl, {
-        "Storage subtables were cleared of their contents or had their values reset to default."
+        "Storage was cleared of its contents and had several values reset to default."
     })
 end
 

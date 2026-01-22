@@ -1,18 +1,18 @@
 {
     "Lua.runtime.version": "Lua 5.2",
     "Lua.diagnostics.globals": [
-        "script",
-        "defines",
-        "storage",
-        "game",
-        "prototypes",
-        "util",
-        "mods",
-        "settings",
-        "data",
-        "kg",
         "commands",
+        "data",
+        "defines",
+        "game",
+        "kg",
         "log",
-        "serpent"
+        "mods",
+        "prototypes",
+        "script",
+        "serpent",
+        "settings",
+        "storage",
+        "util"
     ]
 }

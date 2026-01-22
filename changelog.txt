@@ -17,9 +17,9 @@ Date: 2026-01-22
     - Corrected v2.2.0 changelog entry.
   Debug:
     - Improved or updated several commands used for debugging. In particular, the reset command
-      now completely empties storage before rebuilding contents. This can be important for
-      preventing bloat during development, when rolling back from a newer mod version, or when
-      migration scripts turn out to have incomplete clean-up of old variables in storage.
+      now completely empties storage before rebuilding contents. This is important for preventing
+      bloat during development, when rolling back from a newer mod version (which will require a
+      reset), or when migration scripts turn out to have incomplete clean-up of old variables.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2026-01-08

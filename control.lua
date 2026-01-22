@@ -323,15 +323,15 @@ end)
 
 -- Function set to run perpetually with a given frequency (using modulo).
 script.on_event({defines.events.on_tick}, function(event)
-    if     event.tick % tick_interval == 1 then       -- 1 tick:
-        update_storage_panel_removals()               -- moderate impact
-    elseif event.tick % tick_interval == 2 then       -- 1 tick:
-        update_storage_panel_additions()              -- low impact
-        update_storage_completion_status()            -- very low impact
-        update_storage_cycle_batch_size()             -- low impact
-        update_storage_surface_solar_power()          -- low impact
-    elseif not storage.cycle.complete then            -- 58 ticks:
-        update_temperature_for_all_panels()           -- moderate impact
+    if     event.tick % tick_interval == 1 then -- 1 tick:
+        update_storage_panel_removals()         -- moderate impact
+    elseif event.tick % tick_interval == 2 then -- 1 tick:
+        update_storage_panel_additions()        -- low impact
+        update_storage_completion_status()      -- very low impact
+        update_storage_cycle_batch_size()       -- low impact
+        update_storage_surface_solar_power()    -- low impact
+    elseif not storage.cycle.complete then      -- 58 ticks:
+        update_temperature_for_all_panels()     -- moderate impact
     end
 end)
 
@@ -354,7 +354,7 @@ end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    create_storage_table_keys() -- maybe better to use migration when relevant
+    create_storage_table_keys()
     update_storage_surface_solar_power()
 end)
 

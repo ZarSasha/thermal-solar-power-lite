@@ -34,6 +34,15 @@ function table_contains_key(tbl, element)
     return false
 end
 
+-- Removes any keys from table not found in provided list.
+function table_remove_other_keys(tbl, filter_list)
+    for key, value in pairs(tbl) do
+        if not table_contains_key(filter_list, key) then
+            tbl[key] = nil
+        end
+    end
+end
+
 -- Adds all entries from one array (indexed table) to the end of another.
 function array_append_elements(destination, source) -- table, table
     for _, value in pairs(source) do

@@ -25,11 +25,6 @@ storage.panels.complete       = nil
 storage.platforms.solar_power = nil
 storage.platforms             = nil
 
--- Prints message to console:
-game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-game.print("  Regarding update to v.2.2.3: Solar power of all surfaces was recalculated.")
-game.print("  Thermal panel output may be incorrect for 1 second.")
-
 ---------------------------------------------------------------------------------------------------
 -- END NOTES
 ---------------------------------------------------------------------------------------------------

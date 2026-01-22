@@ -17,8 +17,8 @@ function table_clear(tbl)
 end
 
 -- Checks whether a value exists within a table. Returns true or false.
-function table_contains_value(table, element)
-    for _, value in pairs(table) do
+function table_contains_value(tbl, element)
+    for _, value in pairs(tbl) do
         if value == element then
             return true
         end
@@ -27,18 +27,20 @@ function table_contains_value(table, element)
 end
 
 -- Checks whether a key exists within a table. Returns true or false.
-function table_contains_key(table, element)
-    for key, value in pairs(table) do
+function table_contains_key(tbl, element)
+    for key, _ in pairs(tbl) do
         if key == element then return true end
     end
     return false
 end
 
--- Checks the number of items in a table.
-function table_length(tbl)
-    local count = 0
-    for _ in pairs(tbl) do count = count + 1 end
-    return count
+-- Removes any keys from table not found in provided list.
+function table_remove_other_keys(tbl, filter_list)
+    for key, value in pairs(tbl) do
+        if not table_contains_key(filter_list, key) then
+            tbl[key] = nil
+        end
+    end
 end
 
 -- Adds all entries from one array (indexed table) to the end of another.
@@ -48,30 +50,56 @@ function array_append_elements(destination, source) -- table, table
     end
 end
 
--- Removes several entries from an array (indexed table) and moves the rest up, all in one pass.
--- Efficient. Requires another standard function above.
-function array_remove_elements(table, elements)
-    local j, n = 1, #table
+-- Moves entries from one array (indexed table) to the end of another.
+function array_move_elements(destination, source)
+    for index, value in ipairs(source) do
+        table.insert(destination, value)
+        source[index] = nil
+    end
+end
+
+-- Removes several entries from an array (indexed table) on the basis of a simple value filter
+-- and moves the rest up, all in one pass. Efficient.
+function array_remove_elements_by_filter(tbl, filter)
+    local j, n = 1, #tbl
     for i=1,n do
-        if table_contains_value(elements, table[i]) then
-            table[i] = nil
+        if tbl[i] == filter then
+            tbl[i] = nil
         else
             if (i ~= j) then
-                table[j] = table[i]
-                table[i] = nil
+                tbl[j] = tbl[i]
+                tbl[i] = nil
             end
             j = j + 1
         end
     end
 end
 
--- Checks if a table address exists. Seems to return table value or nil.
-function address_not_nil(t, ...)
-    for i = 1, select("#", ...) do
-        if t == nil then return nil end
-        t = t[select(i, ...)]
+-- Writes entries from one array over elements with a particular value in another array. Adds to
+-- end of array if none were found.
+function array_replace_first_element_by_filter(tbl, new_value, filter)
+    local switch = false
+    for index, value in ipairs(tbl) do
+        if value == filter then
+            tbl[index] = new_value
+            switch = true
+            break
+        end
     end
-    return t
+    if switch == false then
+        table.insert(tbl, new_value)
+    end
+end
+
+
+-- Checks if a table address exists. Seems to return table value or nil.
+-- Arguments: Main table, followed by subvariable names (string format).
+function address_exists(tbl, ...)
+    for i = 1, select("#", ...) do
+        if tbl == nil then return nil end
+        tbl = tbl[select(i, ...)]
+    end
+    return tbl
 end
 
 -- MATH --

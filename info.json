@@ -1,14 +1,14 @@
 {
-	"name": "thermal-solar-power-lite",
-	"version": "2.2.2",
-	"title": "Thermal Solar Power (Lite)",
-	"author": "ZarSasha, MarximusMaximus, CyberWizard2261, Caxx",
+    "name": "thermal-solar-power-lite",
+    "version": "2.2.3",
+    "title": "Thermal Solar Power (Lite)",
+    "author": "ZarSasha, MarximusMaximus, CyberWizard2261, Caxx",
     "license": "MIT",
-	"description": "Streamlined fork of Thermal Solar Power by MarximusMaximus and others. Contains the basic thermal solar panel (+ large version for better performance), heat exchanger & heat pipe. A new heat loss mechanism has been added, along with various features, visual updates, settings and new mod compat. The mod is carefully balanced for vanilla, but can be configured.",
-	"homepage": "",
-	"factorio_version": "2.0",
-	"dependencies": [
-		"base >= 2.0.7",
+    "description": "Streamlined fork of Thermal Solar Power by MarximusMaximus and others. Contains the basic thermal solar panel (+ large version for better performance), heat exchanger & heat pipe. A new heat loss mechanism has been added, along with various features, visual updates, settings and new mod compat. The mod is carefully balanced for vanilla, but can be configured.",
+    "homepage": "",
+    "factorio_version": "2.0",
+    "dependencies": [
+        "base >= 2.0.7",
         "? space-age",
         "? quality",
         "? aai-industry",

@@ -3,7 +3,7 @@ Version: 2.2.5
 Date: 2026-01-24
   Bugfixes:
     - Fixed crash on new save due to migration script created for v2.2.3. Now checks whether old
-      storage variables exist before deleting them. (#7 on GitHub)
+      storage variables with subvariables exist before deleting them. (#7 on GitHub)
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.4
 Date: 2026-01-24

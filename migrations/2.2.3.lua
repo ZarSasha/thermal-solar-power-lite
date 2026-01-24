@@ -24,9 +24,7 @@ if storage.panels then
     storage.panels.progress      = nil
     storage.panels.complete      = nil
 end
-if storage.platforms then
-    storage.platforms = nil -- deletes subtable as well
-end
+storage.platforms = nil -- deletes subtable as well
 
 ---------------------------------------------------------------------------------------------------
 -- END NOTES

@@ -18,11 +18,11 @@ end
 
 -- Removed storage variables:
 if storage.panels then
-    if storage.panels.main           then storage.panels.main           = nil end
-    if storage.panels.to_be_removed  then storage.panels.to_be_removed  = nil end -- *
-    if storage.panels.batch_size     then storage.panels.batch_size     = nil end
-    if storage.panels.progress       then storage.panels.progress       = nil end
-    if storage.panels.complete       then storage.panels.complete       = nil end
+    storage.panels.main          = nil
+    storage.panels.to_be_removed = nil -- <-- Any remaining, invalid panels will be 
+    storage.panels.batch_size    = nil -- detected in the next cycle, so no worries.
+    storage.panels.progress      = nil
+    storage.panels.complete      = nil
 end
 if storage.platforms then
     storage.platforms = nil -- deletes subtable as well
@@ -31,8 +31,6 @@ end
 ---------------------------------------------------------------------------------------------------
 -- END NOTES
 ---------------------------------------------------------------------------------------------------
-
--- * Any remaining, invalid panels will be detected in the next cycle, so no worries.
 
 -- Development note: New storage variables that were created during development and later
 -- abandonded may actually remain if a game is saved while that version is active. They have to be

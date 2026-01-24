@@ -17,17 +17,23 @@ for name, surface in pairs(game.surfaces) do
 end
 
 -- Removed storage variables:
-storage.panels.main           = nil
-storage.panels.to_be_removed  = nil -- <- any remaining, invalid panels will be detected
-storage.panels.batch_size     = nil --    in the next cycle, so no worries.
-storage.panels.progress       = nil
-storage.panels.complete       = nil
-storage.platforms.solar_power = nil
-storage.platforms             = nil
+if storage.panels then
+    if storage.panels.main           then storage.panels.main           = nil end
+    if storage.panels.to_be_removed  then storage.panels.to_be_removed  = nil end -- *
+    if storage.panels.batch_size     then storage.panels.batch_size     = nil end
+    if storage.panels.progress       then storage.panels.progress       = nil end
+    if storage.panels.complete       then storage.panels.complete       = nil end
+end
+if storage.platforms then
+    if storage.platforms.solar_power then storage.platforms.solar_power = nil end
+    storage.platforms = nil
+end
 
 ---------------------------------------------------------------------------------------------------
 -- END NOTES
 ---------------------------------------------------------------------------------------------------
+
+-- * Any remaining, invalid panels will be detected in the next cycle, so no worries.
 
 -- Development note: New storage variables that were created during development and later
 -- abandonded may actually remain if a game is saved while that version is active. They have to be

@@ -25,8 +25,7 @@ if storage.panels then
     if storage.panels.complete       then storage.panels.complete       = nil end
 end
 if storage.platforms then
-    if storage.platforms.solar_power then storage.platforms.solar_power = nil end
-    storage.platforms = nil
+    storage.platforms = nil -- deletes subtable as well
 end
 
 ---------------------------------------------------------------------------------------------------

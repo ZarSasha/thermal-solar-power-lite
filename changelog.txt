@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.4
+Date: 2026-01-24
+  Bugfixes:
+    - Fixed crash when opening thermal panel gui at night (must have somehow introduced that bug
+      not very long ago).
+---------------------------------------------------------------------------------------------------
 Version: 2.2.3
 Date: 2026-01-22
   Changes:

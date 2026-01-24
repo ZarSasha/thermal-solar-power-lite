@@ -246,7 +246,7 @@ local function activate_sunlight_indicator(event)
     if entity == nil then return end -- checks that GUI is associated with an entity!
     if not string.find(entity.name, panel_name_base, 1, true) then return end
     entity.clear_fluid_inside()
-    if entity.surface.darkness == const.max_darkness then return end
+    if entity.surface.darkness >= const.max_darkness then return end
     local light_corr = (const.max_darkness - entity.surface.darkness) / const.max_darkness
     local amount = 100.01 * light_corr -- Slight increase fixes 99.9/100 indication
     entity.insert_fluid{

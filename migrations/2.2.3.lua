@@ -17,13 +17,14 @@ for name, surface in pairs(game.surfaces) do
 end
 
 -- Removed storage variables:
-storage.panels.main           = nil
-storage.panels.to_be_removed  = nil -- <- any remaining, invalid panels will be detected
-storage.panels.batch_size     = nil --    in the next cycle, so no worries.
-storage.panels.progress       = nil
-storage.panels.complete       = nil
-storage.platforms.solar_power = nil
-storage.platforms             = nil
+if storage.panels then
+    storage.panels.main          = nil
+    storage.panels.to_be_removed = nil -- <-- any remaining, invalid panels will be 
+    storage.panels.batch_size    = nil -- detected in the next cycle, so no worries.
+    storage.panels.progress      = nil
+    storage.panels.complete      = nil
+end
+storage.platforms = nil -- deletes subtable as well
 
 ---------------------------------------------------------------------------------------------------
 -- END NOTES

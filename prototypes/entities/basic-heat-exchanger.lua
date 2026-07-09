@@ -9,7 +9,9 @@
 -- Produces steam at 165°C at a rate of 60 units/s from water and heat.
 ---@diagnostic disable-next-line: undefined-field
 local BasicHeatEx = table.deepcopy(data.raw["boiler"]["heat-exchanger"])
+
 -- GRAPHICS --
+--[[ DISABLED FOR NOW, DUE TO CHANGES IN FACTORIO 2.1!
 local path = GRAPHICS_ENTITIES.."basic-heat-exchanger/"
 if SETTING.exchanger_color == true then
     local hr = "hr-basic-heatex-"
@@ -20,7 +22,7 @@ if SETTING.exchanger_color == true then
     BasicHeatEx.pictures.west .structure.layers[1].filename = path .. hr .. "W.png"
     BasicHeatEx.corpse = "basic-heat-exchanger-remnants"
 end
-
+]]
 -- PROPERTIES --
 BasicHeatEx.name = "tspl-basic-heat-exchanger"
 BasicHeatEx.icon = GRAPHICS_ICONS.."basic-heat-exchanger.png"

@@ -4,7 +4,7 @@
 --  ┛┗┗┛┛ ┗┛┗┛┗┛┗ ┻ ┗┛
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
--- REMNANTS 
+-- REMNANTS
 ---------------------------------------------------------------------------------------------------
 
 -- THERMAL SOLAR PANEL (LARGE) --
@@ -33,12 +33,14 @@ local hr_panel_l_remnants_sprite = {
 }
 
 -- BASIC HEAT EXCHANGER --
+--[[ DISABLED FOR NOW, DUE TO CHANGES IN FACTORIO 2.1!
 local exchanger_asset = GRAPHICS_ENTITIES.."basic-heat-exchanger/remnants/"
 
 ---@diagnostic disable-next-line: undefined-field
 local ExchangerRemnants = table.deepcopy(data.raw.corpse["heat-exchanger-remnants"])
 ExchangerRemnants.name = "basic-heat-exchanger-remnants"
 ExchangerRemnants.animation.filename = exchanger_asset.."basic-heat-exchanger-remnants.png"
+]]
 
 -- FINAL DATA WRITE -------------------------------------------------------------------------------
 data:extend({largePanelRemnants, ExchangerRemnants})

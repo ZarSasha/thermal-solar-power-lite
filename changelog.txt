@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.3.0
+Date: 2026-07-09
+  Changes:
+    - Updated to work with Factorio 2.1.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.5
 Date: 2026-01-24
   Bugfixes:
@@ -127,7 +132,7 @@ Date: 2025-11-29
     - Thermal Solar Panels: Slightly increased scaling of heat generation according to quality.
   Changes:
     - Thermal Solar Panels:
-      - Compatibility: Added the property "fast_replaceable_group" for the sake of mods that clone 
+      - Compatibility: Added the property "fast_replaceable_group" for the sake of mods that clone
         and replace the panels for whatever purpose.
       - Compatibility for "More Quality Scaling": The heat-generating script now applies to all
         the quality clones as well, and with correct heat output scaling.
@@ -408,7 +413,7 @@ Date: 2024-05-23
   Balancing:
     - Thermal Solar Panels: Doubled heat transfer rate.
   Bugfixes:
-    - Now resets thermal panel global table on mod initialization as well, to prevent issues with 
+    - Now resets thermal panel global table on mod initialization as well, to prevent issues with
       creating a personal fork in the middle of a playthrough. ("/tspl reset" command may still be
       needed if mod is simply modified.)
   Changes:
@@ -489,7 +494,7 @@ Date: 2024-05-17
     - Upscaled graphics: Removed option from Startup Settings, graphics seem good enough. Still
       selected according to the game's sprite resolution setting.
     - Fast-replacement: Entirely removed faulty option (could easily fix it, but it doesn't seem
-      that necessary after all, and ensuring mod compat for it seems tedious).      
+      that necessary after all, and ensuring mod compat for it seems tedious).
     - Removed code meant to pass on temperature from thermal panels & heat accumulators to their
       replacement. Unnecessary in this fork (and it didn't transfer the correct amount of heat
       energy either).
@@ -578,7 +583,7 @@ Date: 2023-11-15
         their heat energy to one end-point).
       - Removed heat transfer loss entirely to simplify. Script for heat dissipation is sufficient.
     - Basic Heat Exchanger:
-      - Increased heat transfer rate from 12MW to 500MW to match the Basic Heat Pipe (this better 
+      - Increased heat transfer rate from 12MW to 500MW to match the Basic Heat Pipe (this better
         matches material costs for both too).
       - Removed heat transfer loss of 1°C, since it is not a feature of the vanilla variant.
       - Made energy conversion rate (and thus fluid throughput) configurable in Startup Settings.

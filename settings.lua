@@ -8,13 +8,13 @@
 ---------------------------------------------------------------------------------------------------
 
 data:extend({
-    {-- 1. Apply a color change to the Basic Heat Exchanger.
+    --[[{-- 1. Apply a color change to the Basic Heat Exchanger.
         type = "bool-setting",
         name = "enable-heat-exchanger-color",
         setting_type = "startup",
         default_value = true,
         order = "a"
-    },
+    },]]
     {-- 2. Configure thermal solar panel max. heat energy output within certain limits.
 		type = "double-setting",
 		name = "custom-panel-nominal-heat-generation-kW",

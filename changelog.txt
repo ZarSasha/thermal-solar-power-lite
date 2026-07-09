@@ -3,6 +3,8 @@ Version: 2.3.0
 Date: 2026-07-09
   Changes:
     - Updated to work with Factorio 2.1.
+    - Basic Heat Exchanger: Temporarily disabled yellow paintjob, due to graphical overhaul of
+      entity.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.5
 Date: 2026-01-24

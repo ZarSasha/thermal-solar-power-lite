@@ -3,9 +3,9 @@
 --  ┗┓┣┫┣┫┣┫┣ ┃┃
 --  ┗┛┛┗┛┗┛┗┗┛┻┛
 ---------------------------------------------------------------------------------------------------
--- Shared document exclusive to prototype and settings stage.
+-- Shared document exclusive to prototype and settings stage. Must not be loaded at runtime.
 ---------------------------------------------------------------------------------------------------
--- CHECK FOR PRESENCE OF OTHER MODS 
+-- CHECK FOR PRESENCE OF OTHER MODS
 ---------------------------------------------------------------------------------------------------
 
 MOD = {

@@ -3,8 +3,8 @@
 --  ┗┓┣┫┣┫┣┫┣ ┃┃
 --  ┗┛┛┗┛┗┛┗┗┛┻┛
 ---------------------------------------------------------------------------------------------------
--- Shared document for all mod load stages. Contains no code that could cause conflict between
--- them.
+-- Shared document for all mod load stages and runtime. Contains no code that could cause conflict
+-- between them.
 ---------------------------------------------------------------------------------------------------
 -- INFO
 ---------------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ GRAPHICS_TECH = GRAPHICS.."tech/"
 ---------------------------------------------------------------------------------------------------
 
 SETTING = {
-    --exchanger_color     = settings.startup["enable-heat-exchanger-color"            ].value,
+    exchanger_color     = settings.startup["enable-heat-exchanger-color"            ].value,
     panel_output_kW     = settings.startup["custom-panel-nominal-heat-generation-kW"].value,
     exchanger_output_kW = settings.startup["custom-exchanger-conversion-rate-kW"    ].value,
     exchanger_temp      = settings.startup["custom-exchanger-temperature-target"    ].value,

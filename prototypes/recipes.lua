@@ -10,7 +10,7 @@
 -- FIXED PROPERTIES -------------------------------------------------------------------------------
 
 -- Function: Recipe template.
-function recipe_base(nameVal)
+local function recipe_base(nameVal)
     return
     {
         type = "recipe",

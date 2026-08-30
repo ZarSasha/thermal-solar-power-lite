@@ -1,0 +1,16 @@
+{
+    "diagnostics.globals": [
+        "data",
+        "util",
+        "defines",
+        "kg",
+        "settings",
+        "mods",
+        "script",
+        "game",
+        "prototypes",
+        "serpent",
+        "commands",
+        "log"
+    ]
+}

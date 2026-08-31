@@ -19,23 +19,24 @@ local path_s = GRAPHICS_ENTITIES.."thermal-solar-panel/"
 local panel_shadow_sprite = { -- shadow image, 100% black, transparent background
 	filename = path_s .. "thermal-solar-panel-shadow.png",
 	height = 123, width = 128, shift = util.by_pixel(3, -7.5),
-	draw_as_shadow = true}
-
+	draw_as_shadow = true
+}
 -- High resolution (AI-upscaled) --
 local hr_panel_sprite = {
 	filename = path_s .. "hr-thermal-solar-panel-trim.png",
 	priority = "high", height = 256, width = 256, scale = 0.5,
-    shift = util.by_pixel(0, 0.5)}
-
+    shift = util.by_pixel(0, 0.5)
+}
 local hr_panel_connection_sprites = {
 	filename = path_s .. "hr-thermal-solar-panel-connections.png",
 	width = 64, height = 64, scale = 0.5, variation_count = 4,
-    shift = util.by_pixel(0, 0)}
-
+    shift = util.by_pixel(0, 0)
+}
 local hr_panel_disconnection_sprites = {
 	filename = path_s .. "hr-thermal-solar-panel-connections.png",
 	width = 64, height = 64, scale = 0.5, variation_count = 4, y = 64,
-    shift = util.by_pixel(0, 5)}
+    shift = util.by_pixel(0, 5)
+}
 
 -- PROPERTIES -------------------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ local ThermalPanel = {
 	dying_explosion = "solar-panel-explosion",
     damaged_trigger_effect = hit_effects.entity(),
     impact_category = "metal",
-    consumption = (SETTING.panel_output_kW .. "kW"), -- mandatory property, must be greater than 0. 
+    consumption = (SETTING.panel_output_kW .. "kW"), -- mandatory property, must be greater than 0.
     energy_source = { -- mandatory property
 		type = "fluid",
 		fluid_box = {

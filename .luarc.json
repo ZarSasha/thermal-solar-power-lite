@@ -1,0 +1,21 @@
+{
+  "runtime.version": "Lua 5.2",
+  "diagnostics.globals": [
+    "data",
+    "util",
+    "defines",
+    "kg",
+    "settings",
+    "mods",
+    "script",
+    "game",
+    "prototypes",
+    "serpent",
+    "commands",
+    "log",
+    "apply_heat_pipe_glow",
+    "volume_multiplier",
+    "pipecoverspictures",
+    "make_4way_animation_from_spritesheet"
+  ]
+}

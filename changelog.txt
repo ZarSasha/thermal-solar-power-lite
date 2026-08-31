@@ -10,8 +10,9 @@ Date: 2026-08-31
     - Tidied up a bit.
   Notes:
     - I prefer to continue using the old graphics, not only because I already made them, but
-      because they are easy to distinguish from the new ones, and the exposed internal heat
-      exchange pipes seen in the new graphics are kind of pointless at low temperatures anyway.
+      because they make it easier to distinguish the basic heat exchanger from the vanilla heat
+      exchanger with its new graphics. Also, the exposed internal heat exchange pipes seen in the
+      new graphics are kind of pointless at low temperatures anyway.
 ---------------------------------------------------------------------------------------------------
 Version: 2.3.0
 Date: 2026-07-09

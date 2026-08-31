@@ -247,7 +247,6 @@ if SETTING.exchanger_color then
         GRAPHICS_ENTITIES.."basic-heat-exchanger/basic-heatex-S-idle-yellow.png"
     BasicHeatEx.pictures.west .structure.layers[1].filename =
         GRAPHICS_ENTITIES.."basic-heat-exchanger/basic-heatex-W-idle-yellow.png"
-    BasicHeatEx.corpse = "heat-exchanger-remnants-yellow" -- fix name
 end
 
 -- FINAL DATA WRITE -------------------------------------------------------------------------------

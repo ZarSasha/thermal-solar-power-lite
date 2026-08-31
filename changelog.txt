@@ -3,14 +3,15 @@ Version: 2.4.0
 Date: 2026-08-31
   Changes:
     - Basic Heat Exchanger: Restored the old graphics from Factorio 2.0, along with the yellow
-      paintjob option. Copied all relevant graphical assets from Factorio 2.0 to this mod, created
-      independent tables for defining the entity and remnants prototypes.
+      paintjob option. (Copied all relevant graphical assets from Factorio 2.0.77, created
+      independent tables for defining the entity and remnants prototypes.)
   Internal:
     - Changed names of graphical assets for consistency.
     - Tidied up a bit.
   Notes:
-    - I prefer the old graphics, because they allow for better visual distinction, and the exposed
-      internal heat pipes of the new graphics are pointless at low temperatures anyway.
+    - I prefer to continue using the old graphics, not only because I already made them, but
+      because they are easy to distinguish from the new ones, and the exposed internal heat
+      exchange pipes seen in the new graphics are kind of pointless at low temperatures anyway.
 ---------------------------------------------------------------------------------------------------
 Version: 2.3.0
 Date: 2026-07-09

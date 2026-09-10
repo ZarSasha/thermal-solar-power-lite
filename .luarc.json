@@ -16,6 +16,8 @@
     "apply_heat_pipe_glow",
     "volume_multiplier",
     "pipecoverspictures",
-    "make_4way_animation_from_spritesheet"
+    "make_4way_animation_from_spritesheet",
+        "circuit_connector_definitions",
+        "default_circuit_wire_max_distance"
   ]
 }

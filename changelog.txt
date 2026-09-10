@@ -3,6 +3,8 @@ Version: 2.4.1
 Date: 2026-09-10
   Changes:
     - Basic Heat Exchanger: Added circuit connections.
+  Bugfixes:
+    - Fixed migration script for v2.2.0 so it doesn't show up on all new installations.
 ---------------------------------------------------------------------------------------------------
 Version: 2.4.0
 Date: 2026-08-31

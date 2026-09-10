@@ -210,7 +210,9 @@ local BasicHeatEx = {
         pictures = heatex_water_reflection,
         rotate = false,
         orientation_to_variation = true
-    }
+    },
+    circuit_connector = circuit_connector_definitions["boiler"],
+    circuit_wire_max_distance = default_circuit_wire_max_distance
 }
 
 -- FINAL DATA WRITE -------------------------------------------------------------------------------

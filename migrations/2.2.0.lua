@@ -1,6 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 -- MIGRATIONS FOR V2.2.0
 ---------------------------------------------------------------------------------------------------
+
+require "shared.all-stages"
+
 -- The new time slicing feature needs several variables to be stored within the storage table. The
 -- main table that holds the string identifiers also needs to be replaced with a simple array.
 
@@ -27,9 +30,11 @@ if storage.tspl_thermal_panel_table ~= nil then
 end
 
 -- Message to console:
-game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-game.print("  Regarding update to v2.2.0: It is recommended to read the changelog!")
-game.print("  If panels don't work, please report the issue on the Mod Portal or on GitHub.")
-game.print("  However, writing '/tspl reset' in the console should quickly resolve any issues.")
+if script.active_mods[MOD_NAME].version == "2.2.0" then
+    game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
+    game.print("  Regarding update to v2.2.0: It is recommended to read the changelog!")
+    game.print("  If panels don't work, please report the issue on the Mod Portal or on GitHub.")
+    game.print("  However, writing '/tspl reset' in the console should quickly resolve any issues.")
+end
 
 ---------------------------------------------------------------------------------------------------

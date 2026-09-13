@@ -4,7 +4,7 @@ Date: 2026-09-13
   Bugfixes:
     - Pyanodons Coal Processing: Fixed broken compat option. The correct amount of power should now
       be generated.
-    - Fixed an old migration script, for real this time.
+    - Fixed an old migration script.
   Scripting:
     - Improved performance a bit by caching the results of some more calculations in storage.
   Balancing:

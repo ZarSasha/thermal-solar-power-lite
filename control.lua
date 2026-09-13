@@ -385,8 +385,8 @@ script.on_configuration_changed(function()
     update_mod_dependent_variables()
 end)
 
--- Note: Overwriting code of mod without changing its name or version may break the scripts, since
--- it's not a detectable event. Running the reset command provided below may help.
+-- Development note: Overwriting code of mod without changing its name or version may break the
+-- scripts, since it's not a detectable event. Running the reset command provided below may help.
 
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS

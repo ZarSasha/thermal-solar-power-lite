@@ -1,28 +1,26 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.4.2
-Date: 2026-09-13
+Date: 2026-09-14
   Bugfixes:
-    - Pyanodons Coal Processing: Fixed broken compat option. The correct amount of power should now
-      be generated.
-    - Fixed an old migration script.
-  Scripting:
-    - Improved performance a bit by caching the results of some more calculations in storage.
+    - Pyanodons Coal Processing: Fixed broken compat. The correct amount of power should now be
+      generated.
+    - Fixed migration script for v2.2.0 again, seems to have misunderstood the problem.
   Balancing:
     - Changed default values of settings to better match production pr. area of solar panels.
       Thermal heat output: 105kW -> 116kW, basic heat exchanger capacity: 1800kW -> 2100kW.
-    - TODO: Check balance for Pyanodon and update suggestions.
-  Changes:
-    - Changed names of settings to be more unique. Migrated.
-      TODO: Refine names while I am it!
-    - TODO: Decide whether to migrate updated settings or let them reset their values!
+  Scripting:
+    - Improved performance a bit by caching the results of some more calculations in storage.
   Info:
     - Updated descriptions.
     - Added a migration script to notify players of the change to default settings. NB: The values
       of the settings won't change because of this, since they are player-owned.
     - Pyanodons Coal Processing: Updated suggested capacity for the exhanger (3,700kW -> 4,200kW).
   Locale:
-    - TODO: Updated translations.
+    - Updated translations.
   Internal:
+    - Changed names of settings to be more unique. Migrated.
+      TODO: Refine names while I am it!
+      TODO: Decide whether to migrate updated settings or let them reset their values!
     - Changed the way that storage table variables are initialized and updated.
     - Changed a variable to be local.
     - Updated comments to account for new default values of energy parameters.

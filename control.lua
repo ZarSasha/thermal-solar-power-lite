@@ -370,16 +370,16 @@ end)
 
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
-    update_variables()
     create_storage_table_keys()
+    update_variables()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    update_variables()
     create_storage_table_keys()
+    update_variables()
     update_storage_surface_solar_power()
 end)
 

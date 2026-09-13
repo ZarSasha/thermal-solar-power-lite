@@ -46,22 +46,16 @@ local base_temp_loss   = temp_loss_factor * tick_frequency
     -- MOD PRESENCE CHECK & COMPATIBILITY
 ---------------------------------------------------------------------------------------------------
 
--- Checks for presence of mods through independent script (no need to tie to event).
-local ACTIVE_MODS = {
-    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
-    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
-}
-
 -- Pyanodon Coal Processing:
-if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
     -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
     -- during night and thus slightly increases heat energy loss.
-    temp_loss_factor = 0.0 --
+    temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
 end
 
 -- More Quality Scaling:
-if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
+if script.active_mods["more-quality-scaling"] and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     quality_scaling = 0
@@ -272,7 +266,7 @@ end
 local panel_variants = {}
 
 -- Finds all panel variants (calculated by whatever function uses the variable right above).
-for name, prototype in pairs(prototypes.entity) do
+for name, _ in pairs(prototypes.entity) do
     if string.find(name, panel_name_base, 1, true) then
         table.insert(panel_variants, name)
     end
@@ -423,7 +417,7 @@ COMMAND_parameters.info = function(pl)
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
 
-    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+    if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         panels_num = panels_num / 2 -- roughly accurate
     end
 

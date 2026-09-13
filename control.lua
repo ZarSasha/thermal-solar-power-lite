@@ -36,7 +36,7 @@ local tick_frequency = tick_interval / const.ticks_pr_sec
 local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
 
 -- Parameters pertaining to the thermal solar panels:
-local heat_cap_kJ      = 50    -- default value, will not change
+local heat_cap_kJ      = 50    -- default value, will not be changed
 local temp_loss_factor = 0.005 -- updated during startup
 local quality_scaling  = 0.15  -- updated during startup
 local base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
@@ -49,9 +49,7 @@ local base_temp_loss   = temp_loss_factor * tick_frequency
 -- Pyanodon Coal Processing:
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
-    temp_loss_factor = 0.00204 -- "correct" value: 0.0031915
-else
-    temp_loss_factor = 0.005
+    temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
 end
 
 -- More Quality Scaling:
@@ -59,8 +57,6 @@ if script.active_mods["more-quality-scaling"] and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     quality_scaling = 0
-else
-    quality_scaling = 0.15
 end
 
 ---------------------------------------------------------------------------------------------------

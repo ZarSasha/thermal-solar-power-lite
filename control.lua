@@ -217,6 +217,7 @@ end
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
 -- segment of pre-calculated size at a time.
 local function update_temperature_for_all_panels()
+    update_variables() -- hm.
     local panels     = storage.panels       -- table reference
     local register   = panels.main_register -- array reference
     local surfaces   = storage.surfaces     -- table reference
@@ -305,8 +306,7 @@ end
 
 -- Completely clears storage and rebuilds all content.
 local function reset_panels_and_platforms()
-    --storage = {}
-    create_storage_table_keys()
+    clear_storage()
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(storage.panels.main_register, panel)
@@ -379,8 +379,8 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys()
+    reset_panels_and_platforms()
     update_variables()
-    update_storage_surface_solar_power()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since

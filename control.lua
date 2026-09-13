@@ -65,6 +65,11 @@ local function set_quality_scaling()
     end
 end
 
+local function update_variables()
+    set_temp_loss_factor()
+    set_quality_scaling()
+end
+
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
 ---------------------------------------------------------------------------------------------------
@@ -315,11 +320,6 @@ end
 ---------------------------------------------------------------------------------------------------
 -- UPDATING VARIABLES
 ---------------------------------------------------------------------------------------------------
-
-local function update_variables()
-    set_temp_loss_factor()
-    set_quality_scaling()
-end
 
 ---------------------------------------------------------------------------------------------------
     -- FINAL FUNCTION SETS AND SCRIPT EXECUTION

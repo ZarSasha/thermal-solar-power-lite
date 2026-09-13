@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.4.2
 Date: 2026-09-13
+  Bugfixes:
+    - Pyanodons Coal Processing: Fixed compat option.
   Balancing:
     - Changed default values of settings to better match production pr. area of solar panels.
       Thermal heat output: 105kW -> 116kW, basic heat exchanger capacity: 1800kW -> 2100kW.

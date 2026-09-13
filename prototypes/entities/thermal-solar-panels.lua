@@ -46,11 +46,7 @@ local heat_capacity_kJ = 50
 if mods["pycoalprocessing"] then
     -- Compensates for roughly halved steam conversion efficiency.
     heat_capacity_kJ = 100
-    -- Further changes it.
-    if SETTING.select_mod == "Pyanodon" then
-        heat_capacity_kJ = 171
-        -- Runtime script also adapted for 250°C steam, if option is selected.
-    end
+    -- Runtime script also adapted for 250°C steam, if option is selected.
 end
 
 local ThermalPanel = {

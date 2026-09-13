@@ -52,8 +52,7 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
     -- during night and thus slightly increases heat energy loss.
     temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
-else
-    temp_loss_factor = 0.005
+    base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ * 1.566
 end
 
 -- More Quality Scaling:
@@ -61,8 +60,6 @@ if script.active_mods["more-quality-scaling"] and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     quality_scaling = 0
-else
-    quality_scaling = 0.15
 end
 
 ---------------------------------------------------------------------------------------------------

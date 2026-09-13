@@ -45,7 +45,7 @@ local hr_panel_disconnection_sprites = {
 local heat_capacity_kJ = 50
 if mods["pycoalprocessing"] then
     -- Compensates for roughly halved steam conversion efficiency.
-    heat_capacity_kJ = 170 -- why so weird?
+    heat_capacity_kJ = 200 -- why so weird?
     -- Runtime script also adapted for 250°C steam, if option is selected.
 end
 

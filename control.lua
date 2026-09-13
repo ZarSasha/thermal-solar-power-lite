@@ -50,7 +50,7 @@ local base_temp_loss   = temp_loss_factor * tick_frequency
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
     --temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
-    base_temp_gain = ((SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ) * 1.566
+    base_temp_gain = ((SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ) * 1.32
 end
 
 -- More Quality Scaling:

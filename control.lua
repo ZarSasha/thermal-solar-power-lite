@@ -42,11 +42,15 @@ local heat_cap_kJ      = 50    -- default value, will not be changed
 --local base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
 --local base_temp_loss   = temp_loss_factor * tick_frequency
 
+local function calculate_base_temp_gain()
+    return (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
+end
+
 ---------------------------------------------------------------------------------------------------
     -- MOD PRESENCE CHECK & COMPATIBILITY
 ---------------------------------------------------------------------------------------------------
 
-local function set_temp_loss_factor()
+local function choose_temp_loss_factor()
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
         return 0.00314
@@ -55,7 +59,7 @@ local function set_temp_loss_factor()
     end
 end
 
-local function set_quality_scaling()
+local function choose_quality_scaling()
     if script.active_mods["more-quality-scaling"] and table_contains_value(
         {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
         -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
@@ -65,9 +69,9 @@ local function set_quality_scaling()
     end
 end
 
-local function update_variables()
-    set_temp_loss_factor()
-    set_quality_scaling()
+local function update_mod_dependent_variables()
+    choose_temp_loss_factor()
+    choose_quality_scaling()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -78,30 +82,30 @@ end
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
-    if storage.panels               == nil then storage.panels               =             {} end
-    if storage.panels.main_register == nil then storage.panels.main_register =             {} end
-    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =             {} end
-    if storage.panels.removal_flag  == nil then storage.panels.removal_flag  =          false end
-    if storage.surfaces             == nil then storage.surfaces             =             {} end
-    if storage.surfaces.solar_mult  == nil then storage.surfaces.solar_mult  =             {} end
-    if storage.cycle                == nil then storage.cycle                =             {} end
-    if storage.cycle.batch_size     == nil then storage.cycle.batch_size     = min_batch_size end
-    if storage.cycle.progress       == nil then storage.cycle.progress       =              1 end
-    if storage.cycle.complete       == nil then storage.cycle.complete       =          false end
-    if storage.calc                 == nil then storage.calc                 =             {} end
-    if storage.calc.temp_loss_x     == nil then storage.calc.temp_loss_x     =
-        set_temp_loss_factor()
-    end
-    if storage.calc.quality_scaling == nil then storage.calc.quality_scaling =
-        set_quality_scaling()
-    end
-    if storage.calc.base_temp_gain  == nil then storage.calc.base_temp_gain  =
-        (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
-    end
-    if storage.calc.base_temp_loss  == nil then storage.calc.base_temp_loss  =
+    --Processing of panels:
+    storage.panels                 = storage.panels or {}
+    storage.panels.main_register   = storage.panels.main_register or {}
+    storage.panels.to_be_added     = storage.panels.to_be_added or {}
+    storage.panels.removal_flag    = storage.panels.removal_flag or false
+    storage.surfaces               = storage.surfaces or {}
+    storage.surfaces.solar_mult    = storage.surfaces.solar_mult or {}
+    storage.cycle                  = storage.cycle or {}
+    storage.cycle.batch_size       = storage.cycle.batch_size or min_batch_size
+    storage.cycle.progress         = storage.cycle.progress or 1
+    storage.cycle.complete         = storage.cycle.complete or false
+    --Calculations:
+    storage.calc                   = storage.calc or {}
+    storage.calc.temp_loss_x       = storage.calc.temp_loss_x or
+        choose_temp_loss_factor()
+    storage.calc.quality_scaling   = storage.calc.quality_scaling or
+        choose_quality_scaling()
+    storage.calc.base_temp_gain    = storage.calc.base_temp_gain or
+        calculate_base_temp_gain()
+    storage.calc.base_temp_loss    = storage.calc.base_temp_loss or
         storage.calc.temp_loss_x * tick_frequency
-    end
 end
+
+-- Development note: The tables won't be updated when the mod is directly overwritten.
 
 ---------------------------------------------------------------------------------------------------
     -- PANEL ENTITY REGISTRATION (ON_BUILT AND SIMILAR)
@@ -314,7 +318,6 @@ local function reset_panels_and_platforms()
     end
     update_storage_cycle_batch_size()
     update_storage_surface_solar_power()
-    update_variables()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -371,6 +374,7 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
+    update_mod_dependent_variables()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
@@ -378,6 +382,7 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys()
+    update_mod_dependent_variables()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
@@ -505,6 +510,7 @@ end
 -- DEBUG "reset": Completely resets contents of storage.
 COMMAND_parameters.reset = function(pl)
     reset_panels_and_platforms()
+    update_mod_dependent_variables()
     mPrint(pl, {
         "The storage table was reset!"
     })

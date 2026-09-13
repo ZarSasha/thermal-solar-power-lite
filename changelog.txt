@@ -15,12 +15,14 @@ Date: 2026-09-13
       TODO: Refine names while I am it!
     - TODO: Decide whether to migrate updated settings or let them reset their values!
   Info:
-    - TODO: Updated descriptions.
+    - Updated descriptions.
     - Added a migration script to notify players of the change to default settings. NB: The values
       of the settings won't change because of this, since they are player-owned.
+    - Pyanodons Coal Processing: Updated suggested capacity for the exhanger (3,700kW -> 4,200kW).
   Locale:
     - TODO: Updated translations.
   Internal:
+    - Changed the way that storage table variables are initialized and updated.
     - Changed a variable to be local.
     - Updated comments to account for new default values of energy parameters.
 ---------------------------------------------------------------------------------------------------

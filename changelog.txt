@@ -2,7 +2,8 @@
 Version: 2.4.2
 Date: 2026-09-13
   Bugfixes:
-    - Pyanodons Coal Processing: Fixed broken compat option.
+    - Pyanodons Coal Processing: Fixed broken compat option. The correct amount of power should now
+      be generated.
   Scripting:
     - Improved performance a bit by caching the results of some more calculations in storage.
   Balancing:
@@ -10,7 +11,7 @@ Date: 2026-09-13
       Thermal heat output: 105kW -> 116kW, basic heat exchanger capacity: 1800kW -> 2100kW.
     - TODO: Check balance for Pyanodon and update suggestions.
   Changes:
-    - Changed names of settings to be more unique. Migrated.
+    - Changed names of settings to be more unique. Migrated. CHECK THAT MIGRATIONS WORKS!
       TODO: Refine names while I am it!
     - TODO: Decide whether to migrate updated settings or let them reset their values!
   Info:

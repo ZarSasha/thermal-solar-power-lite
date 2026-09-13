@@ -51,7 +51,9 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
     -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
     -- during night and thus slightly increases heat energy loss.
-    temp_loss_factor = 0.004 -- "correct" value: 0.0031915
+    temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
+else
+    temp_loss_factor = 0.005
 end
 
 -- More Quality Scaling:
@@ -59,6 +61,8 @@ if script.active_mods["more-quality-scaling"] and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     quality_scaling = 0
+else
+    quality_scaling = 0.15
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -416,11 +420,11 @@ COMMAND_parameters.info = function(pl)
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
-
+    --[[
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         panels_num = panels_num / 2 -- roughly accurate
     end
-
+    ]]
     local console = {}
 
     console.surface_name        = clr(pl.surface.name,2)

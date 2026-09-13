@@ -52,7 +52,7 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
     -- during night and thus slightly increases heat energy loss.
     temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
-    base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ * 1.566
+    base_temp_gain   = ((SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ) * 1.2833
 end
 
 -- More Quality Scaling:

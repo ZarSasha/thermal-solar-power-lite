@@ -51,7 +51,7 @@ if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" t
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
     -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
     -- during night and thus slightly increases heat energy loss.
-    temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
+    temp_loss_factor = 0.004 -- "correct" value: 0.0031915
 end
 
 -- More Quality Scaling:

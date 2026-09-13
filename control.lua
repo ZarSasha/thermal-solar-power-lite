@@ -50,6 +50,8 @@ local base_temp_loss   = temp_loss_factor * tick_frequency
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
     -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
     temp_loss_factor = 0.00204 -- "correct" value: 0.0031915
+else
+    temp_loss_factor = 0.005
 end
 
 -- More Quality Scaling:
@@ -57,6 +59,8 @@ if script.active_mods["more-quality-scaling"] and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     quality_scaling = 0
+else
+    quality_scaling = 0.15
 end
 
 ---------------------------------------------------------------------------------------------------

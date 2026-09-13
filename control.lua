@@ -30,7 +30,7 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Parameters related to timing of heat-generating script:
 local tick_interval  = 60 -- cycle length
 local reserved_ticks = 2  -- reserved for cycle reset scripts
-local tick_frequency = tick_interval / const.ticks_pr_sec
+--local tick_frequency = tick_interval / const.ticks_pr_sec
 
 -- Parameter related to time slicing used for heat-generating script:
 local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
@@ -39,8 +39,8 @@ local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
 local heat_cap_kJ      = 50    -- default value, will not be changed
 local temp_loss_factor = 0.005 -- updated during startup,
 local quality_scaling  = 0.15  -- updated during startup
-local base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
-local base_temp_loss   = temp_loss_factor * tick_frequency
+--local base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
+--local base_temp_loss   = temp_loss_factor * tick_frequency
 
 ---------------------------------------------------------------------------------------------------
     -- MOD PRESENCE CHECK & COMPATIBILITY
@@ -51,16 +51,21 @@ local function update_variables()
     -- Pyanodon Coal Processing:
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
-        temp_loss_factor = 0.00
+        temp_loss_factor = 0.0314
     end
-
     -- More Quality Scaling:
     if script.active_mods["more-quality-scaling"] and table_contains_value(
         {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
         -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
         quality_scaling = 0
     end
+end
 
+local function update_storage_variables()
+    storage.calc.tick_frequency = tick_interval / const.ticks_pr_sec
+    local tick_frequency = storage.calc.tick_frequency
+    storage.calc.base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
+    storage.calc.base_temp_loss   = temp_loss_factor * tick_frequency
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -81,6 +86,10 @@ local function create_storage_table_keys()
     if storage.cycle.batch_size     == nil then storage.cycle.batch_size     = min_batch_size end
     if storage.cycle.progress       == nil then storage.cycle.progress       =              1 end
     if storage.cycle.complete       == nil then storage.cycle.complete       =          false end
+    if storage.calc                 == nil then storage.calc                 =             {} end
+    if storage.calc.tick_frequency  == nil then storage.calc.tick_frequency  =              1 end
+    if storage.calc.base_temp_gain  == nil then storage.calc.base_temp_gain  =           2.32 end
+    if storage.calc.base_temp_loss  == nil then storage.calc.base_temp_loss  =           0.75 end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -203,6 +212,8 @@ local function update_temperature_for_all_panels()
     local cycle      = storage.cycle        -- table reference
     local batch_size = cycle.batch_size     -- number copy
     local progress   = cycle.progress       -- number copy
+    local base_temp_gain = storage.calc.base_temp_gain
+    local base_temp_loss = storage.calc.base_temp_loss
     for i = progress, progress + batch_size - 1 do
         local panel = register[i]
         if panel == nil then -- check relies on contiguousness of array
@@ -282,7 +293,7 @@ end
 
 -- Completely clears storage and rebuilds all content.
 local function reset_panels_and_platforms()
-    storage = {}
+    --storage = {}
     create_storage_table_keys()
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
@@ -343,6 +354,8 @@ end)
 
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
+    update_variables()
+    update_storage_variables()
     create_storage_table_keys()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -350,16 +363,14 @@ end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
+    update_variables()
+    update_storage_variables()
     create_storage_table_keys()
     update_storage_surface_solar_power()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
 -- it's not a detectable event. Running the reset command provided below may help.
-
-script.on_load(function()
-    update_variables()
-end)
 
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS

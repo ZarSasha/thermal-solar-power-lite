@@ -46,17 +46,21 @@ local base_temp_loss   = temp_loss_factor * tick_frequency
     -- MOD PRESENCE CHECK & COMPATIBILITY
 ---------------------------------------------------------------------------------------------------
 
--- Pyanodon Coal Processing:
-if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-    -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
-    temp_loss_factor = 0.00314
-end
+local function update_variables()
 
--- More Quality Scaling:
-if script.active_mods["more-quality-scaling"] and table_contains_value(
-    {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
-    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
-    quality_scaling = 0
+    -- Pyanodon Coal Processing:
+    if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+        -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
+        temp_loss_factor = 0.00
+    end
+
+    -- More Quality Scaling:
+    if script.active_mods["more-quality-scaling"] and table_contains_value(
+        {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
+        -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
+        quality_scaling = 0
+    end
+
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -346,6 +350,7 @@ end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
+    update_variables()
     create_storage_table_keys()
     update_storage_surface_solar_power()
 end)

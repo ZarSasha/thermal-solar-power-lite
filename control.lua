@@ -350,13 +350,16 @@ end)
 
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
-    update_variables()
     create_storage_table_keys()
     update_storage_surface_solar_power()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
 -- it's not a detectable event. Running the reset command provided below may help.
+
+script.on_load(function()
+    update_variables()
+end)
 
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS

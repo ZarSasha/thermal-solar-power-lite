@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
---  ┏┓┏┓┳┓┏┳┓┳┓┏┓┓ 
+--  ┏┓┏┓┳┓┏┳┓┳┓┏┓┓
 --  ┃ ┃┃┃┃ ┃ ┣┫┃┃┃     RUNTIME STAGE
 --  ┗┛┗┛┛┗ ┻ ┛┗┗┛┗┛
 ---------------------------------------------------------------------------------------------------
@@ -390,7 +390,7 @@ end
 
 -- Colors text with custom hues that are easier to read than the in-built ones.
 local function clr(text, colorIndex)
-    colors = {"66B2FF", "FFB366", "FF6666"} -- blue, orange and red
+    local colors = {"66B2FF", "FFB366", "FF6666"} -- blue, orange and red
     return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
@@ -501,8 +501,8 @@ COMMAND_parameters.unlock = function(pl)
     local items, icons = {"tspl-thermal-solar-panel","tspl-thermal-solar-panel-large",
         "tspl-basic-heat-exchanger", "tspl-basic-heat-pipe"}, {}
     for _,item in pairs(items) do
-        pl.force.recipes[item].enabled=true
-        pl.force.recipes[item].hidden=false
+        pl.force.recipes[item].enabled = true
+        pl.force.recipes[item].hidden  = false
         table.insert(icons, "[img=item."..item.."]")
     end
     mPrint(pl, {

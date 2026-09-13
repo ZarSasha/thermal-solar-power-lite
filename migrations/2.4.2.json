@@ -1,0 +1,10 @@
+{
+  "mod-setting":
+  [
+    ["enable-heat-exchanger-color","tspl-enable-heat-exchanger-color"],
+    ["custom-panel-nominal-heat-generation-kW","tspl-custom-panel-nominal-heat-generation-kW"],
+    ["custom-exchanger-conversion-rate-kW","tspl-custom-exchanger-conversion-rate-kW"],
+    ["custom-exchanger-temperature-target","tspl-custom-exchanger-temperature-target"],
+    ["choose-mod-compatibility","tspl-choose-mod-compatibility"]
+  ]
+}

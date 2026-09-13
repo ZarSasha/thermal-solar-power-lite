@@ -1,4 +1,23 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.2
+Date: 2026-09-13
+  Balancing:
+    - Changed default values of settings to better match production pr. area of solar panels.
+      Thermal heat output: 105kW -> 116kW, basic heat exchanger capacity: 1800kW -> 2100kW.
+    - TODO: Check balance for Pyanodon and update suggestions.
+  Changes:
+    - Changed names of settings to be more unique. Migrated.
+    - TODO: Decide whether to migrate updated settings or let them reset their values!
+  Info:
+    - TODO: Updated descriptions.
+    - Added a migration script to notify players of the change to default settings. NB: The values
+      of the settings won't change because of this, since they are player-owned.
+  Locale:
+    - TODO: Updated translations.
+  Internal:
+    - Changed a variable to be local.
+    - Updated comments to account for new default values of energy parameters.
+---------------------------------------------------------------------------------------------------
 Version: 2.4.1
 Date: 2026-09-10
   Changes:

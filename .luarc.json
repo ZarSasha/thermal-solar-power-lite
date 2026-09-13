@@ -18,6 +18,7 @@
     "pipecoverspictures",
     "make_4way_animation_from_spritesheet",
     "circuit_connector_definitions",
-    "default_circuit_wire_max_distance"
+    "default_circuit_wire_max_distance",
+    "storage"
   ]
 }

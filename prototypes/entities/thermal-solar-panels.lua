@@ -42,7 +42,7 @@ local hr_panel_disconnection_sprites = {
 
 -- COMPATIBILITY for Pyanodon Coal Processing --
 local heat_capacity_kJ = 50
-if MOD.PY_COAL_PROCESSING then
+if mods["pycoalprocessing"] then
     -- Compensates for halved steam conversion efficiency:
     heat_capacity_kJ = 100
     -- Note: Runtime script also adapted for 250°C steam, if option is selected.

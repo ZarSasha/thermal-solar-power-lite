@@ -420,11 +420,11 @@ COMMAND_parameters.info = function(pl)
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
-    --[[
+
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         panels_num = panels_num / 2 -- roughly accurate
     end
-    ]]
+
     local console = {}
 
     console.surface_name        = clr(pl.surface.name,2)

@@ -48,10 +48,7 @@ local base_temp_loss   = temp_loss_factor * tick_frequency
 
 -- Pyanodon Coal Processing:
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
-    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C). Does so
-    -- by dividing heat loss factor with 235/150 = 1.566 and adjusting a bit, and multiplying temp
-    -- increase by the square root of the same number.
-    temp_loss_factor = 0.0033 -- "correct" value: 0.0031915
+    -- Multiplies temp increase by the square root of (250-15)/(165-15) = 1.566.
     base_temp_gain = ((SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ) * 1.252
 end
 
@@ -60,6 +57,8 @@ if script.active_mods["more-quality-scaling"] and table_contains_value(
     {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
     -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
     quality_scaling = 0
+else
+    quality_scaling = 0.15
 end
 
 ---------------------------------------------------------------------------------------------------

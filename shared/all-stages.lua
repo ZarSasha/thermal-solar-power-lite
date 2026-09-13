@@ -20,11 +20,11 @@ GRAPHICS_TECH = GRAPHICS.."tech/"
 ---------------------------------------------------------------------------------------------------
 
 SETTING = {
-    exchanger_color     = settings.startup["enable-heat-exchanger-color"            ].value,
-    panel_output_kW     = settings.startup["custom-panel-nominal-heat-generation-kW"].value,
-    exchanger_output_kW = settings.startup["custom-exchanger-conversion-rate-kW"    ].value,
-    exchanger_temp      = settings.startup["custom-exchanger-temperature-target"    ].value,
-    select_mod          = settings.startup["choose-mod-compatibility"               ].value
+    exchanger_color     = settings.startup["tspl-enable-heat-exchanger-color"            ].value,
+    panel_output_kW     = settings.startup["tspl-custom-panel-nominal-heat-generation-kW"].value,
+    exchanger_output_kW = settings.startup["tspl-custom-exchanger-conversion-rate-kW"    ].value,
+    exchanger_temp      = settings.startup["tspl-custom-exchanger-temperature-target"    ].value,
+    select_mod          = settings.startup["tspl-choose-mod-compatibility"               ].value
 }
 
 ---------------------------------------------------------------------------------------------------

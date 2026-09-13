@@ -372,11 +372,6 @@ end)
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
 -- it's not a detectable event. Running the reset command provided below may help.
 
-script.on_load(function ()
-    update_variables()
-    update_storage_variables()
-end)
-
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS
 ---------------------------------------------------------------------------------------------------

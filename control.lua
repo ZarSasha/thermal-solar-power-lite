@@ -98,7 +98,7 @@ local function create_storage_table_keys()
     if storage.calc.base_temp_gain  == nil then storage.calc.base_temp_gain  =
         (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
     end
-    if storage.calc.base_temp_loss  == nil then storage.calc.base_temp_gain  =
+    if storage.calc.base_temp_loss  == nil then storage.calc.base_temp_loss  =
         storage.calc.temp_loss_x * tick_frequency
     end
 end
@@ -217,7 +217,6 @@ end
 -- storage array with LuaEntity references. Adapted for time slicing by manually iterating over one
 -- segment of pre-calculated size at a time.
 local function update_temperature_for_all_panels()
-    update_variables() -- hm.
     local panels     = storage.panels       -- table reference
     local register   = panels.main_register -- array reference
     local surfaces   = storage.surfaces     -- table reference
@@ -315,6 +314,7 @@ local function reset_panels_and_platforms()
     end
     update_storage_cycle_batch_size()
     update_storage_surface_solar_power()
+    update_variables()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -371,7 +371,6 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
-    update_variables()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
@@ -379,8 +378,6 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys()
-    reset_panels_and_platforms()
-    update_variables()
 end)
 
 -- Note: Overwriting code of mod without changing its name or version may break the scripts, since
@@ -508,7 +505,6 @@ end
 -- DEBUG "reset": Completely resets contents of storage.
 COMMAND_parameters.reset = function(pl)
     reset_panels_and_platforms()
-    update_variables()
     mPrint(pl, {
         "The storage table was reset!"
     })

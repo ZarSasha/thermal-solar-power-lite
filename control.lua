@@ -48,6 +48,7 @@ local base_temp_loss   = temp_loss_factor * tick_frequency
 
 -- Pyanodon Coal Processing:
 if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+    -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
     temp_loss_factor = 0.00314
 end
 

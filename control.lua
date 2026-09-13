@@ -30,15 +30,15 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Parameters related to timing of heat-generating script:
 local tick_interval  = 60 -- cycle length
 local reserved_ticks = 2  -- reserved for cycle reset scripts
---local tick_frequency = tick_interval / const.ticks_pr_sec
+local tick_frequency = tick_interval / const.ticks_pr_sec -- simple enough, won't cache
 
 -- Parameter related to time slicing used for heat-generating script:
 local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
 
 -- Parameters pertaining to the thermal solar panels:
 local heat_cap_kJ      = 50    -- default value, will not be changed
-local temp_loss_factor = 0.005 -- updated during startup,
-local quality_scaling  = 0.15  -- updated during startup
+--local temp_loss_factor = 0.005 -- updated during startup,
+--local quality_scaling  = 0.15  -- updated during startup
 --local base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
 --local base_temp_loss   = temp_loss_factor * tick_frequency
 
@@ -46,26 +46,23 @@ local quality_scaling  = 0.15  -- updated during startup
     -- MOD PRESENCE CHECK & COMPATIBILITY
 ---------------------------------------------------------------------------------------------------
 
-local function update_variables()
-
-    -- Pyanodon Coal Processing:
+local function set_temp_loss_factor()
     if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
         -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
-        temp_loss_factor = 0.0314
-    end
-    -- More Quality Scaling:
-    if script.active_mods["more-quality-scaling"] and table_contains_value(
-        {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
-        -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
-        quality_scaling = 0
+        return 0.00314
+    else
+        return 0.005
     end
 end
 
-local function update_storage_variables()
-    storage.calc.tick_frequency = tick_interval / const.ticks_pr_sec
-    local tick_frequency = storage.calc.tick_frequency
-    storage.calc.base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
-    storage.calc.base_temp_loss   = temp_loss_factor * tick_frequency
+local function set_quality_scaling()
+    if script.active_mods["more-quality-scaling"] and table_contains_value(
+        {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
+        -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
+        return 0
+    else
+        return 0.15
+    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -87,9 +84,18 @@ local function create_storage_table_keys()
     if storage.cycle.progress       == nil then storage.cycle.progress       =              1 end
     if storage.cycle.complete       == nil then storage.cycle.complete       =          false end
     if storage.calc                 == nil then storage.calc                 =             {} end
-    if storage.calc.tick_frequency  == nil then storage.calc.tick_frequency  =              1 end
-    if storage.calc.base_temp_gain  == nil then storage.calc.base_temp_gain  =           2.32 end
-    if storage.calc.base_temp_loss  == nil then storage.calc.base_temp_loss  =           0.75 end
+    if storage.calc.temp_loss_x     == nil then storage.calc.temp_loss_x     =
+        set_temp_loss_factor()
+    end
+    if storage.calc.quality_scaling == nil then storage.calc.quality_scaling =
+        set_quality_scaling()
+    end
+    if storage.calc.base_temp_gain  == nil then storage.calc.base_temp_gain  =
+        (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
+    end
+    if storage.calc.base_temp_loss  == nil then storage.calc.base_temp_gain  =
+        storage.calc.temp_loss_x * tick_frequency
+    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -212,8 +218,9 @@ local function update_temperature_for_all_panels()
     local cycle      = storage.cycle        -- table reference
     local batch_size = cycle.batch_size     -- number copy
     local progress   = cycle.progress       -- number copy
-    local base_temp_gain = storage.calc.base_temp_gain
-    local base_temp_loss = storage.calc.base_temp_loss
+    local base_gain  = storage.calc.base_temp_gain
+    local base_loss  = storage.calc.base_temp_loss
+    local q_scaling  = storage.calc.quality_scaling
     for i = progress, progress + batch_size - 1 do
         local panel = register[i]
         if panel == nil then -- check relies on contiguousness of array
@@ -226,11 +233,11 @@ local function update_temperature_for_all_panels()
             goto continue
         end
         -- Calculates and applies temperature change to panel:
-        local q_factor    = 1 + (panel.quality.level * quality_scaling)
+        local q_factor    = 1 + (panel.quality.level * q_scaling)
         local light_corr  = (const.max_darkness - panel.surface.darkness) / const.max_darkness
         local sun_mult    = surfaces.solar_mult[panel.surface.name] -- no key -> crash
-        local temp_gain   = base_temp_gain * light_corr * sun_mult * q_factor
-        local temp_loss   = base_temp_loss * (panel.temperature - const.ambient_temp)
+        local temp_gain   = base_gain * light_corr * sun_mult * q_factor
+        local temp_loss   = base_loss * (panel.temperature - const.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
@@ -306,6 +313,15 @@ local function reset_panels_and_platforms()
 end
 
 ---------------------------------------------------------------------------------------------------
+-- UPDATING VARIABLES
+---------------------------------------------------------------------------------------------------
+
+local function update_variables()
+    set_temp_loss_factor()
+    set_quality_scaling()
+end
+
+---------------------------------------------------------------------------------------------------
     -- FINAL FUNCTION SETS AND SCRIPT EXECUTION
 ---------------------------------------------------------------------------------------------------
 
@@ -355,7 +371,6 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     update_variables()
-    update_storage_variables()
     create_storage_table_keys()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
@@ -364,7 +379,6 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     update_variables()
-    update_storage_variables()
     create_storage_table_keys()
     update_storage_surface_solar_power()
 end)
@@ -428,7 +442,7 @@ COMMAND_parameters.info = function(pl)
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / heat_cap_kJ) * sun_mult
     local temp_adj       = SETTING.exchanger_temp - const.ambient_temp
-    local temp_loss_day  = temp_loss_factor * temp_adj
+    local temp_loss_day  = storage.calc.temp_loss_x * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kW  = SETTING.panel_output_kW
@@ -494,6 +508,7 @@ end
 -- DEBUG "reset": Completely resets contents of storage.
 COMMAND_parameters.reset = function(pl)
     reset_panels_and_platforms()
+    update_variables()
     mPrint(pl, {
         "The storage table was reset!"
     })

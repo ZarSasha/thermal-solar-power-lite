@@ -41,12 +41,9 @@ local hr_panel_disconnection_sprites = {
 -- PROPERTIES -------------------------------------------------------------------------------------
 
 -- COMPATIBILITY for Pyanodon Coal Processing --
-local heat_capacity_kJ = 50
-if mods["pycoalprocessing"] then
-    -- Compensates for halved steam conversion efficiency:
-    heat_capacity_kJ = 100
-    -- Note: Runtime script also adapted for 250°C steam, if option is selected.
-end
+-- Compensates for halved steam conversion efficiency. Runtime script also adapted for 250°C steam,
+-- if option is selected.
+local heat_capacity_kJ = mods["pycoalprocessing"] and 100 or 50
 
 local ThermalPanel = {
 	type = "reactor",

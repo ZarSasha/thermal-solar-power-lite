@@ -1,4 +1,33 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.0
+Date: 2026-09-14
+  Minor Features:
+    - Created a new startup setting that allows change to the thermal panel heat loss coefficient.
+      This renders the optional adaptation for Pyanodon obsolete.
+  Changes:
+    - NB: Removed the optional part of the adaptation for Pyanodon! Read suggestions for mod
+      balancing on the info page instead.
+    - Updated names of settings and made them more unique with a prefix. Migrated.
+  Bugfixes:
+    - Pyanodons Coal Processing: Fixed broken adaptation.
+    - Quality Scaling: May have fixed possibly broken adaptation.
+    - Fixed migration script for v2.2.0 again.
+  Balancing:
+    - Increased default values of settings to better match production pr. area of solar panels.
+      Thermal heat output: 105kW -> 116kW, basic heat exchanger capacity: 1800kW -> 2100kW.
+      NB: The currently selected values won't change because of this, since they are player-owned.
+  Optimizations:
+    - Improved performance a bit by caching the results of some table lookups and calculations.
+  Info:
+    - Updated descriptions of settings.
+    - Added a migration script to notify players of the change to default settings.
+    - Pyanodons Coal Processing: Made thermal panel tooltip display the doubled heat output value.
+  Locales:
+    - Updated translations with DeepL.
+  Internal:
+    - Changed the way that storage table variables are initialized and updated.
+    - Tidied up, removed several unused functions, changed some names, updated many comments.
+---------------------------------------------------------------------------------------------------
 Version: 2.4.1
 Date: 2026-09-10
   Changes:

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
---  ┏┓┏┓┳┓┏┳┓┳┓┏┓┓ 
+--  ┏┓┏┓┳┓┏┳┓┳┓┏┓┓
 --  ┃ ┃┃┃┃ ┃ ┣┫┃┃┃     RUNTIME STAGE
 --  ┗┛┗┛┛┗ ┻ ┛┗┗┛┗┛
 ---------------------------------------------------------------------------------------------------
@@ -30,62 +30,67 @@ local panel_name_base = "tspl-thermal-solar-panel"
 -- Parameters related to timing of heat-generating script:
 local tick_interval  = 60 -- cycle length
 local reserved_ticks = 2  -- reserved for cycle reset scripts
-local tick_frequency = tick_interval / const.ticks_pr_sec
+local tick_frequency = tick_interval / const.ticks_pr_sec -- simple enough, won't cache
 
 -- Parameter related to time slicing used for heat-generating script:
 local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
 
 -- Parameters pertaining to the thermal solar panels:
-local heat_cap_kJ      = 50    -- default value, will not change
-local temp_loss_factor = 0.005 -- updated during startup
-local quality_scaling  = 0.15  -- updated during startup
-local base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
-local base_temp_loss   = temp_loss_factor * tick_frequency
+local heat_cap_kJ      = 50    -- default value, will not be changed
 
----------------------------------------------------------------------------------------------------
-    -- MOD PRESENCE CHECK & COMPATIBILITY
----------------------------------------------------------------------------------------------------
-
--- Checks for presence of mods through independent script (no need to tie to event).
-local ACTIVE_MODS = {
-    PY_COAL_PROCESSING   = script.active_mods["pycoalprocessing"],
-    MORE_QUALITY_SCALING = script.active_mods["more-quality-scaling"]
-}
-
--- Pyanodon Coal Processing:
-if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
-    -- Decreases heat loss rate to allow similar efficiency at 250°C (compared to 165°C).
-    -- Also accounts for doubled heat capacity of panels, which keeps temperatures higher
-    -- during night and thus slightly increases heat energy loss.
-    temp_loss_factor = 0.00314 -- "correct" value: 0.0031915
+local function calculate_base_temp_gain()
+    return (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ -- to be cached
 end
 
--- More Quality Scaling:
-if ACTIVE_MODS.MORE_QUALITY_SCALING and table_contains_value(
-    {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
-    -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
-    quality_scaling = 0
+---------------------------------------------------------------------------------------------------
+    -- MOD ADAPTATIONS
+---------------------------------------------------------------------------------------------------
+-- Sets values for certain parameters according to presence of mods:
+
+-- Chooses quality scaling:
+local function choose_quality_scaling()
+    if script.active_mods["more-quality-scaling"] and TableContainsValue(
+        {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
+        -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
+        return 0
+    else
+        return 0.15
+    end
+end
+
+-- Updates parameters influenced by other mods:
+local function update_mod_dependent_variables()
+    choose_quality_scaling()
 end
 
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
 ---------------------------------------------------------------------------------------------------
--- Values that are not easy or fast to recalculate on the spot should be stored so they can persist
--- through the save/load cycle.
+-- Values that are expensive to look up, recreate or recalculate are stored in the global "storage"
+-- table, which persists through ticks as well as the the save/load cycle.
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
-    if storage.panels               == nil then storage.panels               =             {} end
-    if storage.panels.main_register == nil then storage.panels.main_register =             {} end
-    if storage.panels.to_be_added   == nil then storage.panels.to_be_added   =             {} end
-    if storage.panels.removal_flag  == nil then storage.panels.removal_flag  =          false end
-    if storage.surfaces             == nil then storage.surfaces             =             {} end
-    if storage.surfaces.solar_mult  == nil then storage.surfaces.solar_mult  =             {} end
-    if storage.cycle                == nil then storage.cycle                =             {} end
-    if storage.cycle.batch_size     == nil then storage.cycle.batch_size     = min_batch_size end
-    if storage.cycle.progress       == nil then storage.cycle.progress       =              1 end
-    if storage.cycle.complete       == nil then storage.cycle.complete       =          false end
+    -- Data that change but must also persist through the save/load cycle:
+    storage.panels                 = storage.panels or {}
+    storage.panels.main_register   = storage.panels.main_register or {}
+    storage.panels.to_be_added     = storage.panels.to_be_added or {}
+    storage.panels.removal_flag    = storage.panels.removal_flag or false
+    storage.surfaces               = storage.surfaces or {}
+    storage.surfaces.solar_mult    = storage.surfaces.solar_mult or {}
+    storage.cycle                  = storage.cycle or {}
+    storage.cycle.batch_size       = storage.cycle.batch_size or min_batch_size
+    storage.cycle.progress         = storage.cycle.progress or 1
+    storage.cycle.complete         = storage.cycle.complete or false
+    -- Cached results of calculations based on settings or presence of mods:
+    storage.calc = {}
+    storage.calc.heat_loss_coeff   = SETTING.panel_heat_loss_coeff
+    storage.calc.quality_scaling   = choose_quality_scaling()
+    storage.calc.base_temp_gain    = calculate_base_temp_gain()
+    storage.calc.base_temp_loss    = storage.calc.heat_loss_coeff * tick_frequency
 end
+
+-- Development note: The tables won't be updated when the mod is directly overwritten!
 
 ---------------------------------------------------------------------------------------------------
     -- PANEL ENTITY REGISTRATION (ON_BUILT AND SIMILAR)
@@ -120,14 +125,14 @@ end
 -- that moves other entries up in one pass, to preserve contiguousness of the array.
 local function update_storage_panel_removals()
     if storage.panels.removal_flag == false then return end
-    array_remove_elements_by_filter(storage.panels.main_register, false)
+    ArrayRemoveElementsByFilter(storage.panels.main_register, false)
     storage.panels.removal_flag = false
 end
 
 -- Function to add new LuaEntity references to the end of the main register:
 local function update_storage_panel_additions()
     if next(storage.panels.to_be_added) == nil then return end
-    array_move_elements(storage.panels.main_register, storage.panels.to_be_added)
+    ArrayMoveElements(storage.panels.main_register, storage.panels.to_be_added)
 end
 
 -- Resets completion status for cycle, so it may restart.
@@ -178,7 +183,7 @@ end
     -- SURFACE REGISTRATION
 ---------------------------------------------------------------------------------------------------
 -- No real benefit to adding new surfaces upon creation, since the number of surfaces is so low.
--- Searching game.surfaces every cycle works perfectly fine.
+-- Searching game.surfaces every cycle works perfectly fine and has trivial performance impact.
 
 ---------------------------------------------------------------------------------------------------
     -- SURFACE DEREGISTRATION (ON_PRE_SURFACE_DELETED)
@@ -207,6 +212,9 @@ local function update_temperature_for_all_panels()
     local cycle      = storage.cycle        -- table reference
     local batch_size = cycle.batch_size     -- number copy
     local progress   = cycle.progress       -- number copy
+    local base_gain  = storage.calc.base_temp_gain
+    local base_loss  = storage.calc.base_temp_loss
+    local q_scaling  = storage.calc.quality_scaling
     for i = progress, progress + batch_size - 1 do
         local panel = register[i]
         if panel == nil then -- check relies on contiguousness of array
@@ -219,11 +227,11 @@ local function update_temperature_for_all_panels()
             goto continue
         end
         -- Calculates and applies temperature change to panel:
-        local q_factor    = 1 + (panel.quality.level * quality_scaling)
+        local q_factor    = 1 + (panel.quality.level * q_scaling)
         local light_corr  = (const.max_darkness - panel.surface.darkness) / const.max_darkness
         local sun_mult    = surfaces.solar_mult[panel.surface.name] -- no key -> crash
-        local temp_gain   = base_temp_gain * light_corr * sun_mult * q_factor
-        local temp_loss   = base_temp_loss * (panel.temperature - const.ambient_temp)
+        local temp_gain   = base_gain * light_corr * sun_mult * q_factor
+        local temp_loss   = base_loss * (panel.temperature - const.ambient_temp)
         panel.temperature = panel.temperature + temp_gain - temp_loss
         ::continue::
     end
@@ -272,7 +280,7 @@ end
 local panel_variants = {}
 
 -- Finds all panel variants (calculated by whatever function uses the variable right above).
-for name, prototype in pairs(prototypes.entity) do
+for name, _ in pairs(prototypes.entity) do
     if string.find(name, panel_name_base, 1, true) then
         table.insert(panel_variants, name)
     end
@@ -286,8 +294,7 @@ end
 
 -- Completely clears storage and rebuilds all content.
 local function reset_panels_and_platforms()
-    storage = {}
-    create_storage_table_keys()
+    clear_storage()
     for _, surface in pairs(game.surfaces) do
         for _, panel in pairs(surface.find_entities_filtered{name = panel_variants}) do
             table.insert(storage.panels.main_register, panel)
@@ -297,6 +304,10 @@ local function reset_panels_and_platforms()
     update_storage_cycle_batch_size()
     update_storage_surface_solar_power()
 end
+
+---------------------------------------------------------------------------------------------------
+-- UPDATING VARIABLES
+---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
     -- FINAL FUNCTION SETS AND SCRIPT EXECUTION
@@ -348,6 +359,7 @@ end)
 -- Function set to run on new save game, or load of save game that did not contain mod before.
 script.on_init(function()
     create_storage_table_keys()
+    update_mod_dependent_variables()
     reset_panels_and_platforms() -- *
     -- * Just in case a personal fork with a new name is loaded in the middle of a playthrough.
 end)
@@ -355,11 +367,11 @@ end)
 -- Function set to run on any change to startup settings or mods installed.
 script.on_configuration_changed(function()
     create_storage_table_keys()
-    update_storage_surface_solar_power()
+    update_mod_dependent_variables()
 end)
 
--- Note: Overwriting code of mod without changing its name or version may break the scripts, since
--- it's not a detectable event. Running the reset command provided below may help.
+-- Development note: Overwriting code of mod without changing its name or version may break the
+-- scripts, since it's not a detectable event. Running the reset command provided below may help.
 
 ---------------------------------------------------------------------------------------------------
 -- CONSOLE COMMANDS
@@ -390,7 +402,7 @@ end
 
 -- Colors text with custom hues that are easier to read than the in-built ones.
 local function clr(text, colorIndex)
-    colors = {"66B2FF", "FFB366", "FF6666"} -- blue, orange and red
+    local colors = {"66B2FF", "FFB366", "FF6666"} -- blue, orange and red
     return "[color=#"..colors[colorIndex].."]"..text.."[/color]"
 end
 
@@ -416,21 +428,21 @@ COMMAND_parameters.info = function(pl)
     local sun_mult       = storage.surfaces.solar_mult[pl.surface.name] -- no key -> crash
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / heat_cap_kJ) * sun_mult
-    local temp_adj       = SETTING.exchanger_temp - const.ambient_temp
-    local temp_loss_day  = temp_loss_factor * temp_adj
+    local temp_adj       = SETTING.exchanger_temp_target - const.ambient_temp
+    local temp_loss_day  = storage.calc.heat_loss_coeff * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
 
-    if ACTIVE_MODS.PY_COAL_PROCESSING and SETTING.select_mod == "Pyanodon" then
+    if script.active_mods["pycoalprocessing"] then
         panels_num = panels_num / 2 -- roughly accurate
     end
 
     local console = {}
 
     console.surface_name        = clr(pl.surface.name,2)
-    console.sun_mult            = clr(round_number(sun_mult * 100,2).."%",2)
+    console.sun_mult            = clr(RoundNumber(sun_mult * 100,2).."%",2)
 
     if daylength_sec ~= nil and daylength_sec > 0 then
         console.daylength_sec = clr(daylength_sec.." seconds",2)
@@ -439,15 +451,15 @@ COMMAND_parameters.info = function(pl)
     end
 
     if max_output_kW >= 0 then
-        console.panel_max_output_kW = clr(round_number(max_output_kW,2).."kW",2)
+        console.panel_max_output_kW = clr(RoundNumber(max_output_kW,2).."kW",2)
     else
-        console.panel_max_output_kW = clr(round_number(max_output_kW,2).."kW",3)
+        console.panel_max_output_kW = clr(RoundNumber(max_output_kW,2).."kW",3)
     end
 
-    console.panel_nom_output_kW = clr(round_number(nom_output_kW,2).."kW",2)
+    console.panel_nom_output_kW = clr(RoundNumber(nom_output_kW,2).."kW",2)
 
     if max_efficiency > 0 then
-        console.panels_ratio = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
+        console.panels_ratio = clr(RoundNumber(panels_num, 2),2).." : "..clr("1",2)
     else
         console.panels_ratio = clr("N/A",2)
         console.note = "NB: Power production is entirely impossible on this surface!"
@@ -483,6 +495,7 @@ end
 -- DEBUG "reset": Completely resets contents of storage.
 COMMAND_parameters.reset = function(pl)
     reset_panels_and_platforms()
+    update_mod_dependent_variables()
     mPrint(pl, {
         "The storage table was reset!"
     })
@@ -501,8 +514,8 @@ COMMAND_parameters.unlock = function(pl)
     local items, icons = {"tspl-thermal-solar-panel","tspl-thermal-solar-panel-large",
         "tspl-basic-heat-exchanger", "tspl-basic-heat-pipe"}, {}
     for _,item in pairs(items) do
-        pl.force.recipes[item].enabled=true
-        pl.force.recipes[item].hidden=false
+        pl.force.recipes[item].enabled = true
+        pl.force.recipes[item].hidden  = false
         table.insert(icons, "[img=item."..item.."]")
     end
     mPrint(pl, {
@@ -523,7 +536,7 @@ local function new_commands(command)
     local pl1 = game.get_player(command.player_index)
     if pl1 == nil then return end
     pl1.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-    if not table_contains_key(COMMAND_parameters, command.parameter) then
+    if not TableContainsKey(COMMAND_parameters, command.parameter) then
         mPrint(pl1, {"Write '/tspl help' for an overview of command parameters."})
         return
     end

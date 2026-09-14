@@ -21,7 +21,7 @@ if storage.tspl_thermal_panel_table ~= nil then
     for _, v in pairs(storage.tspl_thermal_panel_table) do
         table.insert(storage.panels.main, v)
     end
-    table_clear(storage.tspl_thermal_panel_table)
+    TableClear(storage.tspl_thermal_panel_table)
     storage.tspl_thermal_panel_table = nil
     log(
         "Migrated data from table: 'storage.tspl_thermal_panel_table' "
@@ -30,11 +30,9 @@ if storage.tspl_thermal_panel_table ~= nil then
 end
 
 -- Message to console:
-if script.active_mods[MOD_NAME].version == "2.2.0" then
-    game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-    game.print("  Regarding update to v2.2.0: It is recommended to read the changelog!")
-    game.print("  If panels don't work, please report the issue on the Mod Portal or on GitHub.")
-    game.print("  However, writing '/tspl reset' in the console should quickly resolve any issues.")
-end
+game.print("[color=acid]Thermal Solar Power (Lite):[/color]")
+game.print("  Regarding update to v2.2.0: It is recommended to read the changelog!")
+game.print("  If panels don't work, please report the issue on the Mod Portal or on GitHub.")
+game.print("  However, writing '/tspl reset' in the console should quickly resolve any issues.")
 
 ---------------------------------------------------------------------------------------------------

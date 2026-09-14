@@ -112,7 +112,7 @@ local BasicHeatEx = {
     name = "tspl-basic-heat-exchanger",
     icon = GRAPHICS_ICONS.."basic-heat-exchanger.png",
     localised_description = {
-        "entity-description.tspl-basic-heat-exchanger", tostring(SETTING.exchanger_temp)
+        "entity-description.tspl-basic-heat-exchanger", tostring(SETTING.exchanger_temp_target)
     },
     flags = {"placeable-neutral", "player-creation"},
     minable = {
@@ -132,7 +132,7 @@ local BasicHeatEx = {
     collision_box = {{-1.29, -0.79}, {1.29, 0.79}},
     selection_box = {{-1.5, -1}, {1.5, 1}},
     damaged_trigger_effect = hit_effects.entity(),
-    target_temperature = SETTING.exchanger_temp,
+    target_temperature = SETTING.exchanger_temp_target,
     fluid_box = {
         volume = 200,
         pipe_covers = pipecoverspictures(),
@@ -170,7 +170,7 @@ local BasicHeatEx = {
         max_temperature = 1000,
         specific_heat = "250kJ",
         max_transfer = "500MW",
-        min_working_temperature = SETTING.exchanger_temp,
+        min_working_temperature = SETTING.exchanger_temp_target,
         minimum_glow_temperature = 350,
         connections = {
             {

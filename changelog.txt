@@ -6,7 +6,7 @@ Date: 2026-09-14
       This renders the optional adaptation for Pyanodon obsolete.
   Changes:
     - NB: Removed adaptation for Pyanodon! Read suggestions for mod balancing on the mod's info
-      page instead. They make use of a new setting.
+      page instead.
     - NB: Updated names of settings and made them more unique with a prefix. Migrated.
   Bugfixes:
     - Pyanodons Coal Processing: Fixed broken adaptation, but also abandoned it!
@@ -15,12 +15,12 @@ Date: 2026-09-14
   Balancing:
     - Increased default values of settings to better match production pr. area of solar panels.
       Thermal heat output: 105kW -> 116kW, basic heat exchanger capacity: 1800kW -> 2100kW.
+      NB: The currently selected values won't change because of this, since they are player-owned.
   Scripting:
-    - Improved performance a bit by caching the results of some more lookups and calculations.
+    - Improved performance a bit by caching the results of some lookups and calculations.
   Info:
     - Updated descriptions of settings.
-    - Added a migration script to notify players of the change to default settings. NB: The values
-      of the settings won't change because of this, since they are player-owned.
+    - Added a migration script to notify players of the change to default settings.
     - Pyanodons Coal Processing: Made thermal panel tooltip display the doubled heat output value.
   Locale:
     - TODO: Updated translations with DeepL.

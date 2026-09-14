@@ -42,12 +42,13 @@ local hr_panel_disconnection_sprites = {
 
 -- COMPATIBILITY for Pyanodon Coal Processing --
 local heat_capacity_kJ = 50
-local energy_consumption_kW = (SETTING.panel_output_kW .. "kW")
+local energy_consumption_kW = SETTING.panel_output_kW
 if mods["pycoalprocessing"] then
     -- Compensates for halved steam conversion efficiency.
     heat_capacity_kJ = 100
     -- Properly displays nominal output in tooltip.
-    energy_consumption_kW = (SETTING.panel_output_kW * 2 .. "kW")
+    energy_consumption_kW = SETTING.panel_output_kW * 2
+
 end
 
 local ThermalPanel = {
@@ -67,7 +68,7 @@ local ThermalPanel = {
 	dying_explosion = "solar-panel-explosion",
     damaged_trigger_effect = hit_effects.entity(),
     impact_category = "metal",
-    consumption = energy_consumption_kW, -- mandatory property, must be greater than 0.
+    consumption = energy_consumption_kW .. "kW", -- mandatory property, must be greater than 0.
     energy_source = { -- mandatory property
 		type = "fluid",
 		fluid_box = {
@@ -149,7 +150,7 @@ ThermalPanelLarge.max_health = ThermalPanel.max_health * 9
 ThermalPanelLarge.minable = {mining_time = 0.25, result = "tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.corpse = "large-panel-remnants" -- custom remnants
 ThermalPanelLarge.dying_explosion = "large-panel-explosion" -- custom explosion
-ThermalPanelLarge.consumption = (SETTING.panel_output_kW * 9 .. "kW")
+ThermalPanelLarge.consumption = energy_consumption_kW .. "kW"
 ThermalPanelLarge.picture.layers[1] = hr_panel_l_sprite
 ThermalPanelLarge.picture.layers[2] = panel_l_shadow_sprite
 ThermalPanelLarge.heat_buffer.specific_heat = (heat_capacity_kJ * 9 .. "kJ")

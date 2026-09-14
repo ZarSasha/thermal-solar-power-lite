@@ -71,6 +71,7 @@ end
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
+    -- Data that change but must also persist through the save/load cycle:
     storage.panels                 = storage.panels or {}
     storage.panels.main_register   = storage.panels.main_register or {}
     storage.panels.to_be_added     = storage.panels.to_be_added or {}
@@ -81,15 +82,12 @@ local function create_storage_table_keys()
     storage.cycle.batch_size       = storage.cycle.batch_size or min_batch_size
     storage.cycle.progress         = storage.cycle.progress or 1
     storage.cycle.complete         = storage.cycle.complete or false
-    storage.calc                   = storage.calc or {}
-    storage.calc.heat_loss_coeff   = storage.calc.heat_loss_coeff or
-        SETTING.panel_heat_loss_coeff
-    storage.calc.quality_scaling   = storage.calc.quality_scaling or
-        choose_quality_scaling()
-    storage.calc.base_temp_gain    = storage.calc.base_temp_gain or
-        calculate_base_temp_gain()
-    storage.calc.base_temp_loss    = storage.calc.base_temp_loss or
-        storage.calc.heat_loss_coeff * tick_frequency
+    -- Cached results of calculations based on settings or presence of mods:
+    storage.calc = {}
+    storage.calc.heat_loss_coeff   = SETTING.panel_heat_loss_coeff
+    storage.calc.quality_scaling   = choose_quality_scaling()
+    storage.calc.base_temp_gain    = calculate_base_temp_gain()
+    storage.calc.base_temp_loss    = storage.calc.heat_loss_coeff * tick_frequency
 end
 
 -- Development note: The tables won't be updated when the mod is directly overwritten!
@@ -437,7 +435,7 @@ COMMAND_parameters.info = function(pl)
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
 
-    if script.active_mods["pycoalprocessing"] and SETTING.select_mod_adaptation == "Pyanodon" then
+    if script.active_mods["pycoalprocessing"] then
         panels_num = panels_num / 2 -- roughly accurate
     end
 

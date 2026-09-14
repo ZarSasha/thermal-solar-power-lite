@@ -1,18 +1,24 @@
 {
     "Lua.runtime.version": "Lua 5.2",
     "Lua.diagnostics.globals": [
-        "commands",
-        "data",
-        "defines",
-        "game",
-        "kg",
-        "log",
-        "mods",
-        "prototypes",
-        "script",
-        "serpent",
-        "settings",
-        "storage",
-        "util"
+      "data",
+      "util",
+      "defines",
+      "kg",
+      "settings",
+      "mods",
+      "script",
+      "game",
+      "prototypes",
+      "serpent",
+      "commands",
+      "log",
+      "apply_heat_pipe_glow",
+      "volume_multiplier",
+      "pipecoverspictures",
+      "make_4way_animation_from_spritesheet",
+      "circuit_connector_definitions",
+      "default_circuit_wire_max_distance",
+      "storage"
     ]
 }

@@ -43,12 +43,11 @@ local hr_panel_disconnection_sprites = {
 -- COMPATIBILITY for Pyanodon Coal Processing --
 local heat_capacity_kJ = 50
 local energy_consumption_kW = SETTING.panel_output_kW
-if mods["pycoalprocessing"] then
-    -- Compensates for halved steam conversion efficiency.
+if MOD.PY_COAL_PROCESSING then
+    -- Compensates for halved steam conversion efficiency:
     heat_capacity_kJ = 100
-    -- Properly displays nominal output in tooltip.
+    -- Properly displays nominal output in tooltip:
     energy_consumption_kW = SETTING.panel_output_kW * 2
-
 end
 
 local ThermalPanel = {

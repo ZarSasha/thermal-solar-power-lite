@@ -5,8 +5,8 @@ Date: 2026-09-14
     - Created a new startup setting that allows change to the thermal panel heat loss coefficient.
       This renders the optional adaptation for Pyanodon obsolete.
   Changes:
-    - NB: Removed adaptation for Pyanodon! Read suggestions for mod balancing on the mod's info
-      page instead.
+    - NB: Removed optional adaptation for Pyanodon! Read suggestions for mod balancing on my
+      mod's info page instead.
     - NB: Updated names of settings and made them more unique with a prefix. Migrated.
   Bugfixes:
     - Pyanodons Coal Processing: Fixed broken adaptation, but also abandoned it!

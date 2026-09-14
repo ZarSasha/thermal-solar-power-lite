@@ -150,7 +150,7 @@ ThermalPanelLarge.max_health = ThermalPanel.max_health * 9
 ThermalPanelLarge.minable = {mining_time = 0.25, result = "tspl-thermal-solar-panel-large"}
 ThermalPanelLarge.corpse = "large-panel-remnants" -- custom remnants
 ThermalPanelLarge.dying_explosion = "large-panel-explosion" -- custom explosion
-ThermalPanelLarge.consumption = energy_consumption_kW .. "kW"
+ThermalPanelLarge.consumption = energy_consumption_kW * 9 .. "kW"
 ThermalPanelLarge.picture.layers[1] = hr_panel_l_sprite
 ThermalPanelLarge.picture.layers[2] = panel_l_shadow_sprite
 ThermalPanelLarge.heat_buffer.specific_heat = (heat_capacity_kJ * 9 .. "kJ")

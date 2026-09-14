@@ -21,7 +21,7 @@ if storage.tspl_thermal_panel_table ~= nil then
     for _, v in pairs(storage.tspl_thermal_panel_table) do
         table.insert(storage.panels.main, v)
     end
-    table_clear(storage.tspl_thermal_panel_table)
+    TableClear(storage.tspl_thermal_panel_table)
     storage.tspl_thermal_panel_table = nil
     log(
         "Migrated data from table: 'storage.tspl_thermal_panel_table' "

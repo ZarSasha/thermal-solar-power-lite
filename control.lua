@@ -37,21 +37,20 @@ local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
 
 -- Parameters pertaining to the thermal solar panels:
 local heat_cap_kJ      = 50    -- default value, will not be changed
---local temp_loss_factor = 0.005 -- updated during startup,
---local quality_scaling  = 0.15  -- updated during startup
---local base_temp_gain   = (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
---local base_temp_loss   = temp_loss_factor * tick_frequency
 
 local function calculate_base_temp_gain()
     return (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
 end
 
 ---------------------------------------------------------------------------------------------------
-    -- MOD PRESENCE CHECK & COMPATIBILITY
+    -- MOD ADAPTATIONS
 ---------------------------------------------------------------------------------------------------
+-- Sets values for certain parameters according to presence of mods and what mod adaptation was
+-- chosen in the startup settings.
 
+-- Chooses temp loss coeficient:
 local function choose_temp_loss_factor()
-    if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+    if script.active_mods["pycoalprocessing"] and SETTING.select_mod_adaptation == "Pyanodon" then
         -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
         return 0.00314
     else
@@ -59,8 +58,9 @@ local function choose_temp_loss_factor()
     end
 end
 
+-- Chooses quality scaling:
 local function choose_quality_scaling()
-    if script.active_mods["more-quality-scaling"] and table_contains_value(
+    if script.active_mods["more-quality-scaling"] and TableContainsValue(
         {"capacity", "both"}, settings.startup["mqs-heat-changes"].value) then
         -- Nullifies quality scaling factor, since heat capacity scales instead (30% pr. level):
         return 0
@@ -69,6 +69,7 @@ local function choose_quality_scaling()
     end
 end
 
+-- Updates all parameters influenced by other mods:
 local function update_mod_dependent_variables()
     choose_temp_loss_factor()
     choose_quality_scaling()
@@ -77,12 +78,11 @@ end
 ---------------------------------------------------------------------------------------------------
     -- STORAGE TABLE CREATION (ON_INIT AND ON_CONFIGURATION_CHANGED)
 ---------------------------------------------------------------------------------------------------
--- Values that are not easy or fast to recalculate on the spot should be stored so they can persist
--- through the save/load cycle.
+-- Values that are expensive to look up, recreate or recalculate are stored in the global "storage"
+-- table, which persists through ticks as well as the the save/load cycle.
 
 -- Function to create variables for the storage table, if they do not yet exist.
 local function create_storage_table_keys()
-    --Processing of panels:
     storage.panels                 = storage.panels or {}
     storage.panels.main_register   = storage.panels.main_register or {}
     storage.panels.to_be_added     = storage.panels.to_be_added or {}
@@ -93,7 +93,6 @@ local function create_storage_table_keys()
     storage.cycle.batch_size       = storage.cycle.batch_size or min_batch_size
     storage.cycle.progress         = storage.cycle.progress or 1
     storage.cycle.complete         = storage.cycle.complete or false
-    --Calculations:
     storage.calc                   = storage.calc or {}
     storage.calc.temp_loss_x       = storage.calc.temp_loss_x or
         choose_temp_loss_factor()
@@ -105,7 +104,7 @@ local function create_storage_table_keys()
         storage.calc.temp_loss_x * tick_frequency
 end
 
--- Development note: The tables won't be updated when the mod is directly overwritten.
+-- Development note: The tables won't be updated when the mod is directly overwritten!
 
 ---------------------------------------------------------------------------------------------------
     -- PANEL ENTITY REGISTRATION (ON_BUILT AND SIMILAR)
@@ -140,14 +139,14 @@ end
 -- that moves other entries up in one pass, to preserve contiguousness of the array.
 local function update_storage_panel_removals()
     if storage.panels.removal_flag == false then return end
-    array_remove_elements_by_filter(storage.panels.main_register, false)
+    ArrayRemoveElementsByFilter(storage.panels.main_register, false)
     storage.panels.removal_flag = false
 end
 
 -- Function to add new LuaEntity references to the end of the main register:
 local function update_storage_panel_additions()
     if next(storage.panels.to_be_added) == nil then return end
-    array_move_elements(storage.panels.main_register, storage.panels.to_be_added)
+    ArrayMoveElements(storage.panels.main_register, storage.panels.to_be_added)
 end
 
 -- Resets completion status for cycle, so it may restart.
@@ -198,7 +197,7 @@ end
     -- SURFACE REGISTRATION
 ---------------------------------------------------------------------------------------------------
 -- No real benefit to adding new surfaces upon creation, since the number of surfaces is so low.
--- Searching game.surfaces every cycle works perfectly fine.
+-- Searching game.surfaces every cycle works perfectly fine and has trivial performance impact.
 
 ---------------------------------------------------------------------------------------------------
     -- SURFACE DEREGISTRATION (ON_PRE_SURFACE_DELETED)
@@ -443,21 +442,21 @@ COMMAND_parameters.info = function(pl)
     local sun_mult       = storage.surfaces.solar_mult[pl.surface.name] -- no key -> crash
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / heat_cap_kJ) * sun_mult
-    local temp_adj       = SETTING.exchanger_temp - const.ambient_temp
+    local temp_adj       = SETTING.exchanger_temp_target - const.ambient_temp
     local temp_loss_day  = storage.calc.temp_loss_x * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kW  = SETTING.panel_output_kW
     local panels_num     = SETTING.exchanger_output_kW / (max_output_kW)
 
-    if script.active_mods["pycoalprocessing"] and SETTING.select_mod == "Pyanodon" then
+    if script.active_mods["pycoalprocessing"] and SETTING.select_mod_adaptation == "Pyanodon" then
         panels_num = panels_num / 2 -- roughly accurate
     end
 
     local console = {}
 
     console.surface_name        = clr(pl.surface.name,2)
-    console.sun_mult            = clr(round_number(sun_mult * 100,2).."%",2)
+    console.sun_mult            = clr(RoundNumber(sun_mult * 100,2).."%",2)
 
     if daylength_sec ~= nil and daylength_sec > 0 then
         console.daylength_sec = clr(daylength_sec.." seconds",2)
@@ -466,15 +465,15 @@ COMMAND_parameters.info = function(pl)
     end
 
     if max_output_kW >= 0 then
-        console.panel_max_output_kW = clr(round_number(max_output_kW,2).."kW",2)
+        console.panel_max_output_kW = clr(RoundNumber(max_output_kW,2).."kW",2)
     else
-        console.panel_max_output_kW = clr(round_number(max_output_kW,2).."kW",3)
+        console.panel_max_output_kW = clr(RoundNumber(max_output_kW,2).."kW",3)
     end
 
-    console.panel_nom_output_kW = clr(round_number(nom_output_kW,2).."kW",2)
+    console.panel_nom_output_kW = clr(RoundNumber(nom_output_kW,2).."kW",2)
 
     if max_efficiency > 0 then
-        console.panels_ratio = clr(round_number(panels_num, 2),2).." : "..clr("1",2)
+        console.panels_ratio = clr(RoundNumber(panels_num, 2),2).." : "..clr("1",2)
     else
         console.panels_ratio = clr("N/A",2)
         console.note = "NB: Power production is entirely impossible on this surface!"
@@ -551,7 +550,7 @@ local function new_commands(command)
     local pl1 = game.get_player(command.player_index)
     if pl1 == nil then return end
     pl1.print("[color=acid]Thermal Solar Power (Lite):[/color]")
-    if not table_contains_key(COMMAND_parameters, command.parameter) then
+    if not TableContainsKey(COMMAND_parameters, command.parameter) then
         mPrint(pl1, {"Write '/tspl help' for an overview of command parameters."})
         return
     end

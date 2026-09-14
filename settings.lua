@@ -24,6 +24,15 @@ data:extend({
         maximum_value = 250, 	-- Max. output from original mod, already OP.
 		order = "b"
 	},
+	{-- 2. Configure thermal solar panel max. heat energy output within certain limits.
+        type = "double-setting",
+        name = "tspl-panel-heat-loss-coefficient",
+        setting_type = "startup", -- Make it global runtime? Don't like splitting things up.
+        default_value = 0.005,
+        minimum_value =     0,
+        maximum_value =     1,
+        order = "c"
+    },
 	{-- 3. Configure basic heat exchanger max. steam energy output in kW within certain limits.
 		type = "double-setting",
 		name = "tspl-exchanger-capacity-kW",
@@ -31,7 +40,7 @@ data:extend({
 		default_value = 2100,	-- Equals 70 units/s of 165°C steam.
         minimum_value = 1,
         maximum_value = 10000,	-- Equal to vanilla Heat Exchanger, but at lower temp.
-		order = "c"
+		order = "d"
 	},
 	{-- 4. Configure basic heat exchanger temperature target.
         type = "double-setting",
@@ -40,8 +49,8 @@ data:extend({
         default_value = 165,	-- Similar to Boiler.
         minimum_value = 100,    -- Water boiling point.
         maximum_value = 500,	-- Equal to vanilla Heat Exchanger.
-        order = "d"
-    },
+        order = "e"
+    }--[[,
 	{-- 5. Optionally provides some sort of adaptation for certain mods.
 		type = "string-setting",
 		name = "tspl-choose-mod-adaptation",
@@ -51,8 +60,8 @@ data:extend({
             "Default",
             "Pyanodon" -- Lowers heat loss to allow similarly efficient steam production at 250°C.
         },
-		order = "e"
-	}
+		order = "f"
+		}]]
 })
 
 -- NOTES ------------------------------------------------------------------------------------------

@@ -22,9 +22,10 @@ GRAPHICS_TECH = GRAPHICS.."tech/"
 SETTING = {
     exchanger_color       = settings.startup["tspl-exchanger-enable-color"      ].value,
     panel_output_kW       = settings.startup["tspl-panel-heat-generation-kW"    ].value,
+    panel_heat_loss_coeff = settings.startup["tspl-panel-heat-loss-coefficient" ].value,
     exchanger_output_kW   = settings.startup["tspl-exchanger-capacity-kW"       ].value,
     exchanger_temp_target = settings.startup["tspl-exchanger-temperature-target"].value,
-    select_mod_adaptation = settings.startup["tspl-choose-mod-adaptation"       ].value
+    --select_mod_adaptation = settings.startup["tspl-choose-mod-adaptation"       ].value
 }
 
 ---------------------------------------------------------------------------------------------------

@@ -23,7 +23,7 @@ Date: 2026-09-14
     - Added a migration script to notify players of the change to default settings.
     - Pyanodons Coal Processing: Made thermal panel tooltip display the doubled heat output value.
   Locale:
-    - TODO: Updated translations with DeepL.
+    - Updated translations with DeepL.
   Internal:
     - Changed the way that storage table variables are initialized and updated.
     - Changed a variable to be local.

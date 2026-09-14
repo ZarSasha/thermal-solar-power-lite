@@ -39,24 +39,13 @@ local min_batch_size = 3  -- 3 * 58 = 174 panels before batch size must increase
 local heat_cap_kJ      = 50    -- default value, will not be changed
 
 local function calculate_base_temp_gain()
-    return (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ
+    return (SETTING.panel_output_kW * tick_frequency) / heat_cap_kJ -- to be cached
 end
 
 ---------------------------------------------------------------------------------------------------
     -- MOD ADAPTATIONS
 ---------------------------------------------------------------------------------------------------
--- Sets values for certain parameters according to presence of mods and what mod adaptation was
--- chosen in the startup settings.
-
--- Chooses temp loss coeficient:
-local function choose_temp_loss_factor()
-    if script.active_mods["pycoalprocessing"] and SETTING.select_mod_adaptation == "Pyanodon" then
-        -- Lowers heat coefficient to allow equally efficient steam production at 250°C.
-        return 0.00314
-    else
-        return 0.005
-    end
-end
+-- Sets values for certain parameters according to presence of mods:
 
 -- Chooses quality scaling:
 local function choose_quality_scaling()
@@ -69,9 +58,8 @@ local function choose_quality_scaling()
     end
 end
 
--- Updates all parameters influenced by other mods:
+-- Updates parameters influenced by other mods:
 local function update_mod_dependent_variables()
-    choose_temp_loss_factor()
     choose_quality_scaling()
 end
 
@@ -94,14 +82,14 @@ local function create_storage_table_keys()
     storage.cycle.progress         = storage.cycle.progress or 1
     storage.cycle.complete         = storage.cycle.complete or false
     storage.calc                   = storage.calc or {}
-    storage.calc.temp_loss_x       = storage.calc.temp_loss_x or
-        choose_temp_loss_factor()
+    storage.calc.heat_loss_coeff   = storage.calc.heat_loss_coeff or
+        SETTING.panel_heat_loss_coeff
     storage.calc.quality_scaling   = storage.calc.quality_scaling or
         choose_quality_scaling()
     storage.calc.base_temp_gain    = storage.calc.base_temp_gain or
         calculate_base_temp_gain()
     storage.calc.base_temp_loss    = storage.calc.base_temp_loss or
-        storage.calc.temp_loss_x * tick_frequency
+        storage.calc.heat_loss_coeff * tick_frequency
 end
 
 -- Development note: The tables won't be updated when the mod is directly overwritten!
@@ -443,7 +431,7 @@ COMMAND_parameters.info = function(pl)
     local daylength_sec  = pl.surface.get_property("day-night-cycle")/60
     local temp_gain_day  = (SETTING.panel_output_kW / heat_cap_kJ) * sun_mult
     local temp_adj       = SETTING.exchanger_temp_target - const.ambient_temp
-    local temp_loss_day  = storage.calc.temp_loss_x * temp_adj
+    local temp_loss_day  = storage.calc.heat_loss_coeff * temp_adj
     local max_efficiency = (temp_gain_day - temp_loss_day) / temp_gain_day
     local max_output_kW  = SETTING.panel_output_kW * sun_mult * max_efficiency
     local nom_output_kW  = SETTING.panel_output_kW

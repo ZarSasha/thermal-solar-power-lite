@@ -25,7 +25,7 @@ SETTING = {
     panel_heat_loss_coeff = settings.startup["tspl-panel-heat-loss-coefficient" ].value,
     exchanger_output_kW   = settings.startup["tspl-exchanger-capacity-kW"       ].value,
     exchanger_temp_target = settings.startup["tspl-exchanger-temperature-target"].value,
-    --select_mod_adaptation = settings.startup["tspl-choose-mod-adaptation"       ].value
+    --select_mod_adaptation = settings.startup["tspl-mod-adaptation-notes"       ].value
 }
 
 ---------------------------------------------------------------------------------------------------

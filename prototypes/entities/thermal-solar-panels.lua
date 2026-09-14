@@ -41,12 +41,13 @@ local hr_panel_disconnection_sprites = {
 -- PROPERTIES -------------------------------------------------------------------------------------
 
 -- COMPATIBILITY for Pyanodon Coal Processing --
-
 local heat_capacity_kJ = 50
+local energy_consumption_kW = (SETTING.panel_output_kW .. "kW")
 if mods["pycoalprocessing"] then
-    -- Compensates for roughly halved steam conversion efficiency.
+    -- Compensates for halved steam conversion efficiency.
     heat_capacity_kJ = 100
-    -- Runtime script also adapted for 250°C steam, if option is selected.
+    -- Properly displays nominal output in tooltip.
+    energy_consumption_kW = (SETTING.panel_output_kW * 2 .. "kW")
 end
 
 local ThermalPanel = {
@@ -66,7 +67,7 @@ local ThermalPanel = {
 	dying_explosion = "solar-panel-explosion",
     damaged_trigger_effect = hit_effects.entity(),
     impact_category = "metal",
-    consumption = (SETTING.panel_output_kW .. "kW"), -- mandatory property, must be greater than 0.
+    consumption = energy_consumption_kW, -- mandatory property, must be greater than 0.
     energy_source = { -- mandatory property
 		type = "fluid",
 		fluid_box = {

@@ -1,6 +1,13 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2026-09-14
+  Major Features:
+    - Setting exchanger temperature target to less than 100°C now makes it instead produce hot
+      water! This can be supplied to a boiler, but it means that the thermal solar complex can
+      never replace more than about 56% of coal power.
+---------------------------------------------------------------------------------------------------
+Version: 2.5.0
+Date: 2026-09-14
   Minor Features:
     - Created a new startup setting that allows change to the thermal panel heat loss coefficient.
       This renders the optional adaptation for Pyanodon obsolete.

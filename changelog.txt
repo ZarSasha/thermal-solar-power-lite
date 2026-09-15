@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.0
-Date: 2026-09-14
+Date: 2026-09-15
   Major Features:
     - Setting exchanger temperature target to less than 100°C now makes it instead produce hot
       water! This can be supplied to a boiler, but it means that the thermal solar complex can

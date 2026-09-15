@@ -1,10 +1,19 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.6.0
-Date: 2026-09-15
+Date: 2026-09-16
   Major Features:
-    - Setting exchanger temperature target to less than 100°C now makes it instead produce hot
-      water! This can be supplied to a boiler, but it means that the thermal solar complex can
-      never replace more than about 56% of coal power.
+    - Setting the exchanger temperature target to less than 100°C now makes it produce hot water
+      instead of steam! This must then be supplied to a boiler, which in turn will have its fuel
+      consumption greatly reduced, but by no more than 56.67%.
+  Info:
+    - Added ai migration script informing the player of the new feature.
+    - TODO: Update descriptions of entities and settings.
+  Locales:
+    - TODO: Update translations.
+  Notes:
+    - Suggestions for hot water production: Configure settings to 97.5kW, 0.005, 1800kW, 95°C;
+      combine 21 panels with 1 exchanger, 1 boiler and 2 steam engines. Efficiently uses space and
+      resources to produce 1,800kW of power with 53.33% reduced fuel consumption.
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2026-09-14

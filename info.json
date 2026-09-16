@@ -4,7 +4,7 @@
     "title": "Thermal Solar Power (Lite)",
     "author": "ZarSasha, MarximusMaximus, CyberWizard2261, Caxx",
     "license": "MIT",
-    "description": "Streamlined fork of Thermal Solar Power by MarximusMaximus and others. Contains the basic thermal solar panel (+ large version for better performance), heat exchanger & heat pipe. A new heat loss mechanism has been added, along with various features, visual updates, settings and new mod compat. The mod is carefully balanced for vanilla, but can be configured.",
+    "description": "Streamlined fork of the mod \"Thermal Solar Power\" by MarximusMaximus and others. Lets you build a thermal solar complex that can output either steam directly or just hot water, for fully or partially renewable power production. The mod incorporates a heat loss mechanism, is highly configurable and has been adapted for Space Age.",
     "homepage": "",
     "factorio_version": "2.1",
     "dependencies": [

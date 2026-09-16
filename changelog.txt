@@ -6,6 +6,7 @@ Date: 2026-09-16
       instead of steam! This should be supplied to a boiler, which in turn will have its fuel
       consumption reduced, but by no more than 56.67%.
   Info:
+    - Updated mod description.
     - Added a migration script informing the player of the new feature.
     - TODO: Update descriptions of entities and settings, accounting for whether steam or hot water
       is produced.

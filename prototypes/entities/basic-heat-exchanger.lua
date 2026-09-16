@@ -109,8 +109,10 @@ end
 
 --
 local fluid_output = "steam"
+local fluid_mult   = 10
 if SETTING.exchanger_temp_target < 100 then
     fluid_output = "water"
+    fluid_mult = 1
 end
 
 local BasicHeatEx = {

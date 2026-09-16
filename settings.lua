@@ -47,7 +47,7 @@ data:extend({
         name = "tspl-exchanger-temperature-target",
         setting_type = "startup",
         default_value = 165,	-- Similar to Boiler.
-        minimum_value = 100,    -- Water boiling point.
+        minimum_value = 15,     -- Values less than 100 outputs hot water instead of steam!
         maximum_value = 500,	-- Equal to vanilla Heat Exchanger.
         order = "e"
     }

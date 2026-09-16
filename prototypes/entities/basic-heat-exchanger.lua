@@ -107,12 +107,19 @@ end
 
 -- PROPERTIES -------------------------------------------------------------------------------------
 
+-- Selects output (water or steam) according to target temperature:
+local fluid_output = "steam"
+if SETTING.exchanger_temp_target < 100 then
+    fluid_output = "water"
+end
+
 local BasicHeatEx = {
     type = "boiler",
     name = "tspl-basic-heat-exchanger",
     icon = GRAPHICS_ICONS.."basic-heat-exchanger.png",
     localised_description = {
-        "entity-description.tspl-basic-heat-exchanger", tostring(SETTING.exchanger_temp_target)
+        "entity-description.tspl-basic-heat-exchanger-"..fluid_output,
+        tostring(SETTING.exchanger_temp_target)
     },
     flags = {"placeable-neutral", "player-creation"},
     minable = {
@@ -162,9 +169,9 @@ local BasicHeatEx = {
             }
         },
         production_type = "output",
-        filter = "steam"
+        filter = fluid_output
     },
-    energy_consumption = SETTING.exchanger_output_kW .. "kW", -- default: "1800kW"
+    energy_consumption = SETTING.exchanger_output_kW .. "kW", -- default: "2100kW"
     energy_source = {
         type = "heat",
         max_temperature = 1000,

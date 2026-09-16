@@ -1,4 +1,25 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.6.0
+Date: 2026-09-16
+  Major Features:
+    - Setting the exchanger temperature target to less than 100°C now makes it produce hot water
+      instead of steam! This should be supplied to a boiler, which in turn will have its fuel
+      consumption reduced, but by no more than 56.67%.
+  Balancing:
+    - Slightly reduced cost of recipes for the thermal solar panel and basic heat exchanger.
+  Info:
+    - Updated mod description.
+    - Added a migration script informing the player of the new feature.
+    - Updated descriptions of entities and settings, accounting for whether steam or hot water
+      is produced.
+  Locales:
+    - Updated German and Chinese translations with DeepL.
+  Notes:
+    - Suggestions for hot water production: Configure settings to 98.5kW, 0.005, 1800kW and 95°C;
+      combine 21 panels with 1 exchanger, 1 tiny storage tank from a mod, 1 boiler and 2 steam
+      engines. Makes efficient use of space and resources to produce up to 1,800kW of power with
+      53.33% reduced fuel consumption.
+---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2026-09-14
   Minor Features:

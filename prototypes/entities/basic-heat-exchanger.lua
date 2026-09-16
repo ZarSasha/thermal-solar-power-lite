@@ -107,12 +107,10 @@ end
 
 -- PROPERTIES -------------------------------------------------------------------------------------
 
---
+-- Selects output (water or steam) according to target temperature:
 local fluid_output = "steam"
-local fluid_mult   = 10
 if SETTING.exchanger_temp_target < 100 then
     fluid_output = "water"
-    fluid_mult = 1
 end
 
 local BasicHeatEx = {
@@ -120,7 +118,8 @@ local BasicHeatEx = {
     name = "tspl-basic-heat-exchanger",
     icon = GRAPHICS_ICONS.."basic-heat-exchanger.png",
     localised_description = {
-        "entity-description.tspl-basic-heat-exchanger", tostring(SETTING.exchanger_temp_target)
+        "entity-description.tspl-basic-heat-exchanger-"..fluid_output,
+        tostring(SETTING.exchanger_temp_target)
     },
     flags = {"placeable-neutral", "player-creation"},
     minable = {

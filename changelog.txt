@@ -8,10 +8,10 @@ Date: 2026-09-16
   Info:
     - Updated mod description.
     - Added a migration script informing the player of the new feature.
-    - TODO: Update descriptions of entities and settings, accounting for whether steam or hot water
+    - Updated descriptions of entities and settings, accounting for whether steam or hot water
       is produced.
   Locales:
-    - TODO: Update translations.
+    - Updated German and Chinese translations with DeepL.
   Notes:
     - Suggestions for hot water production: Configure settings to 98.5kW, 0.005, 1800kW and 95°C;
       combine 21 panels with 1 exchanger, 1 tiny storage tank from a mod, 1 boiler and 2 steam

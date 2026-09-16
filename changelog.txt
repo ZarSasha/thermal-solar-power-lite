@@ -5,6 +5,8 @@ Date: 2026-09-16
     - Setting the exchanger temperature target to less than 100°C now makes it produce hot water
       instead of steam! This should be supplied to a boiler, which in turn will have its fuel
       consumption reduced, but by no more than 56.67%.
+  Balancing:
+    - Sligtly reduced cost of recipes for the thermal solar panel and basic heat exchanger.
   Info:
     - Updated mod description.
     - Added a migration script informing the player of the new feature.

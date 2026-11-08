@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.6.1
+Date: 2026-11-08
+  Localisation:
+    - Fixed that comments where left on many entries of the Chinese translation. Apparently, the
+      comment sign only works at the start of a line!
+  Info:
+    - Removed old migration messages that are no longer needed.
+---------------------------------------------------------------------------------------------------
 Version: 2.6.0
 Date: 2026-09-16
   Major Features:

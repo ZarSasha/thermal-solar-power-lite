@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.6.1
-Date: 2026-10-08
+Date: 2026-11-08
   Localisation:
     - Fixed that comments where left on many entries of the Chinese translation. Apparently, the
       comment sign only works at the start of a line!
